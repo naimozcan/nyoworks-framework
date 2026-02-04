@@ -73,14 +73,14 @@ const VALID_ROLES = ["lead", "architect", "designer", "backend", "frontend", "da
 const ALL_FEATURES = ["payments", "appointments", "inventory", "crm", "cms", "ecommerce", "analytics", "notifications", "audit", "export", "realtime"]
 
 const BIBLE_ROLE_MAPPING: Record<string, string[]> = {
-  lead: ["00-MASTER", "01-VISION", "99-TRACKING"],
-  architect: ["00-MASTER", "03-DATA", "05-TECH"],
-  designer: ["06-UX"],
-  backend: ["03-DATA", "05-TECH"],
-  frontend: ["06-UX"],
-  data: ["03-DATA"],
-  qa: ["99-TRACKING"],
-  devops: ["05-TECH"],
+  lead: ["product", "_tracking"],
+  architect: ["product", "data", "api", "infra"],
+  designer: ["ui"],
+  backend: ["features", "data", "api"],
+  frontend: ["features", "ui"],
+  data: ["data"],
+  qa: ["quality", "features"],
+  devops: ["infra"],
 }
 
 const PHASE_ORDER: Record<string, number> = {
@@ -454,6 +454,43 @@ const toolHandlers: Record<string, (args: Record<string, unknown>) => unknown> =
     return { decisions: state.decisions }
   },
 
+  sync_bible_decisions: () => {
+    loadState()
+    const decisionsPath = join(process.cwd(), "docs", "bible", "DECISIONS.md")
+
+    if (!existsSync(decisionsPath)) {
+      return { success: false, error: "DECISIONS.md not found at docs/bible/DECISIONS.md" }
+    }
+
+    const content = readFileSync(decisionsPath, "utf-8")
+    const parsedDecisions = parseDecisionsFromMarkdown(content)
+
+    const existingIds = new Set(state.decisions.map((d) => d.id))
+    let added = 0
+    let updated = 0
+
+    for (const decision of parsedDecisions) {
+      const existingIndex = state.decisions.findIndex((d) => d.id === decision.id)
+      if (existingIndex >= 0) {
+        state.decisions[existingIndex] = { ...state.decisions[existingIndex], ...decision }
+        updated++
+      } else {
+        state.decisions.push(decision)
+        added++
+      }
+    }
+
+    saveState()
+
+    return {
+      success: true,
+      total: parsedDecisions.length,
+      added,
+      updated,
+      decisions: state.decisions.map((d) => ({ id: d.id, title: d.title })),
+    }
+  },
+
   log_activity: ({ agent, action, details = "" }) => {
     const entry: ActivityLog = {
       timestamp: new Date().toISOString(),
@@ -470,6 +507,42 @@ const toolHandlers: Record<string, (args: Record<string, unknown>) => unknown> =
     loadState()
     const logs = state.activityLog.slice(-(limit as number))
     return { logs, total: state.activityLog.length }
+  },
+
+  get_error_log: ({ limit = 20 }) => {
+    loadState()
+    const errorLogs = state.activityLog.filter((log) => log.action.includes("error") || log.action.includes("fail"))
+    return { errors: errorLogs.slice(-(limit as number)), total: errorLogs.length }
+  },
+
+  clear_error_log: () => {
+    loadState()
+    const beforeCount = state.activityLog.length
+    state.activityLog = state.activityLog.filter((log) => !log.action.includes("error") && !log.action.includes("fail"))
+    const removed = beforeCount - state.activityLog.length
+    saveState()
+    return { success: true, removed }
+  },
+
+  heartbeat: ({ agentRole, taskId }) => {
+    loadState()
+
+    if (taskId && state.taskLocks[taskId as string]) {
+      const lock = state.taskLocks[taskId as string]
+      if (lock.agentRole === agentRole) {
+        const now = new Date()
+        const expires = new Date(now.getTime() + TASK_LOCK_TIMEOUT_MINUTES * 60 * 1000)
+        lock.expiresAt = expires.toISOString()
+        saveState()
+        return { success: true, lockRefreshed: true, expiresAt: expires.toISOString() }
+      }
+    }
+
+    if (state.agents[agentRole as string]) {
+      state.agents[agentRole as string].status = "active"
+    }
+
+    return { success: true, lockRefreshed: false, agent: agentRole }
   },
 
   get_bible_status: () => {
@@ -756,6 +829,61 @@ const toolHandlers: Record<string, (args: Record<string, unknown>) => unknown> =
 // ─────────────────────────────────────────────────────────────────────────────
 // Phase Validation Helper
 // ─────────────────────────────────────────────────────────────────────────────
+
+function parseDecisionsFromMarkdown(content: string): Decision[] {
+  const decisions: Decision[] = []
+  const lines = content.split("\n")
+
+  let currentDecision: Partial<Decision> | null = null
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+
+    const headerMatch = line.match(/^###\s+(P-\d+|T-\d+|B-\d+):\s+(.+)$/)
+    if (headerMatch) {
+      if (currentDecision && currentDecision.id) {
+        decisions.push({
+          id: currentDecision.id,
+          title: currentDecision.title || "",
+          description: currentDecision.description || "",
+          rationale: currentDecision.rationale || "",
+          createdAt: new Date().toISOString(),
+        })
+      }
+      currentDecision = {
+        id: headerMatch[1],
+        title: headerMatch[2].trim(),
+      }
+      continue
+    }
+
+    if (currentDecision) {
+      const decisionMatch = line.match(/^-\s+\*\*Decision\*\*:\s+(.+)$/)
+      if (decisionMatch) {
+        currentDecision.description = decisionMatch[1].trim()
+        continue
+      }
+
+      const rationaleMatch = line.match(/^-\s+\*\*Rationale\*\*:\s+(.+)$/)
+      if (rationaleMatch) {
+        currentDecision.rationale = rationaleMatch[1].trim()
+        continue
+      }
+    }
+  }
+
+  if (currentDecision && currentDecision.id) {
+    decisions.push({
+      id: currentDecision.id,
+      title: currentDecision.title || "",
+      description: currentDecision.description || "",
+      rationale: currentDecision.rationale || "",
+      createdAt: new Date().toISOString(),
+    })
+  }
+
+  return decisions
+}
 
 function runPhaseValidation(check: string): { check: string; passed: boolean; message: string } {
   const cwd = process.cwd()
@@ -1053,6 +1181,11 @@ const tools = [
     inputSchema: { type: "object" as const, properties: {} },
   },
   {
+    name: "sync_bible_decisions",
+    description: "Parse DECISIONS.md and sync all decisions to MCP state. Run this to import all P-xxx, T-xxx, B-xxx decisions from Bible.",
+    inputSchema: { type: "object" as const, properties: {} },
+  },
+  {
     name: "log_activity",
     description: "Log an agent activity for audit trail",
     inputSchema: {
@@ -1071,6 +1204,31 @@ const tools = [
     inputSchema: {
       type: "object" as const,
       properties: { limit: { type: "number" } },
+    },
+  },
+  {
+    name: "get_error_log",
+    description: "Get recent error logs for debugging",
+    inputSchema: {
+      type: "object" as const,
+      properties: { limit: { type: "number" } },
+    },
+  },
+  {
+    name: "clear_error_log",
+    description: "Clear all error logs",
+    inputSchema: { type: "object" as const, properties: {} },
+  },
+  {
+    name: "heartbeat",
+    description: "Send heartbeat to keep task lock alive and update agent status",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        agentRole: { type: "string", description: "Agent role sending heartbeat" },
+        taskId: { type: "string", description: "Optional task ID to refresh lock" },
+      },
+      required: ["agentRole"],
     },
   },
   {
