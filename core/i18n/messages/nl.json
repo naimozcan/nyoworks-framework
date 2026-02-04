@@ -1,0 +1,93 @@
+{
+  "common": {
+    "loading": "Laden...",
+    "save": "Opslaan",
+    "cancel": "Annuleren",
+    "delete": "Verwijderen",
+    "edit": "Bewerken",
+    "create": "Aanmaken",
+    "update": "Bijwerken",
+    "search": "Zoeken",
+    "filter": "Filteren",
+    "export": "Exporteren",
+    "import": "Importeren",
+    "confirm": "Bevestigen",
+    "back": "Terug",
+    "next": "Volgende",
+    "previous": "Vorige",
+    "yes": "Ja",
+    "no": "Nee",
+    "all": "Alle",
+    "none": "Geen",
+    "or": "of",
+    "and": "en"
+  },
+  "auth": {
+    "login": "Inloggen",
+    "logout": "Uitloggen",
+    "register": "Registreren",
+    "forgotPassword": "Wachtwoord vergeten?",
+    "resetPassword": "Wachtwoord resetten",
+    "email": "E-mail",
+    "password": "Wachtwoord",
+    "confirmPassword": "Wachtwoord bevestigen",
+    "rememberMe": "Onthoud mij",
+    "createAccount": "Account aanmaken",
+    "alreadyHaveAccount": "Heb je al een account?",
+    "dontHaveAccount": "Nog geen account?",
+    "invalidCredentials": "Ongeldige e-mail of wachtwoord",
+    "emailRequired": "E-mail is verplicht",
+    "passwordRequired": "Wachtwoord is verplicht"
+  },
+  "errors": {
+    "generic": "Er is iets misgegaan",
+    "notFound": "Niet gevonden",
+    "unauthorized": "Niet geautoriseerd",
+    "forbidden": "Toegang geweigerd",
+    "validation": "Validatiefout",
+    "networkError": "Netwerkfout",
+    "serverError": "Serverfout"
+  },
+  "validation": {
+    "required": "Dit veld is verplicht",
+    "email": "Voer een geldig e-mailadres in",
+    "minLength": "Moet minimaal {min} tekens zijn",
+    "maxLength": "Mag maximaal {max} tekens zijn",
+    "passwordMismatch": "Wachtwoorden komen niet overeen"
+  },
+  "users": {
+    "title": "Gebruikers",
+    "addUser": "Gebruiker toevoegen",
+    "editUser": "Gebruiker bewerken",
+    "deleteUser": "Gebruiker verwijderen",
+    "name": "Naam",
+    "email": "E-mail",
+    "role": "Rol",
+    "status": "Status",
+    "lastLogin": "Laatste login",
+    "createdAt": "Aangemaakt",
+    "active": "Actief",
+    "inactive": "Inactief",
+    "deleted": "Verwijderd"
+  },
+  "roles": {
+    "title": "Rollen",
+    "owner": "Eigenaar",
+    "admin": "Beheerder",
+    "member": "Lid"
+  },
+  "settings": {
+    "title": "Instellingen",
+    "general": "Algemeen",
+    "profile": "Profiel",
+    "security": "Beveiliging",
+    "notifications": "Meldingen",
+    "appearance": "Uiterlijk",
+    "language": "Taal",
+    "theme": "Thema",
+    "timezone": "Tijdzone",
+    "darkMode": "Donkere modus",
+    "lightMode": "Lichte modus",
+    "systemMode": "Systeem"
+  }
+}

@@ -1,0 +1,93 @@
+{
+  "common": {
+    "loading": "Yükleniyor...",
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "delete": "Sil",
+    "edit": "Düzenle",
+    "create": "Oluştur",
+    "update": "Güncelle",
+    "search": "Ara",
+    "filter": "Filtrele",
+    "export": "Dışa Aktar",
+    "import": "İçe Aktar",
+    "confirm": "Onayla",
+    "back": "Geri",
+    "next": "İleri",
+    "previous": "Önceki",
+    "yes": "Evet",
+    "no": "Hayır",
+    "all": "Tümü",
+    "none": "Hiçbiri",
+    "or": "veya",
+    "and": "ve"
+  },
+  "auth": {
+    "login": "Giriş Yap",
+    "logout": "Çıkış Yap",
+    "register": "Kayıt Ol",
+    "forgotPassword": "Şifremi unuttum",
+    "resetPassword": "Şifre sıfırla",
+    "email": "E-posta",
+    "password": "Şifre",
+    "confirmPassword": "Şifre tekrar",
+    "rememberMe": "Beni hatırla",
+    "createAccount": "Hesap oluştur",
+    "alreadyHaveAccount": "Zaten hesabınız var mı?",
+    "dontHaveAccount": "Hesabınız yok mu?",
+    "invalidCredentials": "Geçersiz e-posta veya şifre",
+    "emailRequired": "E-posta gerekli",
+    "passwordRequired": "Şifre gerekli"
+  },
+  "errors": {
+    "generic": "Bir hata oluştu",
+    "notFound": "Bulunamadı",
+    "unauthorized": "Yetkisiz erişim",
+    "forbidden": "Erişim reddedildi",
+    "validation": "Doğrulama hatası",
+    "networkError": "Ağ hatası",
+    "serverError": "Sunucu hatası"
+  },
+  "validation": {
+    "required": "Bu alan zorunludur",
+    "email": "Geçerli bir e-posta adresi girin",
+    "minLength": "En az {min} karakter olmalı",
+    "maxLength": "En fazla {max} karakter olmalı",
+    "passwordMismatch": "Şifreler eşleşmiyor"
+  },
+  "users": {
+    "title": "Kullanıcılar",
+    "addUser": "Kullanıcı ekle",
+    "editUser": "Kullanıcı düzenle",
+    "deleteUser": "Kullanıcı sil",
+    "name": "İsim",
+    "email": "E-posta",
+    "role": "Rol",
+    "status": "Durum",
+    "lastLogin": "Son giriş",
+    "createdAt": "Oluşturulma",
+    "active": "Aktif",
+    "inactive": "Pasif",
+    "deleted": "Silinmiş"
+  },
+  "roles": {
+    "title": "Roller",
+    "owner": "Sahip",
+    "admin": "Yönetici",
+    "member": "Üye"
+  },
+  "settings": {
+    "title": "Ayarlar",
+    "general": "Genel",
+    "profile": "Profil",
+    "security": "Güvenlik",
+    "notifications": "Bildirimler",
+    "appearance": "Görünüm",
+    "language": "Dil",
+    "theme": "Tema",
+    "timezone": "Saat dilimi",
+    "darkMode": "Karanlık mod",
+    "lightMode": "Aydınlık mod",
+    "systemMode": "Sistem"
+  }
+}

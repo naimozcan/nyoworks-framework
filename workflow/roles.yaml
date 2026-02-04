@@ -1,0 +1,605 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# NYOWORKS Framework - Agent Roles Configuration
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# This file defines all AI agent roles with:
+# - Capabilities and responsibilities
+# - Bible section access
+# - Context limits and phase assignments
+# - MCP tool permissions
+#
+# ═══════════════════════════════════════════════════════════════════════════════
+
+roles:
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Project Lead - Orchestration & Management
+  # ═══════════════════════════════════════════════════════════════════════════
+  - id: lead
+    name: Project Lead
+    description: Orchestrates workflow, manages tasks, ensures quality across all phases
+    command: /lead
+    icon: "🎯"
+    bible_sections:
+      auto_load:
+        - 00-MASTER/INDEX.md
+        - 00-MASTER/DECISIONS.md
+        - 01-VISION/
+        - 99-TRACKING/GAPS.md
+        - 99-TRACKING/IMPLEMENTATION_STATUS.md
+      on_demand:
+        - "*"  # Can access any section
+    max_context_tokens: 32000
+    capabilities:
+      - Create and assign tasks
+      - Advance workflow phases
+      - Force unlock any task
+      - Record decisions in DECISIONS.md
+      - Review all deliverables
+      - Approve phase transitions
+      - Rollback phases when needed
+    mcp_tools:
+      allowed:
+        - init_project
+        - get_status
+        - set_phase
+        - create_task
+        - update_task
+        - claim_task
+        - release_task
+        - force_release_task
+        - get_all_locks
+        - record_decision
+        - list_features
+        - enable_feature
+        - disable_feature
+        - log_activity
+        - get_activity_log
+        - validate_phase_transition
+      restricted: []
+    active_in_all_phases: true
+    can_override_locks: true
+    language:
+      chat: tr  # Turkish responses
+      code: en  # English code
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # System Architect - Design & Contracts
+  # ═══════════════════════════════════════════════════════════════════════════
+  - id: architect
+    name: System Architect
+    description: Designs systems, schemas, and API contracts
+    command: /architect
+    icon: "🏗️"
+    bible_sections:
+      auto_load:
+        - 00-MASTER/DECISIONS.md
+        - 03-DATA/01-schema.md
+        - 05-TECH/01-architecture.md
+        - 05-TECH/03-api-routes.md
+      on_demand:
+        - 02-USERS/
+        - 07-EDGE/
+    max_context_tokens: 24000
+    capabilities:
+      - Design database schemas
+      - Define API contracts
+      - Make technical decisions
+      - Review architecture
+      - Document security model
+      - Define data relationships
+    mcp_tools:
+      allowed:
+        - get_status
+        - create_task
+        - claim_task
+        - release_task
+        - record_decision
+        - get_bible_section
+        - log_activity
+      restricted:
+        - set_phase
+        - force_release_task
+    active_phases:
+      - ARCHITECTURE
+      - PLANNING
+    language:
+      chat: tr
+      code: en
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # UI/UX Designer - Interface & Experience
+  # ═══════════════════════════════════════════════════════════════════════════
+  - id: designer
+    name: UI/UX Designer
+    description: Designs user interfaces, components, and experiences
+    command: /designer
+    icon: "🎨"
+    bible_sections:
+      auto_load:
+        - 06-UX/01-user-flows.md
+        - 06-UX/02-ui-specifications.md
+        - 06-UX/06-design-themes.md
+      on_demand:
+        - 06-UX/
+        - 01-VISION/
+    max_context_tokens: 16000
+    capabilities:
+      - Design UI components (shadcn/ui)
+      - Create user flow diagrams
+      - Define design system tokens
+      - Ensure WCAG 2.1 AA compliance
+      - Create responsive layouts
+      - Design dark/light themes
+    mcp_tools:
+      allowed:
+        - get_status
+        - claim_task
+        - release_task
+        - get_bible_section
+        - log_activity
+      restricted:
+        - set_phase
+        - create_task
+    active_phases:
+      - DESIGN
+      - FRONTEND
+    tech_stack:
+      components: shadcn/ui + Radix
+      styling: Tailwind CSS 4
+      animations: Framer Motion
+      icons: Lucide React
+    language:
+      chat: tr
+      code: en
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Backend Developer - API & Business Logic
+  # ═══════════════════════════════════════════════════════════════════════════
+  - id: backend
+    name: Backend Developer
+    description: Implements APIs, business logic, and database operations
+    command: /backend
+    icon: "⚙️"
+    bible_sections:
+      auto_load:
+        - 03-DATA/01-schema.md
+        - 05-TECH/03-api-routes.md
+      on_demand:
+        - 03-FEATURES/  # Only enabled features
+        - 05-TECH/
+    max_context_tokens: 16000
+    capabilities:
+      - Implement API endpoints (Hono)
+      - Write business logic
+      - Create unit tests (Vitest)
+      - Handle database operations (Drizzle)
+      - Implement authentication
+      - Write input validation (Zod)
+    mcp_tools:
+      allowed:
+        - get_status
+        - claim_task
+        - release_task
+        - get_bible_section
+        - list_features
+        - log_activity
+      restricted:
+        - set_phase
+        - create_task
+        - enable_feature
+    active_phases:
+      - BACKEND
+      - QA
+    tech_stack:
+      framework: Hono
+      database: Drizzle ORM + PostgreSQL
+      validation: Zod
+      testing: Vitest
+      auth: JWT (jose) + Argon2id
+    language:
+      chat: tr
+      code: en
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Frontend Developer - UI Implementation
+  # ═══════════════════════════════════════════════════════════════════════════
+  - id: frontend
+    name: Frontend Developer
+    description: Builds user interfaces and client-side interactions
+    command: /frontend
+    icon: "🖥️"
+    bible_sections:
+      auto_load:
+        - 06-UX/02-ui-specifications.md
+        - 06-UX/06-design-themes.md
+      on_demand:
+        - 06-UX/
+        - 03-FEATURES/  # Only enabled features
+    max_context_tokens: 16000
+    capabilities:
+      - Create React components
+      - Implement Server Actions
+      - Handle i18n (next-intl)
+      - Implement theming
+      - Build responsive layouts
+      - Integrate with API
+    mcp_tools:
+      allowed:
+        - get_status
+        - claim_task
+        - release_task
+        - get_bible_section
+        - list_features
+        - log_activity
+      restricted:
+        - set_phase
+        - create_task
+    active_phases:
+      - FRONTEND
+      - QA
+    tech_stack:
+      framework: Next.js 16 (App Router)
+      react: 19.x
+      styling: Tailwind CSS 4
+      components: shadcn/ui
+      state: TanStack Query v5
+      forms: React Hook Form + Zod
+      i18n: next-intl
+    language:
+      chat: tr
+      code: en
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Database Engineer - Data Architecture
+  # ═══════════════════════════════════════════════════════════════════════════
+  - id: data
+    name: Database Engineer
+    description: Designs and optimizes data models and queries
+    command: /data
+    icon: "🗄️"
+    bible_sections:
+      auto_load:
+        - 03-DATA/01-schema.md
+        - 03-DATA/02-relationships.md
+      on_demand:
+        - 03-DATA/
+    max_context_tokens: 8000
+    capabilities:
+      - Design Drizzle schemas
+      - Create migrations
+      - Write RLS policies
+      - Optimize queries
+      - Design indexes
+      - Handle data relationships
+    mcp_tools:
+      allowed:
+        - get_status
+        - claim_task
+        - release_task
+        - get_bible_section
+        - log_activity
+      restricted:
+        - set_phase
+        - create_task
+    active_phases:
+      - ARCHITECTURE
+      - BACKEND
+    tech_stack:
+      orm: Drizzle ORM
+      database: PostgreSQL 16
+      driver: postgres.js
+      migrations: drizzle-kit
+    language:
+      chat: tr
+      code: en
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # QA Engineer - Quality Assurance
+  # ═══════════════════════════════════════════════════════════════════════════
+  - id: qa
+    name: QA Engineer
+    description: Ensures quality through comprehensive testing
+    command: /qa
+    icon: "🧪"
+    bible_sections:
+      auto_load:
+        - 99-TRACKING/TEST_MASTER_PLAN.md
+        - 99-TRACKING/GAPS.md
+      on_demand:
+        - 99-TRACKING/
+        - 07-EDGE/
+    max_context_tokens: 12000
+    capabilities:
+      - Write test plans
+      - Create E2E tests (Playwright)
+      - Create integration tests
+      - Perform security audits
+      - Track bugs
+      - Performance testing
+    mcp_tools:
+      allowed:
+        - get_status
+        - claim_task
+        - release_task
+        - create_task  # Can create bug tasks
+        - get_bible_section
+        - log_activity
+      restricted:
+        - set_phase
+    active_phases:
+      - QA
+    tech_stack:
+      unit: Vitest
+      e2e: Playwright
+      api: Vitest + supertest
+      coverage: c8
+    language:
+      chat: tr
+      code: en
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # DevOps Engineer - Infrastructure & Deployment
+  # ═══════════════════════════════════════════════════════════════════════════
+  - id: devops
+    name: DevOps Engineer
+    description: Handles deployment, infrastructure, and CI/CD
+    command: /devops
+    icon: "🚀"
+    bible_sections:
+      auto_load:
+        - 05-TECH/07-devops.md
+      on_demand:
+        - 05-TECH/
+    max_context_tokens: 8000
+    capabilities:
+      - Configure Docker (distroless)
+      - Set up CI/CD (GitHub Actions)
+      - Manage AWS resources (ECS, RDS, S3)
+      - Configure monitoring (Grafana)
+      - Infrastructure as Code (Pulumi)
+      - Security hardening
+    mcp_tools:
+      allowed:
+        - get_status
+        - claim_task
+        - release_task
+        - get_bible_section
+        - log_activity
+      restricted:
+        - set_phase
+        - create_task
+    active_phases:
+      - DEPLOYMENT
+      - QA  # For infrastructure testing
+    tech_stack:
+      containers: Docker + distroless
+      orchestration: AWS ECS Fargate
+      iac: Pulumi (TypeScript)
+      ci_cd: GitHub Actions
+      monitoring: Grafana + Prometheus
+      logging: Loki
+      tracing: Tempo
+    language:
+      chat: tr
+      code: en
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Role Collaboration Matrix
+# ─────────────────────────────────────────────────────────────────────────────
+
+collaboration:
+  DISCOVERY:
+    primary: lead
+    support: []
+    handoff_to: ARCHITECTURE
+
+  ARCHITECTURE:
+    primary: architect
+    support: [lead, data]
+    handoff_to: DESIGN
+
+  DESIGN:
+    primary: designer
+    support: [lead, frontend]
+    handoff_to: PLANNING
+
+  PLANNING:
+    primary: lead
+    support: [architect]
+    handoff_to: BACKEND
+
+  BACKEND:
+    primary: backend
+    support: [data]
+    handoff_to: FRONTEND
+
+  FRONTEND:
+    primary: frontend
+    support: [designer]
+    handoff_to: QA
+
+  QA:
+    primary: qa
+    support: [backend, frontend, devops]
+    handoff_to: DEPLOYMENT
+
+  DEPLOYMENT:
+    primary: devops
+    support: [lead]
+    handoff_to: null  # Final phase
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Task Assignment Rules
+# ─────────────────────────────────────────────────────────────────────────────
+
+assignment_rules:
+  # Schema and database tasks
+  - pattern: "schema:*"
+    roles: [data, architect]
+    priority: 1
+
+  # API implementation tasks
+  - pattern: "api:*"
+    roles: [backend]
+    priority: 1
+
+  # UI component tasks
+  - pattern: "ui:*"
+    roles: [frontend, designer]
+    priority: 1
+
+  # Design system tasks
+  - pattern: "design:*"
+    roles: [designer]
+    priority: 1
+
+  # Testing tasks
+  - pattern: "test:*"
+    roles: [qa]
+    priority: 1
+
+  # Integration test tasks
+  - pattern: "test:integration:*"
+    roles: [qa, backend]
+    priority: 2
+
+  # E2E test tasks
+  - pattern: "test:e2e:*"
+    roles: [qa]
+    priority: 1
+
+  # Deployment tasks
+  - pattern: "deploy:*"
+    roles: [devops]
+    priority: 1
+
+  # Docker tasks
+  - pattern: "docker:*"
+    roles: [devops]
+    priority: 1
+
+  # CI/CD tasks
+  - pattern: "cicd:*"
+    roles: [devops]
+    priority: 1
+
+  # Infrastructure tasks
+  - pattern: "infra:*"
+    roles: [devops]
+    priority: 1
+
+  # Documentation tasks
+  - pattern: "docs:*"
+    roles: [lead, architect]
+    priority: 2
+
+  # Bug fix tasks
+  - pattern: "bug:*"
+    roles: [backend, frontend]
+    priority: 1
+
+  # Security tasks
+  - pattern: "security:*"
+    roles: [qa, backend]
+    priority: 1
+
+  # Fallback - Lead handles unassigned
+  - pattern: "*"
+    roles: [lead]
+    priority: 99
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Conflict Resolution Rules
+# ─────────────────────────────────────────────────────────────────────────────
+
+conflict_resolution:
+  # When multiple roles can claim a task
+  strategy: first_claim_wins
+
+  # Task lock timeout (minutes)
+  lock_timeout: 30
+
+  # Heartbeat interval for long tasks (minutes)
+  heartbeat_interval: 5
+
+  # Who can force release locks
+  force_release_roles:
+    - lead
+
+  # Escalation path
+  escalation:
+    timeout_minutes: 60
+    notify: lead
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Role Communication Protocol
+# ─────────────────────────────────────────────────────────────────────────────
+
+communication:
+  # All roles log to activity log
+  logging:
+    enabled: true
+    log_file: .nyoworks/activity.log
+
+  # Handoff protocol
+  handoff:
+    # When primary role completes, notify support roles
+    notify_on_complete: true
+    # Include deliverables summary
+    include_summary: true
+    # Wait for acknowledgment
+    require_ack: false
+
+  # Blocking issues
+  blocking:
+    # Notify lead on blocking issues
+    notify_lead: true
+    # Log to GAPS.md
+    log_to_gaps: true
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Role Permissions Matrix
+# ─────────────────────────────────────────────────────────────────────────────
+
+permissions:
+  # File access permissions per role
+  file_access:
+    lead:
+      read: ["*"]
+      write: ["docs/bible/**", ".nyoworks/**", "nyoworks.config.yaml"]
+
+    architect:
+      read: ["*"]
+      write: ["docs/bible/02-*/**", "docs/bible/03-*/**", "docs/bible/05-*/**", "packages/database/src/db/schema/**"]
+
+    designer:
+      read: ["*"]
+      write: ["docs/bible/06-*/**", "packages/ui/**", "apps/web/src/styles/**"]
+
+    backend:
+      read: ["*"]
+      write: ["apps/api/**", "packages/validators/**", "packages/shared/**"]
+
+    frontend:
+      read: ["*"]
+      write: ["apps/web/**", "apps/mobile/**", "packages/ui/**"]
+
+    data:
+      read: ["*"]
+      write: ["packages/database/**"]
+
+    qa:
+      read: ["*"]
+      write: ["tests/**", "docs/bible/99-*/**"]
+
+    devops:
+      read: ["*"]
+      write: ["docker/**", ".github/**", "infra/**", "scripts/**"]
+
+  # MCP tool access (defined per role above)
+
+  # Phase transition permissions
+  phase_transition:
+    can_advance: [lead]
+    can_rollback: [lead]
+    can_approve: [lead]

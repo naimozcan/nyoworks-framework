@@ -1,0 +1,161 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# Available Features
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Core modules are always included:
+# - auth (JWT + Argon2id)
+# - multi-tenancy (RLS)
+# - rbac (roles/permissions)
+# - i18n (TR/EN/NL)
+# - theme (dark/light)
+
+features:
+  - id: payments
+    name: Payment Processing
+    description: Stripe integration for subscriptions and one-time payments
+    category: billing
+    complexity: high
+    dependencies:
+      required: []
+      optional: [notifications, export]
+
+  - id: appointments
+    name: Appointment Scheduling
+    description: Booking and scheduling system with calendar integration
+    category: scheduling
+    complexity: medium
+    dependencies:
+      required: []
+      optional: [notifications, payments]
+
+  - id: inventory
+    name: Inventory Management
+    description: Warehouse management system with stock tracking
+    category: operations
+    complexity: high
+    dependencies:
+      required: []
+      optional: [notifications, export]
+
+  - id: crm
+    name: Customer Relationship Management
+    description: Contact management and deal tracking
+    category: sales
+    complexity: medium
+    dependencies:
+      required: []
+      optional: [notifications, export]
+
+  - id: cms
+    name: Content Management System
+    description: Content creation and publishing platform
+    category: content
+    complexity: medium
+    dependencies:
+      required: []
+      optional: [export]
+
+  - id: ecommerce
+    name: E-commerce
+    description: Products, cart, and checkout functionality
+    category: commerce
+    complexity: high
+    dependencies:
+      required: [payments]
+      optional: [inventory, notifications]
+
+  - id: analytics
+    name: Analytics & Reporting
+    description: Dashboards and data visualization
+    category: insights
+    complexity: medium
+    dependencies:
+      required: []
+      optional: [export]
+
+  - id: notifications
+    name: Notifications
+    description: Push notifications and email alerts
+    category: communication
+    complexity: medium
+    dependencies:
+      required: []
+      optional: []
+
+  - id: audit
+    name: Audit Logging
+    description: Activity tracking and audit trail
+    category: compliance
+    complexity: low
+    dependencies:
+      required: []
+      optional: [export]
+
+  - id: export
+    name: Data Export
+    description: CSV and PDF export functionality
+    category: utility
+    complexity: low
+    dependencies:
+      required: []
+      optional: []
+
+  - id: realtime
+    name: Real-time Features
+    description: WebSocket connections and live updates
+    category: communication
+    complexity: medium
+    dependencies:
+      required: []
+      optional: []
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Recommended Bundles
+# ─────────────────────────────────────────────────────────────────────────────
+
+bundles:
+  - id: saas-basic
+    name: Basic SaaS
+    description: Essential features for any SaaS
+    features:
+      - analytics
+      - notifications
+      - audit
+
+  - id: booking
+    name: Booking Platform
+    description: Appointment and scheduling focused
+    features:
+      - appointments
+      - notifications
+      - analytics
+      - payments
+
+  - id: marketplace
+    name: E-commerce Marketplace
+    description: Full e-commerce capabilities
+    features:
+      - ecommerce
+      - payments
+      - inventory
+      - notifications
+      - analytics
+      - export
+
+  - id: crm-suite
+    name: CRM Suite
+    description: Customer relationship focused
+    features:
+      - crm
+      - notifications
+      - analytics
+      - export
+      - audit
+
+  - id: content
+    name: Content Platform
+    description: Content management focused
+    features:
+      - cms
+      - analytics
+      - export

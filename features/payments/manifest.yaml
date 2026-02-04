@@ -1,0 +1,45 @@
+id: payments
+name: Payment Processing
+version: 1.0.0
+description: Stripe integration for subscriptions and one-time payments
+
+dependencies:
+  required: []
+  optional:
+    - notifications
+    - export
+
+database:
+  tables:
+    - subscriptions
+    - payments
+    - invoices
+    - payment_methods
+
+api:
+  routes:
+    - POST /payments/checkout
+    - POST /payments/webhook
+    - GET /payments/invoices
+    - GET /payments/invoices/:id
+    - GET /subscriptions
+    - POST /subscriptions
+    - PATCH /subscriptions/:id
+    - DELETE /subscriptions/:id
+
+permissions:
+  - payments:read
+  - payments:create
+  - payments:refund
+  - subscriptions:read
+  - subscriptions:manage
+
+env:
+  required:
+    - STRIPE_SECRET_KEY
+    - STRIPE_WEBHOOK_SECRET
+  optional:
+    - STRIPE_PUBLISHABLE_KEY
+
+bible:
+  - 04-features/payments.md

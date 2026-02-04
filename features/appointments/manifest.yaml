@@ -1,0 +1,47 @@
+id: appointments
+name: Appointment Scheduling
+version: 1.0.0
+description: Booking and scheduling system with calendar integration
+
+dependencies:
+  required: []
+  optional:
+    - notifications
+    - payments
+
+database:
+  tables:
+    - appointments
+    - availability_slots
+    - services
+    - service_providers
+
+api:
+  routes:
+    - GET /appointments
+    - GET /appointments/:id
+    - POST /appointments
+    - PATCH /appointments/:id
+    - DELETE /appointments/:id
+    - GET /appointments/available-slots
+    - GET /services
+    - POST /services
+    - PATCH /services/:id
+    - DELETE /services/:id
+
+permissions:
+  - appointments:read
+  - appointments:create
+  - appointments:update
+  - appointments:delete
+  - calendar:read
+  - calendar:manage
+
+env:
+  required: []
+  optional:
+    - GOOGLE_CALENDAR_CLIENT_ID
+    - GOOGLE_CALENDAR_CLIENT_SECRET
+
+bible:
+  - 04-features/appointments.md

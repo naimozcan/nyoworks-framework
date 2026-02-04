@@ -1,0 +1,540 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# NYOWORKS Framework - Workflow Phases Configuration
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# This file defines the complete project lifecycle with:
+# - Phase definitions and ordering
+# - Active roles per phase
+# - Deliverables and exit criteria
+# - Validation rules and automated checks
+# - Transition requirements
+#
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Phase Definitions
+# ─────────────────────────────────────────────────────────────────────────────
+
+phases:
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 1: DISCOVERY
+  # ═══════════════════════════════════════════════════════════════════════════
+  - id: DISCOVERY
+    name: Discovery
+    description: Requirements gathering, business analysis, feature selection
+    order: 1
+    duration_estimate: "1-2 days"
+    active_roles:
+      primary: lead
+      support: []
+    deliverables:
+      required:
+        - nyoworks.config.yaml
+        - docs/bible/01-VISION/01-executive-summary.md
+        - docs/bible/01-VISION/02-product-principles.md
+      optional:
+        - docs/bible/01-VISION/03-competitive-analysis.md
+    exit_criteria:
+      - id: EC-D1
+        description: Features selected and documented in config
+        validation: file_exists(nyoworks.config.yaml)
+      - id: EC-D2
+        description: Project scope defined in vision docs
+        validation: file_exists(docs/bible/01-VISION/01-executive-summary.md)
+      - id: EC-D3
+        description: Stakeholder approval received
+        validation: manual_approval(lead)
+    blocked_actions:
+      - schema_changes
+      - api_implementation
+      - ui_development
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 2: ARCHITECTURE
+  # ═══════════════════════════════════════════════════════════════════════════
+  - id: ARCHITECTURE
+    name: Architecture
+    description: System design, schema planning, API contracts, security model
+    order: 2
+    duration_estimate: "2-3 days"
+    active_roles:
+      primary: architect
+      support: [lead, data]
+    deliverables:
+      required:
+        - docs/bible/02-USERS/01-user-types.md
+        - docs/bible/02-USERS/02-organization-roles.md
+        - docs/bible/03-DATA/01-schema.md
+        - docs/bible/05-TECH/01-architecture.md
+        - docs/bible/05-TECH/03-api-routes.md
+        - packages/database/src/db/schema/
+      optional:
+        - docs/bible/05-TECH/05-security.md
+    exit_criteria:
+      - id: EC-A1
+        description: Database schema complete and validated
+        validation: schema_valid(packages/database/src/db/schema/)
+      - id: EC-A2
+        description: API contracts defined with all endpoints
+        validation: file_exists(docs/bible/05-TECH/03-api-routes.md)
+      - id: EC-A3
+        description: Security architecture documented
+        validation: file_exists(docs/bible/05-TECH/05-security.md)
+      - id: EC-A4
+        description: User roles and permissions defined
+        validation: file_exists(docs/bible/02-USERS/)
+    blocked_actions:
+      - api_implementation
+      - ui_development
+      - deployment
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 3: DESIGN
+  # ═══════════════════════════════════════════════════════════════════════════
+  - id: DESIGN
+    name: UI/UX Design
+    description: Design system, component library, user flows, prototypes
+    order: 3
+    duration_estimate: "2-3 days"
+    active_roles:
+      primary: designer
+      support: [lead, frontend]
+    deliverables:
+      required:
+        - docs/bible/06-UX/01-user-flows.md
+        - docs/bible/06-UX/02-ui-specifications.md
+        - docs/bible/06-UX/06-design-themes.md
+        - packages/ui/src/components/
+      optional:
+        - docs/bible/06-UX/04-accessibility.md
+    exit_criteria:
+      - id: EC-DS1
+        description: Design system documented
+        validation: file_exists(docs/bible/06-UX/06-design-themes.md)
+      - id: EC-DS2
+        description: Core UI components created
+        validation: dir_has_files(packages/ui/src/components/, 5)
+      - id: EC-DS3
+        description: User flows documented
+        validation: file_exists(docs/bible/06-UX/01-user-flows.md)
+      - id: EC-DS4
+        description: Accessibility requirements defined
+        validation: file_exists(docs/bible/06-UX/04-accessibility.md)
+    blocked_actions:
+      - deployment
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 4: PLANNING
+  # ═══════════════════════════════════════════════════════════════════════════
+  - id: PLANNING
+    name: Sprint Planning
+    description: Task breakdown, sprint planning, resource allocation
+    order: 4
+    duration_estimate: "1 day"
+    active_roles:
+      primary: lead
+      support: []
+    deliverables:
+      required:
+        - docs/bible/03-FEATURES/
+        - .nyoworks/state.json (with tasks)
+      optional:
+        - docs/bible/99-TRACKING/IMPLEMENTATION_STATUS.md
+    exit_criteria:
+      - id: EC-P1
+        description: All features documented
+        validation: dir_has_files(docs/bible/03-FEATURES/, 1)
+      - id: EC-P2
+        description: Task list created with assignments
+        validation: tasks_exist(.nyoworks/state.json)
+      - id: EC-P3
+        description: Dependencies mapped between tasks
+        validation: manual_approval(lead)
+    blocked_actions:
+      - deployment
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 5: BACKEND
+  # ═══════════════════════════════════════════════════════════════════════════
+  - id: BACKEND
+    name: Backend Development
+    description: API implementation, business logic, database operations
+    order: 5
+    duration_estimate: "5-10 days"
+    active_roles:
+      primary: backend
+      support: [data]
+    deliverables:
+      required:
+        - apps/api/src/routes/
+        - apps/api/src/services/
+        - apps/api/src/controllers/
+        - apps/api/src/**/*.test.ts
+      optional:
+        - apps/api/src/middleware/
+    exit_criteria:
+      - id: EC-B1
+        description: All API endpoints implemented
+        validation: routes_match_spec(apps/api/src/routes/, docs/bible/05-TECH/03-api-routes.md)
+      - id: EC-B2
+        description: Test coverage above 80%
+        validation: test_coverage(apps/api/, 80)
+      - id: EC-B3
+        description: All tests passing
+        validation: tests_pass(apps/api/)
+      - id: EC-B4
+        description: API contract locked (no more changes)
+        validation: manual_approval(lead)
+    api_locked: true
+    blocked_actions:
+      - schema_changes
+      - deployment
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 6: FRONTEND
+  # ═══════════════════════════════════════════════════════════════════════════
+  - id: FRONTEND
+    name: Frontend Development
+    description: UI components, pages, Server Actions, i18n
+    order: 6
+    duration_estimate: "5-10 days"
+    active_roles:
+      primary: frontend
+      support: [designer]
+    deliverables:
+      required:
+        - apps/web/src/app/
+        - apps/web/src/components/
+        - apps/web/messages/
+      optional:
+        - apps/mobile/src/
+    exit_criteria:
+      - id: EC-F1
+        description: All UI components implemented
+        validation: components_complete(apps/web/src/components/)
+      - id: EC-F2
+        description: i18n implemented for all supported locales
+        validation: i18n_complete(apps/web/messages/)
+      - id: EC-F3
+        description: Theme switching functional
+        validation: manual_test(theme_switching)
+      - id: EC-F4
+        description: Responsive design verified
+        validation: manual_test(responsive)
+    blocked_actions:
+      - api_changes
+      - schema_changes
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 7: QA
+  # ═══════════════════════════════════════════════════════════════════════════
+  - id: QA
+    name: Quality Assurance
+    description: Integration tests, E2E tests, security audit, performance
+    order: 7
+    duration_estimate: "3-5 days"
+    active_roles:
+      primary: qa
+      support: [backend, frontend, devops]
+    deliverables:
+      required:
+        - tests/e2e/
+        - docs/bible/99-TRACKING/TEST_MASTER_PLAN.md
+      optional:
+        - docs/security-audit.md
+        - docs/performance-report.md
+    exit_criteria:
+      - id: EC-Q1
+        description: All E2E tests passing
+        validation: tests_pass(tests/e2e/)
+      - id: EC-Q2
+        description: No critical security vulnerabilities
+        validation: security_scan_pass()
+      - id: EC-Q3
+        description: Performance targets met
+        validation: performance_check()
+      - id: EC-Q4
+        description: Test master plan complete
+        validation: file_exists(docs/bible/99-TRACKING/TEST_MASTER_PLAN.md)
+    blocked_actions:
+      - api_changes
+      - schema_changes
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 8: DEPLOYMENT
+  # ═══════════════════════════════════════════════════════════════════════════
+  - id: DEPLOYMENT
+    name: Deployment
+    description: Docker builds, AWS setup, CI/CD pipelines, go-live
+    order: 8
+    duration_estimate: "2-3 days"
+    active_roles:
+      primary: devops
+      support: [lead]
+    deliverables:
+      required:
+        - docker/Dockerfile
+        - docker/docker-compose.yml
+        - .github/workflows/ci.yml
+        - .github/workflows/deploy.yml
+      optional:
+        - infra/ (Pulumi)
+        - docs/bible/05-TECH/07-devops.md
+    exit_criteria:
+      - id: EC-DP1
+        description: Docker images built and tested
+        validation: docker_build_success()
+      - id: EC-DP2
+        description: CI/CD pipeline functional
+        validation: ci_pipeline_pass()
+      - id: EC-DP3
+        description: Staging environment deployed
+        validation: staging_health_check()
+      - id: EC-DP4
+        description: Production environment deployed
+        validation: production_health_check()
+      - id: EC-DP5
+        description: Monitoring and alerting active
+        validation: monitoring_active()
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Phase Transitions
+# ─────────────────────────────────────────────────────────────────────────────
+
+transitions:
+  DISCOVERY_to_ARCHITECTURE:
+    from: DISCOVERY
+    to: ARCHITECTURE
+    requires:
+      - id: TR-1
+        check: file_exists(nyoworks.config.yaml)
+        message: "Config file must exist"
+      - id: TR-2
+        check: file_exists(docs/bible/01-VISION/)
+        message: "Vision documentation required"
+    approver: lead
+    auto_advance: false
+
+  ARCHITECTURE_to_DESIGN:
+    from: ARCHITECTURE
+    to: DESIGN
+    requires:
+      - id: TR-3
+        check: schema_valid(packages/database/src/db/schema/)
+        message: "Database schema must be valid"
+      - id: TR-4
+        check: file_exists(docs/bible/05-TECH/03-api-routes.md)
+        message: "API routes must be documented"
+    approver: lead
+    auto_advance: false
+
+  DESIGN_to_PLANNING:
+    from: DESIGN
+    to: PLANNING
+    requires:
+      - id: TR-5
+        check: file_exists(docs/bible/06-UX/01-user-flows.md)
+        message: "User flows must be documented"
+      - id: TR-6
+        check: dir_has_files(packages/ui/src/components/, 3)
+        message: "At least 3 UI components required"
+    approver: lead
+    auto_advance: false
+
+  PLANNING_to_BACKEND:
+    from: PLANNING
+    to: BACKEND
+    requires:
+      - id: TR-7
+        check: tasks_exist(.nyoworks/state.json)
+        message: "Tasks must be created"
+      - id: TR-8
+        check: file_exists(docs/bible/03-FEATURES/)
+        message: "Feature documentation required"
+    approver: lead
+    auto_advance: false
+
+  BACKEND_to_FRONTEND:
+    from: BACKEND
+    to: FRONTEND
+    requires:
+      - id: TR-9
+        check: tests_pass(apps/api/)
+        message: "All API tests must pass"
+      - id: TR-10
+        check: test_coverage(apps/api/, 80)
+        message: "Test coverage must be >= 80%"
+    approver: lead
+    auto_advance: false
+    locks:
+      - api_contract
+
+  FRONTEND_to_QA:
+    from: FRONTEND
+    to: QA
+    requires:
+      - id: TR-11
+        check: build_success(apps/web/)
+        message: "Web app must build successfully"
+      - id: TR-12
+        check: i18n_complete(apps/web/messages/)
+        message: "i18n must be complete"
+    approver: lead
+    auto_advance: false
+
+  QA_to_DEPLOYMENT:
+    from: QA
+    to: DEPLOYMENT
+    requires:
+      - id: TR-13
+        check: tests_pass(tests/e2e/)
+        message: "All E2E tests must pass"
+      - id: TR-14
+        check: security_scan_pass()
+        message: "Security scan must pass"
+    approver: lead
+    auto_advance: false
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Parallel Phase Support
+# ─────────────────────────────────────────────────────────────────────────────
+
+parallel_phases:
+  # These phases can run concurrently after ARCHITECTURE
+  after_architecture:
+    - DESIGN
+    - PLANNING
+
+  # These can run concurrently after PLANNING
+  after_planning:
+    - BACKEND
+    # FRONTEND must wait for BACKEND (API dependency)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Phase Rollback Rules
+# ─────────────────────────────────────────────────────────────────────────────
+
+rollback_rules:
+  - from: BACKEND
+    to: ARCHITECTURE
+    condition: schema_changes_needed
+    approver: lead
+    warning: "Rolling back will unlock API contract"
+
+  - from: FRONTEND
+    to: BACKEND
+    condition: api_changes_needed
+    approver: lead
+    warning: "Rolling back requires API re-lock"
+
+  - from: QA
+    to: FRONTEND
+    condition: ui_bugs_found
+    approver: qa
+
+  - from: DEPLOYMENT
+    to: QA
+    condition: production_issues
+    approver: lead
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Phase Notifications
+# ─────────────────────────────────────────────────────────────────────────────
+
+notifications:
+  on_phase_start:
+    - log_activity(phase_started)
+    - notify_active_roles()
+
+  on_phase_complete:
+    - log_activity(phase_completed)
+    - generate_phase_report()
+
+  on_transition_blocked:
+    - log_activity(transition_blocked)
+    - notify_lead()
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Validation Functions Reference
+# ─────────────────────────────────────────────────────────────────────────────
+
+validation_functions:
+  file_exists:
+    description: Check if file or directory exists
+    params: [path]
+    returns: boolean
+
+  dir_has_files:
+    description: Check if directory has minimum number of files
+    params: [path, min_count]
+    returns: boolean
+
+  schema_valid:
+    description: Validate Drizzle schema files
+    params: [schema_path]
+    returns: boolean
+
+  tasks_exist:
+    description: Check if tasks are defined in state
+    params: [state_path]
+    returns: boolean
+
+  tests_pass:
+    description: Run tests and check all pass
+    params: [test_path]
+    returns: boolean
+
+  test_coverage:
+    description: Check test coverage percentage
+    params: [path, min_percentage]
+    returns: boolean
+
+  build_success:
+    description: Attempt to build the app
+    params: [app_path]
+    returns: boolean
+
+  i18n_complete:
+    description: Check all i18n keys are translated
+    params: [messages_path]
+    returns: boolean
+
+  security_scan_pass:
+    description: Run security scan and check results
+    params: []
+    returns: boolean
+
+  docker_build_success:
+    description: Build Docker images
+    params: []
+    returns: boolean
+
+  ci_pipeline_pass:
+    description: Check CI pipeline status
+    params: []
+    returns: boolean
+
+  staging_health_check:
+    description: Check staging environment health
+    params: []
+    returns: boolean
+
+  production_health_check:
+    description: Check production environment health
+    params: []
+    returns: boolean
+
+  monitoring_active:
+    description: Verify monitoring is configured
+    params: []
+    returns: boolean
+
+  manual_approval:
+    description: Require manual approval from role
+    params: [role]
+    returns: boolean
+
+  manual_test:
+    description: Require manual testing verification
+    params: [test_name]
+    returns: boolean

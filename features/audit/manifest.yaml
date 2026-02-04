@@ -1,0 +1,30 @@
+id: audit
+name: Audit Logging
+version: 1.0.0
+description: Activity tracking and audit trail
+
+dependencies:
+  required: []
+  optional:
+    - export
+
+database:
+  tables:
+    - audit_logs
+
+api:
+  routes:
+    - GET /audit
+    - GET /audit/:id
+    - GET /audit/user/:userId
+    - GET /audit/resource/:resourceType/:resourceId
+
+permissions:
+  - audit:read
+
+env:
+  required: []
+  optional: []
+
+bible:
+  - 04-features/audit.md

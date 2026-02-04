@@ -1,0 +1,49 @@
+id: crm
+name: Customer Relationship Management
+version: 1.0.0
+description: Contact management and deal tracking
+
+dependencies:
+  required: []
+  optional:
+    - notifications
+    - export
+
+database:
+  tables:
+    - contacts
+    - companies
+    - deals
+    - deal_stages
+    - activities
+    - notes
+
+api:
+  routes:
+    - GET /contacts
+    - GET /contacts/:id
+    - POST /contacts
+    - PATCH /contacts/:id
+    - DELETE /contacts/:id
+    - GET /companies
+    - POST /companies
+    - PATCH /companies/:id
+    - GET /deals
+    - POST /deals
+    - PATCH /deals/:id
+    - GET /deal-stages
+
+permissions:
+  - contacts:read
+  - contacts:create
+  - contacts:update
+  - contacts:delete
+  - deals:read
+  - deals:manage
+
+env:
+  required: []
+  optional: []
+
+bible:
+  - 04-features/crm.md

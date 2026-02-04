@@ -1,0 +1,30 @@
+id: realtime
+name: Real-time Features
+version: 1.0.0
+description: WebSocket connections and live updates
+
+dependencies:
+  required: []
+  optional: []
+
+database:
+  tables:
+    - websocket_connections
+    - channels
+
+api:
+  routes:
+    - GET /ws
+    - POST /broadcast
+
+permissions:
+  - realtime:connect
+  - realtime:broadcast
+
+env:
+  required:
+    - REDIS_URL
+  optional: []
+
+bible:
+  - 04-features/realtime.md

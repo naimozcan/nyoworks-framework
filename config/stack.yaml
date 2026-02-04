@@ -1,0 +1,124 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# NYOWORKS Tech Stack (Immutable)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# This file defines the tech stack. Changes require framework version update.
+
+runtime:
+  node: ">=22.0.0"
+  pnpm: ">=9.0.0"
+
+monorepo:
+  tool: turborepo
+  version: ">=2.0.0"
+  workspace_config: pnpm-workspace.yaml
+
+backend:
+  framework: hono
+  version: ">=4.0.0"
+  features:
+    - Edge runtime support
+    - TypeScript native
+    - Middleware system
+    - Zod validation
+
+database:
+  primary: postgresql
+  version: ">=16.0"
+  orm: drizzle-orm
+  orm_version: ">=0.38.0"
+  driver: postgres.js
+  features:
+    - Row Level Security
+    - JSONB support
+    - Full-text search
+
+cache:
+  engine: redis
+  version: ">=7.0"
+  client: ioredis
+  uses:
+    - Session storage
+    - Rate limiting
+    - Queue (BullMQ)
+
+frontend:
+  framework: nextjs
+  version: ">=16.0.0"
+  react: ">=19.0.0"
+  features:
+    - Server Components
+    - Server Actions
+    - App Router
+    - Edge Runtime
+
+styling:
+  css: tailwindcss
+  version: ">=4.0.0"
+  components: shadcn-ui
+  features:
+    - CSS Variables theming
+    - Dark/Light mode
+    - Radix UI primitives
+
+authentication:
+  jwt_library: jose
+  password_hashing: argon2id
+  token_types:
+    access:
+      algorithm: HS256
+      expiry: 15m
+    refresh:
+      algorithm: HS256
+      expiry: 7d
+      rotation: true
+
+validation:
+  library: zod
+  features:
+    - Runtime validation
+    - TypeScript inference
+    - Shared frontend/backend
+
+testing:
+  unit: vitest
+  e2e: playwright
+  coverage_targets:
+    services: 90
+    controllers: 80
+    utils: 100
+
+deployment:
+  containerization: docker
+  orchestration:
+    - aws-ecs
+    - kubernetes
+  ci_cd: github-actions
+  hosting:
+    api:
+      - aws-ecs
+      - fly-io
+      - railway
+    web:
+      - vercel
+    database:
+      - aws-rds
+      - neon
+      - supabase
+    cache:
+      - aws-elasticache
+      - upstash
+
+monitoring:
+  logging: pino
+  tracing: opentelemetry
+  errors: sentry
+  metrics: prometheus
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Version Lock
+# ─────────────────────────────────────────────────────────────────────────────
+
+locked: true
+framework_version: "2.0.0"
+last_updated: "2026-02-03"

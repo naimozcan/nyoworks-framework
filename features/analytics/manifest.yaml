@@ -1,0 +1,42 @@
+id: analytics
+name: Analytics & Reporting
+version: 1.0.0
+description: Dashboards and data visualization
+
+dependencies:
+  required: []
+  optional:
+    - export
+
+database:
+  tables:
+    - analytics_events
+    - reports
+    - dashboards
+    - widgets
+
+api:
+  routes:
+    - GET /analytics/overview
+    - GET /analytics/events
+    - POST /analytics/events
+    - GET /reports
+    - GET /reports/:id
+    - POST /reports
+    - GET /dashboards
+    - POST /dashboards
+    - PATCH /dashboards/:id
+
+permissions:
+  - analytics:read
+  - reports:read
+  - reports:export
+
+env:
+  required: []
+  optional:
+    - POSTHOG_API_KEY
+    - MIXPANEL_TOKEN
+
+bible:
+  - 04-features/analytics.md
