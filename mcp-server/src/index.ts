@@ -351,6 +351,52 @@ const toolHandlers: Record<string, (args: Record<string, unknown>) => unknown> =
     return { locks: state.taskLocks, count: Object.keys(state.taskLocks).length }
   },
 
+  validate_work_authorization: ({ agentRole, action }) => {
+    loadState()
+    cleanupExpiredLocks()
+
+    const validActions = ["implement", "design", "test", "deploy", "review", "document"]
+    if (!validActions.includes(action as string)) {
+      return {
+        authorized: false,
+        error: `Invalid action: ${action}. Must be one of: ${validActions.join(", ")}`,
+      }
+    }
+
+    const agentLocks = Object.values(state.taskLocks).filter((lock) => lock.agentRole === agentRole)
+    if (agentLocks.length === 0) {
+      return {
+        authorized: false,
+        error: "NO ACTIVE TASK CLAIMED",
+        instruction: "You MUST claim a task before doing any work. Use get_tasks() to see available tasks, then claim_task() to lock one.",
+        availableTasks: state.tasks.filter((t) => t.status === "pending").map((t) => ({ id: t.id, title: t.title })),
+      }
+    }
+
+    const claimedTaskIds = agentLocks.map((lock) => lock.taskId)
+    const claimedTasks = state.tasks.filter((t) => claimedTaskIds.includes(t.id))
+
+    const activeRoles = PHASE_ACTIVE_ROLES[state.phase]
+    const isRoleActive = activeRoles && (activeRoles.primary === agentRole || activeRoles.support.includes(agentRole as string))
+
+    if (!isRoleActive) {
+      return {
+        authorized: false,
+        error: `Role ${agentRole} is NOT active in ${state.phase} phase`,
+        activeRoles: activeRoles ? [activeRoles.primary, ...activeRoles.support] : [],
+        instruction: "Wait for the appropriate phase or ask /lead to advance the phase.",
+      }
+    }
+
+    return {
+      authorized: true,
+      agent: agentRole,
+      phase: state.phase,
+      claimedTasks: claimedTasks.map((t) => ({ id: t.id, title: t.title, status: t.status })),
+      message: `Authorized to ${action}. You have ${claimedTasks.length} active task(s).`,
+    }
+  },
+
   force_unlock: ({ taskId }) => {
     loadState()
     if (state.taskLocks[taskId as string]) {
@@ -1217,6 +1263,18 @@ const tools = [
     name: "get_all_locks",
     description: "Get all active task locks",
     inputSchema: { type: "object" as const, properties: {} },
+  },
+  {
+    name: "validate_work_authorization",
+    description: "MANDATORY: Check if agent is authorized to work. Must be called BEFORE any implementation. Returns error if no task is claimed.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        agentRole: { type: "string", description: "The agent role requesting authorization" },
+        action: { type: "string", description: "Action type: implement, design, test, deploy, review, document" },
+      },
+      required: ["agentRole", "action"],
+    },
   },
   {
     name: "force_unlock",
