@@ -5,6 +5,7 @@ import path from "path"
 import os from "os"
 import { execa } from "execa"
 import { replacePlaceholders } from "./replace.js"
+import { checkDependencies, showClaudeMaxWarning } from "./checks.js"
 
 const REPO = "naimozcan/nyoworks-framework"
 const BRANCH = "main"
@@ -249,12 +250,22 @@ See \`docs/bible/data/schema.md\`
 
   console.log()
   console.log(pc.green(pc.bold("Project created successfully!")))
+
+  await checkDependencies()
+
+  showClaudeMaxWarning()
+
   console.log()
-  console.log("  Next steps:")
+  console.log(pc.bold("  Next steps:"))
   console.log()
   console.log(pc.cyan(`    cd ${slug}`))
   console.log(pc.cyan("    pnpm install"))
+  console.log(pc.cyan("    docker compose up -d      ") + pc.dim("# Start PostgreSQL & Redis"))
   console.log(pc.cyan("    pnpm dev"))
+  console.log()
+  console.log(pc.dim("  Optional:"))
+  console.log(pc.dim("    code .                    # Open in VS Code"))
+  console.log(pc.dim("    claude                    # Start Claude Code CLI"))
   console.log()
   console.log(pc.dim("  Configuration:"))
   console.log(pc.dim(`    Name: ${name}`))
