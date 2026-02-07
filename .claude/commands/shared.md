@@ -12,6 +12,39 @@
 - Temporary notes: Use MCP `log_activity` tool
 - If you need to track work, use MCP - NOT files in root
 
+## MCP AVAILABILITY CHECK (CRITICAL - FIRST STEP)
+
+Before ANY work, verify MCP is available:
+
+```
+mcp__nyoworks__get_status()
+```
+
+**If MCP tools are NOT available (tool not found error):**
+
+1. **DO NOT** scan the project manually
+2. **DO NOT** try to work without MCP
+3. **IMMEDIATELY** inform the user with this exact message:
+
+```
+MCP server erisilebildi degil. Lutfen asagidaki adimlari takip edin:
+
+1. MCP server'i build edin:
+   cd mcp-server && pnpm install && pnpm build
+
+2. Claude Code'u yeniden baslatin:
+   claude
+
+3. Tekrar deneyin:
+   /lead (veya diger agent)
+
+Yardim: https://github.com/naimozcan/nyoworks-framework#mcp-setup
+```
+
+4. **STOP** - Do not proceed further
+
+**If MCP is available, continue with the workflow below.**
+
 ## MCP TOOL SEQUENCE (REQUIRED - NO EXCEPTIONS)
 
 ### Step 1: On Invocation
@@ -170,6 +203,6 @@ Do NOT output long reports in chat - save to file and provide summary.
 
 ## RESPONSE LANGUAGE
 
-- Explanations: Turkish
+- Explanations: ${RESPONSE_LANGUAGE}
 - Code: English
 - Comments: NONE (section dividers only)

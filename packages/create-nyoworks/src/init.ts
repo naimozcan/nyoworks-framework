@@ -27,6 +27,18 @@ const AVAILABLE_PLATFORMS = [
   { title: "Desktop", value: "desktop", description: "Tauri 2.0" },
 ]
 
+const AVAILABLE_LANGUAGES = [
+  { title: "Turkish", value: "tr", description: "Türkçe yanıtlar" },
+  { title: "English", value: "en", description: "English responses" },
+  { title: "Dutch", value: "nl", description: "Nederlandse antwoorden" },
+]
+
+const LANGUAGE_RESPONSES: Record<string, string> = {
+  tr: "Turkish",
+  en: "English",
+  nl: "Dutch",
+}
+
 function generateCode(name: string): string {
   return name
     .toUpperCase()
@@ -92,6 +104,13 @@ export async function createProject(projectName?: string) {
       hint: "- Space to select. Return to submit",
       instructions: false,
     },
+    {
+      type: "select",
+      name: "language",
+      message: "Agent response language:",
+      choices: AVAILABLE_LANGUAGES,
+      initial: 0,
+    },
   ])
 
   if (!response.name && !projectName) {
@@ -105,6 +124,7 @@ export async function createProject(projectName?: string) {
   const databaseName = generateDatabaseName(name)
   const platforms: string[] = response.platforms || ["web"]
   const features: string[] = response.features || []
+  const language: string = response.language || "tr"
 
   const targetDir = path.resolve(process.cwd(), slug)
 
@@ -165,9 +185,11 @@ export async function createProject(projectName?: string) {
     "pnpm-workspace.yaml",
     "turbo.json",
     "tsconfig.json",
+    "tsconfig.base.json",
     ".env.example",
     ".gitignore",
     "nyoworks.config.yaml",
+    "docker-compose.yml",
   ]
 
   for (const file of rootFiles) {
@@ -187,6 +209,7 @@ export async function createProject(projectName?: string) {
     "${PROJECT_CODE}": code,
     "${PROJECT_SLUG}": slug,
     "${DATABASE_NAME}": databaseName,
+    "${RESPONSE_LANGUAGE}": LANGUAGE_RESPONSES[language] || "Turkish",
   }
 
   process.stdout.write(pc.dim("  Replacing placeholders..."))
@@ -272,5 +295,30 @@ See \`docs/bible/data/schema.md\`
   console.log(pc.dim(`    Code: ${code}`))
   console.log(pc.dim(`    Platforms: ${platforms.join(", ")}`))
   console.log(pc.dim(`    Features: ${features.join(", ") || "none"}`))
+  console.log(pc.dim(`    Language: ${LANGUAGE_RESPONSES[language] || "Turkish"}`))
   console.log()
+
+  process.stdout.write(pc.dim("  Building MCP server..."))
+  try {
+    await execa("pnpm", ["install"], { cwd: path.join(targetDir, "mcp-server") })
+    await execa("pnpm", ["build"], { cwd: path.join(targetDir, "mcp-server") })
+    console.log(pc.green(" done"))
+  } catch {
+    console.log(pc.yellow(" skipped (run manually: cd mcp-server && pnpm install && pnpm build)"))
+  }
+
+  const mcpConfigPath = path.join(targetDir, ".claude", "settings.local.json")
+  const mcpConfig = {
+    mcpServers: {
+      nyoworks: {
+        command: "node",
+        args: [path.join(targetDir, "mcp-server", "dist", "index.js")],
+        env: {
+          PROJECT_ROOT: targetDir,
+        },
+      },
+    },
+  }
+  await fs.outputJson(mcpConfigPath, mcpConfig, { spaces: 2 })
+  console.log(pc.dim("  Created .claude/settings.local.json"))
 }
