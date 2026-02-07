@@ -1,20 +1,18 @@
 {
   "name": "create-nyoworks",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "Create a new NYOWORKS project",
   "type": "module",
   "bin": {
     "create-nyoworks": "./dist/index.js"
   },
   "files": [
-    "dist",
-    "template"
+    "dist"
   ],
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "copy-template": "./scripts/copy-template.sh",
-    "prepublishOnly": "npm run copy-template && npm run build"
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "create",

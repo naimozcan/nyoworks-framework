@@ -2,11 +2,11 @@ import prompts from "prompts"
 import pc from "picocolors"
 import fs from "fs-extra"
 import path from "path"
-import { fileURLToPath } from "url"
 import { execa } from "execa"
 import { replacePlaceholders } from "./replace.js"
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const REPO = "naimozcan/nyoworks-framework"
+const BRANCH = "main"
 
 const AVAILABLE_FEATURES = [
   { title: "Analytics", value: "analytics", description: "User behavior tracking" },
@@ -44,6 +44,28 @@ function generateDatabaseName(name: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "_")
     .replace(/^_|_$/g, "") + "_dev"
+}
+
+async function downloadFromGitHub(repo: string, subPath: string, targetDir: string, branch: string = "main"): Promise<void> {
+  const url = `https://codeload.github.com/${repo}/tar.gz/${branch}`
+  const tempDir = path.join(targetDir, ".download-temp")
+
+  await fs.ensureDir(tempDir)
+
+  try {
+    await execa("curl", ["-sL", url, "-o", `${tempDir}/repo.tar.gz`])
+
+    await execa("tar", ["-xzf", `${tempDir}/repo.tar.gz`, "-C", tempDir])
+
+    const extractedDir = path.join(tempDir, `nyoworks-framework-${branch}`)
+    const sourcePath = subPath ? path.join(extractedDir, subPath) : extractedDir
+
+    if (await fs.pathExists(sourcePath)) {
+      await fs.copy(sourcePath, targetDir, { overwrite: true })
+    }
+  } finally {
+    await fs.remove(tempDir)
+  }
 }
 
 export async function createProject(projectName?: string) {
@@ -88,8 +110,8 @@ export async function createProject(projectName?: string) {
   const code = generateCode(name)
   const slug = generateSlug(name)
   const databaseName = generateDatabaseName(name)
-  const platforms = response.platforms || ["web"]
-  const features = response.features || []
+  const platforms: string[] = response.platforms || ["web"]
+  const features: string[] = response.features || []
 
   const targetDir = path.resolve(process.cwd(), slug)
 
@@ -98,35 +120,76 @@ export async function createProject(projectName?: string) {
     process.exit(1)
   }
 
+  await fs.ensureDir(targetDir)
+
   console.log()
-  console.log(pc.cyan("Creating project..."))
+  console.log(pc.cyan("Downloading from GitHub..."))
 
-  const templateDir = path.resolve(__dirname, "..", "template")
-  fs.copySync(templateDir, targetDir)
+  const coreItems = [
+    { path: "packages/api", desc: "tRPC routers" },
+    { path: "packages/api-client", desc: "API client" },
+    { path: "packages/database", desc: "Database" },
+    { path: "packages/validators", desc: "Validators" },
+    { path: "packages/shared", desc: "Shared utils" },
+    { path: "packages/ui", desc: "UI components" },
+    { path: "packages/assets", desc: "Assets" },
+    { path: "apps/server", desc: "API server" },
+    { path: "docs", desc: "Documentation" },
+    { path: "mcp-server", desc: "MCP server" },
+    { path: ".claude", desc: "Agent commands" },
+  ]
 
-  console.log(pc.green("  Copied template files"))
+  const rootFiles = [
+    "package.json",
+    "pnpm-workspace.yaml",
+    "turbo.json",
+    "tsconfig.json",
+    ".env.example",
+    ".gitignore",
+    "nyoworks.config.yaml",
+  ]
 
-  const platformsToRemove = AVAILABLE_PLATFORMS
-    .map((p) => p.value)
-    .filter((p) => !platforms.includes(p))
+  for (const item of coreItems) {
+    process.stdout.write(pc.dim(`  Downloading ${item.desc}...`))
+    await downloadFromGitHub(REPO, item.path, path.join(targetDir, item.path), BRANCH)
+    console.log(pc.green(" ✓"))
+  }
 
-  for (const platform of platformsToRemove) {
-    const platformDir = path.join(targetDir, "apps", platform)
-    if (fs.existsSync(platformDir)) {
-      fs.removeSync(platformDir)
-      console.log(pc.dim(`  Removed apps/${platform}/`))
+  for (const platform of platforms) {
+    process.stdout.write(pc.dim(`  Downloading apps/${platform}...`))
+    await downloadFromGitHub(REPO, `apps/${platform}`, path.join(targetDir, `apps/${platform}`), BRANCH)
+    console.log(pc.green(" ✓"))
+  }
+
+  process.stdout.write(pc.dim("  Downloading root files..."))
+  await downloadFromGitHub(REPO, "", targetDir, BRANCH)
+
+  const allPlatforms = ["web", "mobile", "desktop"]
+  for (const platform of allPlatforms) {
+    if (!platforms.includes(platform)) {
+      const platformDir = path.join(targetDir, "apps", platform)
+      if (await fs.pathExists(platformDir)) {
+        await fs.remove(platformDir)
+      }
     }
   }
 
-  const placeholders = {
+  const createNyoworksDir = path.join(targetDir, "packages", "create-nyoworks")
+  if (await fs.pathExists(createNyoworksDir)) {
+    await fs.remove(createNyoworksDir)
+  }
+  console.log(pc.green(" ✓"))
+
+  const placeholders: Record<string, string> = {
     "${PROJECT_NAME}": name,
     "${PROJECT_CODE}": code,
     "${PROJECT_SLUG}": slug,
     "${DATABASE_NAME}": databaseName,
   }
 
+  process.stdout.write(pc.dim("  Replacing placeholders..."))
   await replacePlaceholders(targetDir, placeholders)
-  console.log(pc.green("  Replaced placeholders"))
+  console.log(pc.green(" ✓"))
 
   for (const feature of features) {
     const featureDoc = path.join(targetDir, "docs", "bible", "features", `${feature}.md`)
@@ -163,22 +226,24 @@ See \`docs/bible/data/schema.md\`
 |----|----------|-----------|
 | T-xxx | [Decision] | [Why] |
 `
-    fs.outputFileSync(featureDoc, content)
+    await fs.outputFile(featureDoc, content)
     console.log(pc.dim(`  Created docs/bible/features/${feature}.md`))
   }
 
   const configPath = path.join(targetDir, "nyoworks.config.yaml")
-  if (fs.existsSync(configPath)) {
-    let config = fs.readFileSync(configPath, "utf8")
-    config = config.replace(
-      /enabled: \[\]/,
-      `enabled:\n${features.map((f: string) => `    - ${f}`).join("\n") || "    []"}`
-    )
+  if (await fs.pathExists(configPath)) {
+    let config = await fs.readFile(configPath, "utf8")
+    if (features.length > 0) {
+      config = config.replace(
+        /enabled: \[\]/,
+        `enabled:\n${features.map((f) => `    - ${f}`).join("\n")}`
+      )
+    }
     config = config.replace(
       /targets:\n    - web/,
-      `targets:\n${platforms.map((p: string) => `    - ${p}`).join("\n")}`
+      `targets:\n${platforms.map((p) => `    - ${p}`).join("\n")}`
     )
-    fs.writeFileSync(configPath, config)
+    await fs.writeFile(configPath, config)
   }
 
   console.log()
