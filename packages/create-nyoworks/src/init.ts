@@ -2,6 +2,7 @@ import prompts from "prompts"
 import pc from "picocolors"
 import fs from "fs-extra"
 import path from "path"
+import os from "os"
 import { execa } from "execa"
 import { replacePlaceholders } from "./replace.js"
 
@@ -46,26 +47,17 @@ function generateDatabaseName(name: string): string {
     .replace(/^_|_$/g, "") + "_dev"
 }
 
-async function downloadFromGitHub(repo: string, subPath: string, targetDir: string, branch: string = "main"): Promise<void> {
-  const url = `https://codeload.github.com/${repo}/tar.gz/${branch}`
-  const tempDir = path.join(targetDir, ".download-temp")
+async function downloadRepo(repo: string, branch: string): Promise<string> {
+  const url = `https://github.com/${repo}/archive/refs/heads/${branch}.tar.gz`
+  const tempDir = path.join(os.tmpdir(), `nyoworks-${Date.now()}`)
+  const tarFile = path.join(tempDir, "repo.tar.gz")
 
   await fs.ensureDir(tempDir)
 
-  try {
-    await execa("curl", ["-sL", url, "-o", `${tempDir}/repo.tar.gz`])
+  await execa("curl", ["-L", "-o", tarFile, url])
+  await execa("tar", ["-xzf", tarFile, "-C", tempDir])
 
-    await execa("tar", ["-xzf", `${tempDir}/repo.tar.gz`, "-C", tempDir])
-
-    const extractedDir = path.join(tempDir, `nyoworks-framework-${branch}`)
-    const sourcePath = subPath ? path.join(extractedDir, subPath) : extractedDir
-
-    if (await fs.pathExists(sourcePath)) {
-      await fs.copy(sourcePath, targetDir, { overwrite: true })
-    }
-  } finally {
-    await fs.remove(tempDir)
-  }
+  return path.join(tempDir, `nyoworks-framework-${branch}`)
 }
 
 export async function createProject(projectName?: string) {
@@ -120,24 +112,52 @@ export async function createProject(projectName?: string) {
     process.exit(1)
   }
 
+  console.log()
+  process.stdout.write(pc.cyan("Downloading from GitHub..."))
+
+  let repoDir: string
+  try {
+    repoDir = await downloadRepo(REPO, BRANCH)
+    console.log(pc.green(" done"))
+  } catch (error) {
+    console.log(pc.red(" failed"))
+    console.error(pc.red("Failed to download from GitHub. Check your internet connection."))
+    process.exit(1)
+  }
+
+  process.stdout.write(pc.dim("  Copying files..."))
+
   await fs.ensureDir(targetDir)
 
-  console.log()
-  console.log(pc.cyan("Downloading from GitHub..."))
-
-  const coreItems = [
-    { path: "packages/api", desc: "tRPC routers" },
-    { path: "packages/api-client", desc: "API client" },
-    { path: "packages/database", desc: "Database" },
-    { path: "packages/validators", desc: "Validators" },
-    { path: "packages/shared", desc: "Shared utils" },
-    { path: "packages/ui", desc: "UI components" },
-    { path: "packages/assets", desc: "Assets" },
-    { path: "apps/server", desc: "API server" },
-    { path: "docs", desc: "Documentation" },
-    { path: "mcp-server", desc: "MCP server" },
-    { path: ".claude", desc: "Agent commands" },
+  const corePaths = [
+    "packages/api",
+    "packages/api-client",
+    "packages/database",
+    "packages/validators",
+    "packages/shared",
+    "packages/ui",
+    "packages/assets",
+    "apps/server",
+    "docs",
+    "mcp-server",
+    ".claude",
   ]
+
+  for (const p of corePaths) {
+    const src = path.join(repoDir, p)
+    const dest = path.join(targetDir, p)
+    if (await fs.pathExists(src)) {
+      await fs.copy(src, dest)
+    }
+  }
+
+  for (const platform of platforms) {
+    const src = path.join(repoDir, `apps/${platform}`)
+    const dest = path.join(targetDir, `apps/${platform}`)
+    if (await fs.pathExists(src)) {
+      await fs.copy(src, dest)
+    }
+  }
 
   const rootFiles = [
     "package.json",
@@ -149,36 +169,17 @@ export async function createProject(projectName?: string) {
     "nyoworks.config.yaml",
   ]
 
-  for (const item of coreItems) {
-    process.stdout.write(pc.dim(`  Downloading ${item.desc}...`))
-    await downloadFromGitHub(REPO, item.path, path.join(targetDir, item.path), BRANCH)
-    console.log(pc.green(" ✓"))
-  }
-
-  for (const platform of platforms) {
-    process.stdout.write(pc.dim(`  Downloading apps/${platform}...`))
-    await downloadFromGitHub(REPO, `apps/${platform}`, path.join(targetDir, `apps/${platform}`), BRANCH)
-    console.log(pc.green(" ✓"))
-  }
-
-  process.stdout.write(pc.dim("  Downloading root files..."))
-  await downloadFromGitHub(REPO, "", targetDir, BRANCH)
-
-  const allPlatforms = ["web", "mobile", "desktop"]
-  for (const platform of allPlatforms) {
-    if (!platforms.includes(platform)) {
-      const platformDir = path.join(targetDir, "apps", platform)
-      if (await fs.pathExists(platformDir)) {
-        await fs.remove(platformDir)
-      }
+  for (const file of rootFiles) {
+    const src = path.join(repoDir, file)
+    const dest = path.join(targetDir, file)
+    if (await fs.pathExists(src)) {
+      await fs.copy(src, dest)
     }
   }
 
-  const createNyoworksDir = path.join(targetDir, "packages", "create-nyoworks")
-  if (await fs.pathExists(createNyoworksDir)) {
-    await fs.remove(createNyoworksDir)
-  }
-  console.log(pc.green(" ✓"))
+  await fs.remove(path.dirname(repoDir))
+
+  console.log(pc.green(" done"))
 
   const placeholders: Record<string, string> = {
     "${PROJECT_NAME}": name,
@@ -189,7 +190,7 @@ export async function createProject(projectName?: string) {
 
   process.stdout.write(pc.dim("  Replacing placeholders..."))
   await replacePlaceholders(targetDir, placeholders)
-  console.log(pc.green(" ✓"))
+  console.log(pc.green(" done"))
 
   for (const feature of features) {
     const featureDoc = path.join(targetDir, "docs", "bible", "features", `${feature}.md`)
