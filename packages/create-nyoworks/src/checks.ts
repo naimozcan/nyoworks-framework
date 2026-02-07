@@ -116,7 +116,6 @@ export function showClaudeMaxWarning(): void {
   console.log(pc.yellow("║") + "  The AI agents in this framework use Model Context Protocol (MCP).    " + pc.yellow("║"))
   console.log(pc.yellow("║") + "  MCP requires Claude Max subscription.                                " + pc.yellow("║"))
   console.log(pc.yellow("║") + "                                                                       " + pc.yellow("║"))
-  console.log(pc.yellow("║") + pc.bold("  Pricing: $100/month") + " (5x usage vs Pro)                                " + pc.yellow("║"))
   console.log(pc.yellow("║") + "  Subscribe: " + pc.cyan("https://claude.ai/settings/billing") + "                   " + pc.yellow("║"))
   console.log(pc.yellow("║") + "                                                                       " + pc.yellow("║"))
   console.log(pc.yellow("║") + "  Without Claude Max:                                                  " + pc.yellow("║"))
