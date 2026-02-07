@@ -35,18 +35,12 @@ const DEPENDENCIES: DependencyCheck[] = [
     url: "https://docker.com/download",
   },
   {
-    name: "Claude CLI",
+    name: "Claude Code",
     cmd: "claude",
     args: ["-v"],
     required: false,
     install: "npm i -g @anthropic-ai/claude-code",
-  },
-  {
-    name: "VS Code",
-    cmd: "code",
-    args: ["-v"],
-    required: false,
-    url: "https://code.visualstudio.com",
+    url: "https://claude.ai/download",
   },
 ]
 
