@@ -1,0 +1,432 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# NYOWORKS Framework - Product Type Definitions
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# Lead agent uses this configuration to ask product-specific questions
+# and automatically suggest required/optional features.
+#
+# ─────────────────────────────────────────────────────────────────────────────
+
+product_types:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # 1. Randevu Sistemleri
+  # ─────────────────────────────────────────────────────────────────────────────
+  - id: appointment
+    name: Randevu Sistemleri
+    name_en: Appointment Systems
+    trigger_keywords:
+      - randevu
+      - booking
+      - reservation
+      - appointment
+      - rezervasyon
+    required_features:
+      - appointments
+      - notifications
+    optional_features:
+      - payments
+      - analytics
+      - audit
+      - export
+    custom_questions:
+      - id: service_types
+        question: "Birden fazla hizmet turu var mi?"
+        example: "sac kesimi, masaj, danismanlik"
+      - id: availability_type
+        question: "Musaitlik takvimi nasil yonetilecek?"
+        options:
+          - "Haftalik sabit program"
+          - "Dinamik musaitlik"
+          - "Hibrit (sabit + istisnalar)"
+      - id: payment_timing
+        question: "Odeme randevu oncesi mi sonrasi mi?"
+        options:
+          - "Onceden odeme (prepaid)"
+          - "Sonradan odeme"
+          - "Depozito + kalan"
+      - id: cancellation_policy
+        question: "Iptal/erteleme politikasi ne?"
+        example: "24 saat oncesi ucretsiz iptal"
+      - id: reminders
+        question: "Hatirlatma bildirimleri?"
+        options:
+          - "Email"
+          - "SMS"
+          - "Push notification"
+          - "WhatsApp"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # 2. Is Yonetim Sistemleri (WMS/CRM/ERP)
+  # ─────────────────────────────────────────────────────────────────────────────
+  - id: business-management
+    name: Is Yonetim Sistemleri
+    name_en: Business Management Systems
+    description: WMS, CRM, ERP ve benzeri is sureclerini yoneten sistemler
+    trigger_keywords:
+      - crm
+      - erp
+      - wms
+      - is yonetimi
+      - musteri takip
+      - stok
+      - muhasebe
+    required_features:
+      - analytics
+      - audit
+    optional_features:
+      - crm-contacts
+      - accounting
+      - inventory
+      - sales-pipeline
+      - invoicing
+      - export
+      - notifications
+      - webhooks
+    custom_questions:
+      - id: business_processes
+        question: "Hangi is surecleri takip edilecek?"
+        options:
+          - "Satis ve musteri yonetimi (CRM)"
+          - "Stok ve depo yonetimi (WMS)"
+          - "Muhasebe ve finans"
+          - "Uretim takibi"
+          - "Proje yonetimi"
+        multi_select: true
+      - id: customer_segmentation
+        question: "Musteri segmentasyonu gerekli mi?"
+        options:
+          - "Sadece B2B"
+          - "Sadece B2C"
+          - "B2B ve B2C karma"
+      - id: quote_to_invoice
+        question: "Teklif -> Siparis -> Fatura akisi var mi?"
+        type: boolean
+      - id: inventory_tracking
+        question: "Stok/envanter takibi gerekli mi?"
+        type: boolean
+      - id: employee_management
+        question: "Calisan/ekip yonetimi dahil mi?"
+        type: boolean
+      - id: custom_reports
+        question: "Ozel raporlama ihtiyaclari var mi?"
+        example: "Aylik satis raporu, KPI dashboard"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # 3. SaaS Urun
+  # ─────────────────────────────────────────────────────────────────────────────
+  - id: saas
+    name: SaaS Urun
+    name_en: SaaS Product
+    description: Abonelik bazli, multi-tenant yazilim urunleri
+    trigger_keywords:
+      - saas
+      - subscription
+      - multi-tenant
+      - abonelik
+    required_features:
+      - payments
+      - audit
+      - analytics
+    optional_features:
+      - notifications
+      - export
+      - webhooks
+      - queue
+    custom_questions:
+      - id: pricing_model
+        question: "Fiyatlandirma modeli?"
+        options:
+          - "Freemium (ucretsiz + premium)"
+          - "Tiered (farkli paketler)"
+          - "Usage-based (kullanim bazli)"
+          - "Per-seat (kullanici basina)"
+      - id: trial_period
+        question: "Trial suresi var mi?"
+        options:
+          - "Yok"
+          - "7 gun"
+          - "14 gun"
+          - "30 gun"
+      - id: onboarding_type
+        question: "Onboarding nasil?"
+        options:
+          - "Self-service (kullanici kendisi)"
+          - "Sales-assisted (satis ekibi ile)"
+          - "Hibrit"
+      - id: api_access
+        question: "API erisimi sunulacak mi?"
+        type: boolean
+      - id: white_label
+        question: "White-label secenegi var mi?"
+        type: boolean
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # 4. E-ticaret
+  # ─────────────────────────────────────────────────────────────────────────────
+  - id: ecommerce
+    name: E-ticaret
+    name_en: E-commerce
+    description: Online satis ve magaza sistemleri
+    trigger_keywords:
+      - e-ticaret
+      - ecommerce
+      - shop
+      - magaza
+      - urun satis
+      - online satis
+    required_features:
+      - payments
+      - notifications
+    optional_features:
+      - inventory
+      - invoicing
+      - file-storage
+      - analytics
+      - audit
+      - export
+    custom_questions:
+      - id: product_type
+        question: "Urun tipi?"
+        options:
+          - "Fiziksel urunler"
+          - "Dijital urunler (dosya, lisans)"
+          - "Hizmet satisi"
+          - "Karma"
+      - id: inventory_required
+        question: "Stok takibi gerekli mi?"
+        type: boolean
+      - id: shipping_integration
+        question: "Kargo entegrasyonu?"
+        options:
+          - "Gerekli degil"
+          - "Tek firma"
+          - "Coklu firma"
+        example: "Yurtici, MNG, Aras"
+      - id: tax_calculation
+        question: "Vergi hesaplama?"
+        options:
+          - "Sadece KDV"
+          - "KDV + OTV"
+          - "Uluslararasi vergi"
+      - id: discount_system
+        question: "Kupon/indirim sistemi?"
+        type: boolean
+      - id: marketplace
+        question: "Marketplace mi yoksa tek satici mi?"
+        options:
+          - "Tek satici"
+          - "Multi-vendor marketplace"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # 5. Kurumsal Web Siteleri
+  # ─────────────────────────────────────────────────────────────────────────────
+  - id: corporate
+    name: Kurumsal Web Sitesi
+    name_en: Corporate Website
+    description: Sirket tanitim ve landing page'ler
+    trigger_keywords:
+      - kurumsal
+      - corporate
+      - landing
+      - vitrin
+      - tanitim
+      - sirket sitesi
+    required_features: []
+    optional_features:
+      - analytics
+      - file-storage
+      - notifications
+    custom_questions:
+      - id: contact_form
+        question: "Iletisim formu gerekli mi?"
+        type: boolean
+      - id: blog_section
+        question: "Blog/haber bolumu var mi?"
+        type: boolean
+      - id: multi_language
+        question: "Coklu dil destegi?"
+        options:
+          - "Tek dil"
+          - "2 dil"
+          - "3+ dil"
+      - id: seo_priority
+        question: "SEO onceligi ne kadar yuksek?"
+        options:
+          - "Dusuk (brosur sitesi)"
+          - "Orta"
+          - "Yuksek (organik trafik onemli)"
+      - id: admin_panel
+        question: "Yonetim paneli gerekli mi?"
+        type: boolean
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # 6. NL Compliance (e-fatura)
+  # ─────────────────────────────────────────────────────────────────────────────
+  - id: nl-compliance
+    name: NL Compliance
+    name_en: NL Compliance (E-invoicing)
+    description: Hollanda ve AB uyumlu e-fatura sistemleri
+    trigger_keywords:
+      - peppol
+      - ubl
+      - e-fatura
+      - efatura
+      - nl
+      - compliance
+      - e-arsiv
+    required_features:
+      - invoicing
+      - audit
+    optional_features:
+      - accounting
+      - export
+      - notifications
+      - crm-contacts
+    custom_questions:
+      - id: countries
+        question: "Hangi ulkeler?"
+        options:
+          - "Sadece NL"
+          - "NL + TR"
+          - "Tum AB"
+        multi_select: true
+      - id: peppol_access_point
+        question: "Peppol Access Point entegrasyonu var mi?"
+        type: boolean
+        note: "Yoksa manuel gonderi yapilir"
+      - id: e_arsiv
+        question: "TR e-Arsiv gerekli mi?"
+        type: boolean
+      - id: accounting_integration
+        question: "Muhasebe yazilimi entegrasyonu?"
+        options:
+          - "Yok"
+          - "Exact Online"
+          - "Twinfield"
+          - "Moneybird"
+          - "Diger"
+      - id: invoice_numbering
+        question: "Otomatik fatura numaralama formati?"
+        example: "INV-2024-0001"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # 7. Mobil App
+  # ─────────────────────────────────────────────────────────────────────────────
+  - id: mobile-app
+    name: Mobil Uygulama
+    name_en: Mobile Application
+    description: iOS ve Android mobil uygulamalar
+    trigger_keywords:
+      - mobil
+      - mobile
+      - app
+      - ios
+      - android
+      - uygulama
+    required_features:
+      - notifications
+    optional_features:
+      - realtime
+      - file-storage
+      - payments
+      - analytics
+      - audit
+    custom_questions:
+      - id: offline_support
+        question: "Offline calisma gerekli mi?"
+        type: boolean
+      - id: push_priority
+        question: "Push notification onceligi?"
+        options:
+          - "Dusuk (sadece kritik bildirimler)"
+          - "Orta"
+          - "Yuksek (marketing + transactional)"
+      - id: camera_access
+        question: "Kamera/galeri erisimi gerekli mi?"
+        type: boolean
+      - id: location_services
+        question: "Konum servisleri kullanilacak mi?"
+        type: boolean
+      - id: store_publishing
+        question: "App Store / Play Store yayini mi?"
+        options:
+          - "Sadece iOS"
+          - "Sadece Android"
+          - "Her ikisi"
+          - "Enterprise (sirket ici)"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Default Question Groups (All Product Types)
+# ─────────────────────────────────────────────────────────────────────────────
+default_questions:
+  identity:
+    - id: project_name
+      question: "Proje adi nedir?"
+      required: true
+    - id: client_name
+      question: "Musteri/sirket adi?"
+      required: false
+    - id: project_code
+      question: "Proje kodu (kisa, uppercase)?"
+      required: true
+      example: "ACME"
+
+  audience:
+    - id: primary_user
+      question: "Birincil kullanici kim?"
+      options:
+        - "B2B (isletmeler)"
+        - "B2C (bireysel)"
+        - "Internal (sirket ici)"
+    - id: user_types
+      question: "Kac farkli kullanici tipi var?"
+      example: "Admin, Manager, User"
+    - id: user_roles
+      question: "Her kullanici tipi ne yapar?"
+
+  platform:
+    - id: platforms
+      question: "Hangi platformlar?"
+      options:
+        - "Web (zorunlu)"
+        - "Mobile (iOS/Android)"
+        - "Desktop (Win/Mac/Linux)"
+      multi_select: true
+    - id: mobile_platforms
+      question: "Mobile gerekiyorsa: iOS, Android, ikisi de?"
+      condition: "platforms includes mobile"
+    - id: desktop_platforms
+      question: "Desktop gerekiyorsa: Windows, macOS, Linux?"
+      condition: "platforms includes desktop"
+
+  technical:
+    - id: default_locale
+      question: "Varsayilan dil?"
+      options:
+        - "Turkce (tr)"
+        - "English (en)"
+        - "Dutch (nl)"
+    - id: multi_language
+      question: "Multi-language destegi gerekli mi?"
+      type: boolean
+    - id: existing_system
+      question: "Mevcut bir sistem var mi? (entegrasyon)"
+      type: boolean
+
+  delivery:
+    - id: deadline
+      question: "Deadline var mi?"
+      type: date
+      required: false
+    - id: scope
+      question: "MVP mi, full product mi?"
+      options:
+        - "MVP (minimum viable)"
+        - "Full product"
+    - id: hosting
+      question: "Hosting tercihi?"
+      options:
+        - "Vercel"
+        - "Railway"
+        - "Self-hosted"
+        - "Diger"

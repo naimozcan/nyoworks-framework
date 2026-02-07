@@ -1,0 +1,2 @@
+# NYOWORKS MCP Server Dependencies
+# No external dependencies - uses only Python stdlib

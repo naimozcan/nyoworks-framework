@@ -1,11 +1,13 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════════════════════
-# NYOWORKS Framework Setup
+# NYOWORKS Framework Setup v2.2
 # ═══════════════════════════════════════════════════════════════════════════════
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+FRAMEWORK_VERSION="2.2.0"
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Colors
@@ -24,7 +26,7 @@ NC='\033[0m'
 print_header() {
     echo ""
     echo -e "${BLUE}╔═══════════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${BLUE}║                    NYOWORKS Framework Setup                        ║${NC}"
+    echo -e "${BLUE}║               NYOWORKS Framework Setup v${FRAMEWORK_VERSION}                      ║${NC}"
     echo -e "${BLUE}╚═══════════════════════════════════════════════════════════════════╝${NC}"
     echo ""
 }
@@ -73,6 +75,12 @@ check_prerequisites() {
     fi
     print_success "Git $(git --version | cut -d' ' -f3)"
 
+    if ! command -v docker &> /dev/null; then
+        print_info "Docker not found - you'll need to set up database manually"
+    else
+        print_success "Docker $(docker --version | cut -d' ' -f3 | tr -d ',')"
+    fi
+
     echo ""
 }
 
@@ -98,86 +106,43 @@ get_project_info() {
         exit 1
     fi
 
-    # Generate slug from name
     PROJECT_SLUG=$(echo "$PROJECT_NAME" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | tr -cd '[:alnum:]-')
 
     echo ""
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Select Delivery Model
+# Select Platforms
 # ─────────────────────────────────────────────────────────────────────────────
 
-select_delivery_model() {
-    echo -e "${BLUE}Select delivery model:${NC}"
-    echo "  1. SaaS Platform (multi-tenant)"
-    echo "  2. White Label (tenant branding)"
-    echo "  3. Single Deploy (dedicated)"
+select_platforms() {
+    echo -e "${BLUE}Select target platforms:${NC}"
+    echo ""
+    echo -e "  ${GREEN}+${NC} web (always included)"
+    echo "  1. mobile   - iOS/Android (Expo SDK 54)"
+    echo "  2. desktop  - Win/Mac/Linux (Tauri 2.0)"
     echo ""
 
-    read -p "Choice [1]: " DELIVERY_CHOICE
-    DELIVERY_CHOICE=${DELIVERY_CHOICE:-1}
+    read -p "Enter platform numbers (e.g., 1 2) or press Enter for web only: " PLATFORM_CHOICES
 
-    case $DELIVERY_CHOICE in
-        1) DELIVERY_MODEL="saas" ;;
-        2) DELIVERY_MODEL="whitelabel" ;;
-        3) DELIVERY_MODEL="single" ;;
-        *) DELIVERY_MODEL="saas" ;;
-    esac
+    TARGET_PLATFORMS=("web")
+    PLATFORM_MAP=("mobile" "desktop")
 
-    print_success "Delivery model: $DELIVERY_MODEL"
-    echo ""
-}
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Select Features
-# ─────────────────────────────────────────────────────────────────────────────
-
-select_features() {
-    echo -e "${BLUE}Select features to enable:${NC}"
-    echo ""
-    echo "  [Core - always included]"
-    echo -e "  ${GREEN}✓${NC} auth, multi-tenancy, rbac, i18n, theme"
-    echo ""
-    echo "  [Optional - enter numbers separated by space]"
-    echo "  1. payments      - Stripe subscriptions"
-    echo "  2. appointments  - Booking/scheduling"
-    echo "  3. inventory     - Warehouse management"
-    echo "  4. crm           - Customer relationship"
-    echo "  5. cms           - Content management"
-    echo "  6. ecommerce     - Products/cart/checkout"
-    echo "  7. analytics     - Dashboards/reports"
-    echo "  8. notifications - Push/email alerts"
-    echo "  9. audit         - Activity logging"
-    echo "  10. export       - CSV/PDF export"
-    echo "  11. realtime     - WebSocket features"
-    echo ""
-
-    read -p "Enter feature numbers (e.g., 2 7 8): " FEATURE_CHOICES
-
-    ENABLED_FEATURES=()
-    FEATURE_MAP=("payments" "appointments" "inventory" "crm" "cms" "ecommerce" "analytics" "notifications" "audit" "export" "realtime")
-
-    for choice in $FEATURE_CHOICES; do
-        if [ "$choice" -ge 1 ] && [ "$choice" -le 11 ]; then
-            ENABLED_FEATURES+=("${FEATURE_MAP[$((choice-1))]}")
+    for choice in $PLATFORM_CHOICES; do
+        if [ "$choice" -ge 1 ] && [ "$choice" -le 2 ]; then
+            TARGET_PLATFORMS+=("${PLATFORM_MAP[$((choice-1))]}")
         fi
     done
 
-    if [ ${#ENABLED_FEATURES[@]} -eq 0 ]; then
-        print_info "No optional features selected"
-    else
-        print_success "Enabled features: ${ENABLED_FEATURES[*]}"
-    fi
-
+    print_success "Target platforms: ${TARGET_PLATFORMS[*]}"
     echo ""
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Select i18n
+# Select Language
 # ─────────────────────────────────────────────────────────────────────────────
 
-select_i18n() {
+select_language() {
     echo -e "${BLUE}Select default language:${NC}"
     echo "  1. English (en)"
     echo "  2. Turkish (tr)"
@@ -199,143 +164,95 @@ select_i18n() {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Create Project
+# Setup Project
 # ─────────────────────────────────────────────────────────────────────────────
 
-create_project() {
-    TARGET_DIR="$PROJECT_SLUG"
+setup_project() {
+    print_info "Setting up project..."
+    echo ""
 
-    if [ -d "$TARGET_DIR" ]; then
-        print_error "Directory '$TARGET_DIR' already exists"
-        exit 1
-    fi
+    # ─── Generate nyoworks.config.yaml ───
 
-    print_info "Creating project..."
+    cat > nyoworks.config.yaml << CONFIGEOF
+framework:
+  version: "${FRAMEWORK_VERSION}"
 
-    # Create directory
-    mkdir -p "$TARGET_DIR"
-    cd "$TARGET_DIR"
-
-    # Copy monorepo template
-    cp -r "$SCRIPT_DIR/templates/monorepo/." .
-
-    # Copy core modules
-    mkdir -p packages/database/src/schema
-    cp -r "$SCRIPT_DIR/core/database/schema/"* packages/database/src/schema/
-    cp "$SCRIPT_DIR/core/database/client.ts" packages/database/src/
-
-    mkdir -p packages/validators/src
-    cp -r "$SCRIPT_DIR/core/validators/"* packages/validators/src/
-
-    mkdir -p packages/shared/src
-    cp -r "$SCRIPT_DIR/core/shared/"* packages/shared/src/
-
-    # Copy i18n messages
-    mkdir -p apps/web/messages
-    cp -r "$SCRIPT_DIR/core/i18n/messages/"* apps/web/messages/
-
-    # Copy theme
-    mkdir -p apps/web/styles
-    cp "$SCRIPT_DIR/core/theme/variables.css" packages/ui/styles/
-
-    # Copy enabled features
-    for feature in "${ENABLED_FEATURES[@]}"; do
-        if [ -d "$SCRIPT_DIR/features/$feature" ]; then
-            mkdir -p "features/$feature"
-            cp -r "$SCRIPT_DIR/features/$feature/"* "features/$feature/"
-            print_success "$feature feature enabled"
-        fi
-    done
-
-    # Copy Bible templates
-    mkdir -p docs/bible
-    cp -r "$SCRIPT_DIR/docs/bible/"* docs/bible/
-
-    # Copy Claude commands
-    mkdir -p .claude/commands
-    cp -r "$SCRIPT_DIR/.claude/commands/"* .claude/commands/
-
-    # Copy workflow configs
-    mkdir -p workflow
-    cp -r "$SCRIPT_DIR/workflow/"* workflow/
-
-    # Create nyoworks.config.yaml
-    FEATURES_YAML=""
-    for feature in "${ENABLED_FEATURES[@]}"; do
-        FEATURES_YAML="$FEATURES_YAML    - $feature\n"
-    done
-
-    cat > nyoworks.config.yaml << EOF
 project:
-  name: "$PROJECT_NAME"
-  code: "$PROJECT_CODE"
-  type: "$DELIVERY_MODEL"
+  name: "${PROJECT_NAME}"
+  code: "${PROJECT_CODE}"
+  scope: "@${PROJECT_SLUG}"
 
-features:
-  enabled:
-$(printf "    - %s\n" "${ENABLED_FEATURES[@]}")
-
-delivery:
-  model: "$DELIVERY_MODEL"
-  region: "eu-west-1"
+platforms:
+  targets:
+$(printf "    - %s\n" "${TARGET_PLATFORMS[@]}")
 
 i18n:
-  default: "$DEFAULT_LOCALE"
-  supported: ["en", "tr", "nl"]
-EOF
+  default: "${DEFAULT_LOCALE}"
+  supported:
+    - en
+    - tr
+    - nl
+
+specs:
+  required: false
+  max_lines: 20
+CONFIGEOF
 
     print_success "nyoworks.config.yaml"
 
-    # Create .nyoworks state
+    # ─── Create .nyoworks state ───
+
     mkdir -p .nyoworks
-    cat > .nyoworks/state.json << EOF
+    cat > .nyoworks/state.json << STATEEOF
 {
-  "name": "$PROJECT_NAME",
-  "code": "$PROJECT_CODE",
+  "name": "${PROJECT_NAME}",
+  "code": "${PROJECT_CODE}",
   "phase": "DISCOVERY",
-  "enabledFeatures": [$(printf '"%s",' "${ENABLED_FEATURES[@]}" | sed 's/,$//') ],
+  "enabledFeatures": [],
+  "targetPlatforms": [$(printf '"%s",' "${TARGET_PLATFORMS[@]}" | sed 's/,$//') ],
   "tasks": [],
   "taskLocks": {},
   "decisions": [],
   "activityLog": [],
-  "agents": {}
+  "agents": {},
+  "handoffs": [],
+  "specs": [],
+  "specRequired": false,
+  "subPhaseDefinitions": {},
+  "currentSubPhase": null,
+  "subPhaseHistory": [],
+  "manualApprovals": {}
 }
-EOF
+STATEEOF
 
     print_success ".nyoworks/state.json"
 
-    # Copy and build MCP server
-    mkdir -p mcp-server
-    cp -r "$SCRIPT_DIR/mcp-server/src" mcp-server/
-    cp "$SCRIPT_DIR/mcp-server/package.json" mcp-server/
-    cp "$SCRIPT_DIR/mcp-server/tsconfig.json" mcp-server/
-    cd mcp-server && pnpm install -q && pnpm build -q && cd ..
-    print_success "MCP server installed"
+    # ─── Remove unused platforms ───
 
-    # Create .claude/settings.json with MCP
-    mkdir -p .claude
-    cat > .claude/settings.json << EOF
+    if [[ ! " ${TARGET_PLATFORMS[*]} " =~ " mobile " ]]; then
+        if [ -d "apps/mobile" ]; then
+            rm -rf apps/mobile
+            print_info "Removed apps/mobile (not selected)"
+        fi
+    fi
+
+    if [[ ! " ${TARGET_PLATFORMS[*]} " =~ " desktop " ]]; then
+        if [ -d "apps/desktop" ]; then
+            rm -rf apps/desktop
+            print_info "Removed apps/desktop (not selected)"
+        fi
+    fi
+
+    # ─── Build MCP server ───
+
+    print_info "Building MCP server..."
+    cd mcp-server && pnpm install -q && pnpm build -q && cd ..
+    print_success "MCP server v${FRAMEWORK_VERSION}"
+
+    # ─── Create .mcp.json ───
+
+    cat > .mcp.json << MCPEOF
 {
-  "permissions": {
-    "allow": [
-      "Bash(mkdir:*)",
-      "Bash(cp:*)",
-      "Bash(mv:*)",
-      "Bash(rm:*)",
-      "Bash(chmod:*)",
-      "Bash(pnpm:*)",
-      "Bash(npm:*)",
-      "Bash(git:*)",
-      "Bash(docker:*)",
-      "Read",
-      "Write",
-      "Edit",
-      "Glob",
-      "Grep",
-      "mcp__nyoworks"
-    ],
-    "deny": []
-  },
   "mcpServers": {
     "nyoworks": {
       "command": "node",
@@ -344,64 +261,283 @@ EOF
     }
   }
 }
-EOF
-    print_success ".claude/settings.json with MCP"
+MCPEOF
 
-    # Update package names
-    find . -name "package.json" -exec sed -i '' "s/@project/@$PROJECT_SLUG/g" {} \;
+    print_success ".mcp.json"
 
-    # Initialize git
-    git init -q
-    print_success "Git initialized"
+    # ─── Create .claude/settings.json ───
 
-    # Create .env.local
-    cp .env.example .env.local
-    print_success ".env.local created"
+    mkdir -p .claude
+    cat > .claude/settings.json << SETTINGSEOF
+{
+  "permissions": {
+    "allow": [
+      "Bash(*)",
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch",
+      "mcp__nyoworks"
+    ],
+    "deny": []
+  }
+}
+SETTINGSEOF
 
-    # Create CLAUDE.md
-    cat > CLAUDE.md << EOF
-# $PROJECT_NAME - Claude Code Rules
+    print_success ".claude/settings.json"
 
-> Project Code: $PROJECT_CODE
-> Generated: $(date +%Y-%m-%d)
+    # ─── Update package names ───
 
-## Quick Reference
+    if [[ "$(uname)" == "Darwin" ]]; then
+        find . -name "package.json" -not -path "*/node_modules/*" -exec sed -i '' "s/@project/@$PROJECT_SLUG/g" {} \;
+    else
+        find . -name "package.json" -not -path "*/node_modules/*" -exec sed -i "s/@project/@$PROJECT_SLUG/g" {} \;
+    fi
 
-- **Phase:** Check with \`nyoworks status\`
-- **Features:** ${ENABLED_FEATURES[*]}
-- **Locale:** $DEFAULT_LOCALE
+    print_success "Package names updated to @$PROJECT_SLUG"
 
-## Agent Commands
+    # ─── Replace {PROJECT_NAME} in agent commands ───
 
-- \`/lead\` - Project Lead (orchestration)
-- \`/architect\` - System Architect (design)
-- \`/backend\` - Backend Developer (API)
-- \`/frontend\` - Frontend Developer (UI)
-- \`/data\` - Database Engineer (schema)
-- \`/qa\` - QA Engineer (testing)
-- \`/devops\` - DevOps Engineer (deploy)
+    if [[ "$(uname)" == "Darwin" ]]; then
+        find .claude/commands -name "*.md" -exec sed -i '' "s/{PROJECT_NAME}/$PROJECT_NAME/g" {} \;
+    else
+        find .claude/commands -name "*.md" -exec sed -i "s/{PROJECT_NAME}/$PROJECT_NAME/g" {} \;
+    fi
 
-## Code Standards
+    print_success "Agent commands configured"
 
+    # ─── Initialize git ───
+
+    if [ ! -d ".git" ]; then
+        git init -q
+        git checkout -b main -q 2>/dev/null || true
+        print_success "Git initialized (main branch)"
+    fi
+
+    # ─── Create .env.local ───
+
+    if [ -f ".env.example" ]; then
+        cp .env.example .env.local
+        print_success ".env.local created"
+    fi
+
+    # ─── Generate CLAUDE.md ───
+
+    cat > CLAUDE.md << CLAUDEEOF
+# ${PROJECT_NAME} - Claude Code Rules
+> NYOWORKS Framework v${FRAMEWORK_VERSION} | $(date +%Y-%m-%d)
+
+## Framework Integration
+
+This project uses **NYOWORKS Framework v${FRAMEWORK_VERSION}**. Configuration: \`nyoworks.config.yaml\`
+
+### AI Workflow Commands
+\`\`\`
+/lead      - Project orchestration (requirements, feature selection, Bible)
+/architect - System design (schema, API contracts, UI contracts)
+/data      - Database implementation (Drizzle schema, migrations)
+/backend   - API implementation (Hono routes, services)
+/designer  - UI/UX design (TweakCN themes, components)
+/frontend  - UI development (Next.js pages, components)
+/qa        - Testing and quality (unit, integration, E2E)
+/devops    - Infrastructure (Docker, CI/CD, deployment)
+\`\`\`
+
+### Target Platforms
+$(printf -- "- %s\n" "${TARGET_PLATFORMS[@]}")
+
+## Strict Rules
+
+### Code Style
 - NO semicolons
 - NO comments (only section dividers)
-- Exports at end of file
-- Code in English
-- Chat in Turkish
+- Exports at end of file (RFCE pattern)
+- Code in English, chat in Turkish
+- NO emojis in professional communication
 
-## Bible Location
+### Architecture
+- Modular structure, clear boundaries
+- Zero redundancy (DRY)
+- MVC pattern (Models - Services - Controllers - Routes)
+- Type safety (strict TypeScript, no any)
+- Security first (auth + rate limiting + validation on every endpoint)
 
-\`docs/bible/\` - All documentation
+### Workflow
+- Handoff Protocol: get_pending_handoffs -> acknowledge -> work -> create_handoff
+- Spec-Driven: get_spec -> create_spec if missing -> approve -> implement
+- Root File Ban: check_orphan_code() after every task (MANDATORY)
+
+### Visual Elements
+NEVER write from scratch. Use: Recharts, Motion, Magic UI, Lucide, shadcn/ui
+
+### Bible Location
+\`docs/bible/\` - All project documentation and decisions
 
 ---
-
-[See full CLAUDE.md rules in parent framework]
-EOF
+> Generated by NYOWORKS Framework v${FRAMEWORK_VERSION}
+CLAUDEEOF
 
     print_success "CLAUDE.md"
 
-    cd ..
     echo ""
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Setup Git Remote
+# ─────────────────────────────────────────────────────────────────────────────
+
+setup_git_remote() {
+    echo -e "${BLUE}Git Repository Setup${NC}"
+    echo "─────────────────────"
+    echo ""
+    echo "  1. GitHub (recommended)"
+    echo "  2. GitLab"
+    echo "  3. Skip (setup later)"
+    echo ""
+
+    read -p "Choice [3]: " GIT_PROVIDER
+    GIT_PROVIDER=${GIT_PROVIDER:-3}
+
+    if [ "$GIT_PROVIDER" == "3" ]; then
+        print_info "Skipping Git remote setup"
+        echo ""
+        return
+    fi
+
+    case $GIT_PROVIDER in
+        1) GIT_HOST="github.com" ;;
+        2) GIT_HOST="gitlab.com" ;;
+        *) print_info "Skipping Git remote setup"; echo ""; return ;;
+    esac
+
+    echo ""
+    read -p "Repository URL (e.g., git@${GIT_HOST}:user/repo.git): " GIT_REMOTE_URL
+
+    if [ -z "$GIT_REMOTE_URL" ]; then
+        print_info "No URL provided, skipping remote setup"
+        echo ""
+        return
+    fi
+
+    # Add remote
+    git remote add origin "$GIT_REMOTE_URL" 2>/dev/null || git remote set-url origin "$GIT_REMOTE_URL"
+    print_success "Git remote: $GIT_REMOTE_URL"
+
+    # Ask about initial commit and push
+    echo ""
+    read -p "Create initial commit and push? [Y/n]: " DO_INITIAL_COMMIT
+    DO_INITIAL_COMMIT=${DO_INITIAL_COMMIT:-Y}
+
+    if [[ "$DO_INITIAL_COMMIT" =~ ^[Yy]$ ]]; then
+        # Create .gitignore if not exists
+        if [ ! -f ".gitignore" ]; then
+            cat > .gitignore << 'GITIGNOREEOF'
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build
+dist/
+.next/
+.turbo/
+*.tsbuildinfo
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+coverage/
+
+# Logs
+*.log
+npm-debug.log*
+
+# State
+.nyoworks/state.json
+GITIGNOREEOF
+            print_success ".gitignore"
+        fi
+
+        # Stage and commit
+        git add -A
+        git commit -m "feat: initial project setup
+
+- NYOWORKS Framework v${FRAMEWORK_VERSION}
+- Project: ${PROJECT_NAME} (${PROJECT_CODE})
+- Platforms: ${TARGET_PLATFORMS[*]}
+- Language: ${DEFAULT_LOCALE}
+
+Co-Authored-By: NYOWORKS Framework <noreply@nyoworks.com>" -q
+
+        print_success "Initial commit created"
+
+        # Create develop branch
+        git checkout -b develop -q
+        print_success "Created develop branch"
+
+        # Push both branches
+        print_info "Pushing to remote..."
+        git push -u origin main develop 2>/dev/null && print_success "Pushed main and develop branches" || print_error "Push failed - check your credentials"
+
+        # Switch back to develop for development
+        git checkout develop -q
+        print_success "Switched to develop branch (default for development)"
+    fi
+
+    echo ""
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Start Docker
+# ─────────────────────────────────────────────────────────────────────────────
+
+start_docker() {
+    if command -v docker &> /dev/null && [ -f "docker-compose.yml" ]; then
+        echo -e "${BLUE}Start Docker services?${NC}"
+        echo "  PostgreSQL 16 + Redis 7"
+        echo ""
+        read -p "Start now? [Y/n]: " START_DOCKER
+        START_DOCKER=${START_DOCKER:-Y}
+
+        if [[ "$START_DOCKER" =~ ^[Yy]$ ]]; then
+            print_info "Starting Docker services..."
+            docker compose up -d
+            print_success "Docker services started"
+            echo ""
+        fi
+    fi
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Install Dependencies
+# ─────────────────────────────────────────────────────────────────────────────
+
+install_dependencies() {
+    echo -e "${BLUE}Install dependencies?${NC}"
+    read -p "Run pnpm install? [Y/n]: " INSTALL_DEPS
+    INSTALL_DEPS=${INSTALL_DEPS:-Y}
+
+    if [[ "$INSTALL_DEPS" =~ ^[Yy]$ ]]; then
+        print_info "Installing dependencies..."
+        pnpm install
+        print_success "Dependencies installed"
+        echo ""
+    fi
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -410,22 +546,30 @@ EOF
 
 print_summary() {
     echo -e "${GREEN}╔═══════════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${GREEN}║                    Project Created Successfully                    ║${NC}"
+    echo -e "${GREEN}║                    Project Setup Complete                          ║${NC}"
     echo -e "${GREEN}╚═══════════════════════════════════════════════════════════════════╝${NC}"
     echo ""
-    echo "Project: $PROJECT_NAME"
-    echo "Directory: $PROJECT_SLUG"
+    echo "Project:   $PROJECT_NAME ($PROJECT_CODE)"
+    echo "Framework: v$FRAMEWORK_VERSION"
+    echo "Platforms: ${TARGET_PLATFORMS[*]}"
+    echo "Language:  $DEFAULT_LOCALE"
+    echo ""
+    echo -e "${BLUE}Git Workflow:${NC}"
+    echo "  - main:    Production-ready code"
+    echo "  - develop: Integration branch (default)"
+    echo "  - feature/TASK-xxx-description: Feature branches"
     echo ""
     echo -e "${BLUE}Next steps:${NC}"
-    echo "  1. cd $PROJECT_SLUG"
-    echo "  2. pnpm install"
-    echo "  3. cp .env.example .env.local  # Edit with your values"
-    echo "  4. docker compose up -d        # Start database & Redis"
-    echo "  5. pnpm db:push               # Push schema to database"
-    echo "  6. pnpm dev                   # Start development"
+    echo "  1. cp .env.example .env.local    # Edit with your values"
+    echo "  2. docker compose up -d          # Start database & Redis"
+    echo "  3. pnpm db:push                  # Push schema to database"
+    echo "  4. pnpm dev                      # Start development"
     echo ""
     echo -e "${BLUE}In Claude Code:${NC}"
     echo "  Type /lead to start the AI workflow"
+    echo ""
+    echo -e "${YELLOW}Note:${NC} Lead agent will ask about features and project type."
+    echo "      All features are pre-included. Unused ones will be removed."
     echo ""
 }
 
@@ -437,10 +581,12 @@ main() {
     print_header
     check_prerequisites
     get_project_info
-    select_delivery_model
-    select_features
-    select_i18n
-    create_project
+    select_platforms
+    select_language
+    setup_project
+    setup_git_remote
+    start_docker
+    install_dependencies
     print_summary
 }
 

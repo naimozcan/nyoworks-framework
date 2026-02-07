@@ -1,0 +1,46 @@
+{
+  "name": "create-nyoworks",
+  "version": "2.2.0",
+  "description": "Create a new NYOWORKS project",
+  "type": "module",
+  "bin": {
+    "create-nyoworks": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "template"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "copy-template": "./scripts/copy-template.sh",
+    "prepublishOnly": "npm run copy-template && npm run build"
+  },
+  "keywords": [
+    "create",
+    "nyoworks",
+    "boilerplate",
+    "monorepo",
+    "typescript",
+    "nextjs",
+    "hono",
+    "trpc"
+  ],
+  "author": "NYOWORKS",
+  "license": "MIT",
+  "dependencies": {
+    "prompts": "^2.4.2",
+    "picocolors": "^1.1.1",
+    "fs-extra": "^11.2.0",
+    "execa": "^9.5.2"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^22.0.0",
+    "@types/prompts": "^2.4.9",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

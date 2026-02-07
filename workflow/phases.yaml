@@ -164,6 +164,23 @@ phases:
     active_roles:
       primary: backend
       support: [data]
+    sub_phases:
+      - id: BACKEND.IMPL
+        name: Implementation
+        description: API endpoints, services, controllers, middleware
+        primaryRole: backend
+        supportRoles: [data]
+      - id: BACKEND.TEST
+        name: Unit Testing
+        description: Service tests, controller tests, >80% coverage
+        primaryRole: backend
+        supportRoles: [qa]
+        exitCriteria: [api_tests_pass, api_coverage_80]
+      - id: BACKEND.REVIEW
+        name: Bible Compliance Review
+        description: Verify all code matches Bible decisions
+        primaryRole: qa
+        supportRoles: [backend]
     deliverables:
       required:
         - apps/api/src/routes/
@@ -201,6 +218,34 @@ phases:
     active_roles:
       primary: frontend
       support: [designer]
+    sub_phases:
+      - id: FRONTEND.CONTRACT
+        name: UI Contract
+        description: Page specs, layout architecture, asset system spec
+        primaryRole: designer
+        supportRoles: [lead, frontend]
+      - id: FRONTEND.PREP
+        name: UI Preparation
+        description: User prepares theme tokens, icons, animations, brand assets
+        primaryRole: user
+        supportRoles: [designer]
+      - id: FRONTEND.INFRA
+        name: Frontend Infrastructure
+        description: Theme package, icons package, shadcn init, route groups
+        primaryRole: architect
+        supportRoles: [frontend]
+        exitCriteria: [build_success]
+      - id: FRONTEND.LAYOUT
+        name: Layout Implementation
+        description: Root, auth, app, marketing, standalone layouts
+        primaryRole: frontend
+        supportRoles: [designer]
+      - id: FRONTEND.PAGES
+        name: Page Implementation
+        description: Spec-driven page-by-page implementation with user review
+        primaryRole: frontend
+        supportRoles: [designer]
+        exitCriteria: [build_success]
     deliverables:
       required:
         - apps/web/src/app/
@@ -236,6 +281,28 @@ phases:
     active_roles:
       primary: qa
       support: [backend, frontend, devops]
+    sub_phases:
+      - id: QA.UNIT
+        name: Unit Test Gaps
+        description: Fill missing unit tests, reach coverage targets
+        primaryRole: qa
+        supportRoles: [backend, frontend]
+      - id: QA.INTEGRATION
+        name: Integration Tests
+        description: API + database integration tests
+        primaryRole: qa
+        supportRoles: [backend]
+      - id: QA.E2E
+        name: End-to-End Tests
+        description: Playwright E2E tests for critical flows
+        primaryRole: qa
+        supportRoles: [frontend]
+      - id: QA.SECURITY
+        name: Security Audit
+        description: Auth, rate limiting, input validation, OWASP checks
+        primaryRole: qa
+        supportRoles: [backend, devops]
+        exitCriteria: [security_scan_pass]
     deliverables:
       required:
         - tests/e2e/
@@ -500,9 +567,10 @@ validation_functions:
     returns: boolean
 
   security_scan_pass:
-    description: Run security scan and check results
+    description: Run security scan (manual approval via approve_check tool)
     params: []
     returns: boolean
+    type: manual
 
   docker_build_success:
     description: Build Docker images

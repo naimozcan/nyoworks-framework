@@ -8,6 +8,25 @@
 # - Context limits and phase assignments
 # - MCP tool permissions
 #
+# Bible Structure (Updated 2026-02-04):
+# - 01-vision/       Vision & Mission
+# - 02-users/        User Types & Roles
+# - 03-features/     Feature Specifications
+# - 04-data/         Data Quality & Methodology
+# - 05-tech/         Technical Architecture
+#   - architecture/  System Design
+#   - database/      Schema & Migrations
+#   - api/           Routes & Contracts
+#   - security/      Auth & RBAC
+#   - devops/        CI/CD & Infrastructure
+#   - apps/          Web & Mobile Specs
+# - 06-ux/           User Experience
+# - 07-quality/      Testing & Edge Cases
+# - 09-decisions/    Authoritative Decisions
+# - 90-logs/         Task & Audit Logs
+# - 98-backlog/      Future Features
+# - 99-tracking/     Gap & Status Tracking
+#
 # ═══════════════════════════════════════════════════════════════════════════════
 
 roles:
@@ -18,22 +37,20 @@ roles:
     name: Project Lead
     description: Orchestrates workflow, manages tasks, ensures quality across all phases
     command: /lead
-    icon: "🎯"
     bible_sections:
       auto_load:
-        - 00-MASTER/INDEX.md
-        - 00-MASTER/DECISIONS.md
-        - 01-VISION/
-        - 99-TRACKING/GAPS.md
-        - 99-TRACKING/IMPLEMENTATION_STATUS.md
+        - 09-decisions/01-decisions.md
+        - 01-vision/
+        - 99-tracking/GAPS.md
+        - 99-tracking/IMPLEMENTATION_STATUS.md
       on_demand:
-        - "*"  # Can access any section
+        - "*"
     max_context_tokens: 32000
     capabilities:
       - Create and assign tasks
       - Advance workflow phases
       - Force unlock any task
-      - Record decisions in DECISIONS.md
+      - Record decisions
       - Review all deliverables
       - Approve phase transitions
       - Rollback phases when needed
@@ -55,12 +72,32 @@ roles:
         - log_activity
         - get_activity_log
         - validate_phase_transition
+        - add_task_progress
+        - add_subtask
+        - complete_subtask
+        - get_task_progress
+        - validate_work_authorization
+        - check_orphan_code
+        - heartbeat
+        - get_pending_handoffs
+        - acknowledge_handoff
+        - create_handoff
+        - get_sub_phase
+        - get_spec
+        - create_spec
+        - set_sub_phases
+        - advance_sub_phase
+        - approve_spec
+        - require_spec
+        - approve_check
+        - get_visual_guidance
+        - get_shared_architecture
       restricted: []
     active_in_all_phases: true
     can_override_locks: true
     language:
-      chat: tr  # Turkish responses
-      code: en  # English code
+      chat: tr
+      code: en
 
   # ═══════════════════════════════════════════════════════════════════════════
   # System Architect - Design & Contracts
@@ -69,16 +106,15 @@ roles:
     name: System Architect
     description: Designs systems, schemas, and API contracts
     command: /architect
-    icon: "🏗️"
     bible_sections:
       auto_load:
-        - 00-MASTER/DECISIONS.md
-        - 03-DATA/01-schema.md
-        - 05-TECH/01-architecture.md
-        - 05-TECH/03-api-routes.md
+        - 09-decisions/01-decisions.md
+        - 05-tech/database/01-schema.md
+        - 05-tech/architecture/01-overview.md
+        - 05-tech/api/01-routes.md
       on_demand:
-        - 02-USERS/
-        - 07-EDGE/
+        - 02-users/
+        - 07-quality/
     max_context_tokens: 24000
     capabilities:
       - Design database schemas
@@ -96,6 +132,21 @@ roles:
         - record_decision
         - get_bible_section
         - log_activity
+        - add_task_progress
+        - add_subtask
+        - complete_subtask
+        - get_task_progress
+        - validate_work_authorization
+        - check_orphan_code
+        - heartbeat
+        - get_pending_handoffs
+        - acknowledge_handoff
+        - create_handoff
+        - get_sub_phase
+        - get_spec
+        - create_spec
+        - approve_spec
+        - get_shared_architecture
       restricted:
         - set_phase
         - force_release_task
@@ -113,15 +164,14 @@ roles:
     name: UI/UX Designer
     description: Designs user interfaces, components, and experiences
     command: /designer
-    icon: "🎨"
     bible_sections:
       auto_load:
-        - 06-UX/01-user-flows.md
-        - 06-UX/02-ui-specifications.md
-        - 06-UX/06-design-themes.md
+        - 06-ux/01-user-flows.md
+        - 06-ux/02-ui-specifications.md
+        - 06-ux/06-design-themes.md
       on_demand:
-        - 06-UX/
-        - 01-VISION/
+        - 06-ux/
+        - 01-vision/
     max_context_tokens: 16000
     capabilities:
       - Design UI components (shadcn/ui)
@@ -133,13 +183,27 @@ roles:
     mcp_tools:
       allowed:
         - get_status
+        - create_task
         - claim_task
         - release_task
         - get_bible_section
         - log_activity
+        - add_task_progress
+        - add_subtask
+        - complete_subtask
+        - get_task_progress
+        - validate_work_authorization
+        - check_orphan_code
+        - heartbeat
+        - get_pending_handoffs
+        - acknowledge_handoff
+        - create_handoff
+        - get_sub_phase
+        - get_spec
+        - create_spec
+        - get_visual_guidance
       restricted:
         - set_phase
-        - create_task
     active_phases:
       - DESIGN
       - FRONTEND
@@ -159,14 +223,14 @@ roles:
     name: Backend Developer
     description: Implements APIs, business logic, and database operations
     command: /backend
-    icon: "⚙️"
     bible_sections:
       auto_load:
-        - 03-DATA/01-schema.md
-        - 05-TECH/03-api-routes.md
+        - 05-tech/database/01-schema.md
+        - 05-tech/api/01-routes.md
+        - 05-tech/api/03-contract.md
       on_demand:
-        - 03-FEATURES/  # Only enabled features
-        - 05-TECH/
+        - 03-features/
+        - 05-tech/
     max_context_tokens: 16000
     capabilities:
       - Implement API endpoints (Hono)
@@ -178,14 +242,27 @@ roles:
     mcp_tools:
       allowed:
         - get_status
+        - create_task
         - claim_task
         - release_task
         - get_bible_section
         - list_features
         - log_activity
+        - add_task_progress
+        - add_subtask
+        - complete_subtask
+        - get_task_progress
+        - validate_work_authorization
+        - check_orphan_code
+        - heartbeat
+        - get_pending_handoffs
+        - acknowledge_handoff
+        - create_handoff
+        - get_sub_phase
+        - get_spec
+        - create_spec
       restricted:
         - set_phase
-        - create_task
         - enable_feature
     active_phases:
       - BACKEND
@@ -207,14 +284,14 @@ roles:
     name: Frontend Developer
     description: Builds user interfaces and client-side interactions
     command: /frontend
-    icon: "🖥️"
     bible_sections:
       auto_load:
-        - 06-UX/02-ui-specifications.md
-        - 06-UX/06-design-themes.md
+        - 06-ux/02-ui-specifications.md
+        - 06-ux/06-design-themes.md
+        - 05-tech/apps/web.md
       on_demand:
-        - 06-UX/
-        - 03-FEATURES/  # Only enabled features
+        - 06-ux/
+        - 03-features/
     max_context_tokens: 16000
     capabilities:
       - Create React components
@@ -226,14 +303,28 @@ roles:
     mcp_tools:
       allowed:
         - get_status
+        - create_task
         - claim_task
         - release_task
         - get_bible_section
         - list_features
         - log_activity
+        - add_task_progress
+        - add_subtask
+        - complete_subtask
+        - get_task_progress
+        - validate_work_authorization
+        - check_orphan_code
+        - heartbeat
+        - get_pending_handoffs
+        - acknowledge_handoff
+        - create_handoff
+        - get_sub_phase
+        - get_spec
+        - create_spec
+        - get_visual_guidance
       restricted:
         - set_phase
-        - create_task
     active_phases:
       - FRONTEND
       - QA
@@ -256,13 +347,13 @@ roles:
     name: Database Engineer
     description: Designs and optimizes data models and queries
     command: /data
-    icon: "🗄️"
     bible_sections:
       auto_load:
-        - 03-DATA/01-schema.md
-        - 03-DATA/02-relationships.md
+        - 05-tech/database/01-schema.md
+        - 05-tech/database/04-relationships.md
       on_demand:
-        - 03-DATA/
+        - 04-data/
+        - 05-tech/database/
     max_context_tokens: 8000
     capabilities:
       - Design Drizzle schemas
@@ -274,13 +365,26 @@ roles:
     mcp_tools:
       allowed:
         - get_status
+        - create_task
         - claim_task
         - release_task
         - get_bible_section
         - log_activity
+        - add_task_progress
+        - add_subtask
+        - complete_subtask
+        - get_task_progress
+        - validate_work_authorization
+        - check_orphan_code
+        - heartbeat
+        - get_pending_handoffs
+        - acknowledge_handoff
+        - create_handoff
+        - get_sub_phase
+        - get_spec
+        - create_spec
       restricted:
         - set_phase
-        - create_task
     active_phases:
       - ARCHITECTURE
       - BACKEND
@@ -300,14 +404,14 @@ roles:
     name: QA Engineer
     description: Ensures quality through comprehensive testing
     command: /qa
-    icon: "🧪"
     bible_sections:
       auto_load:
-        - 99-TRACKING/TEST_MASTER_PLAN.md
-        - 99-TRACKING/GAPS.md
+        - 07-quality/04-test-plan.md
+        - 99-tracking/GAPS.md
+        - 99-tracking/TEST_MASTER_PLAN.md
       on_demand:
-        - 99-TRACKING/
-        - 07-EDGE/
+        - 99-tracking/
+        - 07-quality/
     max_context_tokens: 12000
     capabilities:
       - Write test plans
@@ -319,11 +423,24 @@ roles:
     mcp_tools:
       allowed:
         - get_status
+        - create_task
         - claim_task
         - release_task
-        - create_task  # Can create bug tasks
         - get_bible_section
         - log_activity
+        - add_task_progress
+        - add_subtask
+        - complete_subtask
+        - get_task_progress
+        - validate_work_authorization
+        - check_orphan_code
+        - heartbeat
+        - get_pending_handoffs
+        - acknowledge_handoff
+        - create_handoff
+        - get_sub_phase
+        - get_spec
+        - create_spec
       restricted:
         - set_phase
     active_phases:
@@ -344,12 +461,13 @@ roles:
     name: DevOps Engineer
     description: Handles deployment, infrastructure, and CI/CD
     command: /devops
-    icon: "🚀"
     bible_sections:
       auto_load:
-        - 05-TECH/07-devops.md
+        - 05-tech/devops/02-devops.md
+        - 05-tech/devops/03-infrastructure.md
       on_demand:
-        - 05-TECH/
+        - 05-tech/devops/
+        - 05-tech/security/
     max_context_tokens: 8000
     capabilities:
       - Configure Docker (distroless)
@@ -361,16 +479,29 @@ roles:
     mcp_tools:
       allowed:
         - get_status
+        - create_task
         - claim_task
         - release_task
         - get_bible_section
         - log_activity
+        - add_task_progress
+        - add_subtask
+        - complete_subtask
+        - get_task_progress
+        - validate_work_authorization
+        - check_orphan_code
+        - heartbeat
+        - get_pending_handoffs
+        - acknowledge_handoff
+        - create_handoff
+        - get_sub_phase
+        - get_spec
+        - create_spec
       restricted:
         - set_phase
-        - create_task
     active_phases:
       - DEPLOYMENT
-      - QA  # For infrastructure testing
+      - QA
     tech_stack:
       containers: Docker + distroless
       orchestration: AWS ECS Fargate
@@ -426,84 +557,69 @@ collaboration:
   DEPLOYMENT:
     primary: devops
     support: [lead]
-    handoff_to: null  # Final phase
+    handoff_to: null
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Task Assignment Rules
 # ─────────────────────────────────────────────────────────────────────────────
 
 assignment_rules:
-  # Schema and database tasks
   - pattern: "schema:*"
     roles: [data, architect]
     priority: 1
 
-  # API implementation tasks
   - pattern: "api:*"
     roles: [backend]
     priority: 1
 
-  # UI component tasks
   - pattern: "ui:*"
     roles: [frontend, designer]
     priority: 1
 
-  # Design system tasks
   - pattern: "design:*"
     roles: [designer]
     priority: 1
 
-  # Testing tasks
   - pattern: "test:*"
     roles: [qa]
     priority: 1
 
-  # Integration test tasks
   - pattern: "test:integration:*"
     roles: [qa, backend]
     priority: 2
 
-  # E2E test tasks
   - pattern: "test:e2e:*"
     roles: [qa]
     priority: 1
 
-  # Deployment tasks
   - pattern: "deploy:*"
     roles: [devops]
     priority: 1
 
-  # Docker tasks
   - pattern: "docker:*"
     roles: [devops]
     priority: 1
 
-  # CI/CD tasks
   - pattern: "cicd:*"
     roles: [devops]
     priority: 1
 
-  # Infrastructure tasks
   - pattern: "infra:*"
     roles: [devops]
     priority: 1
 
-  # Documentation tasks
   - pattern: "docs:*"
     roles: [lead, architect]
     priority: 2
 
-  # Bug fix tasks
   - pattern: "bug:*"
     roles: [backend, frontend]
     priority: 1
 
-  # Security tasks
   - pattern: "security:*"
     roles: [qa, backend]
     priority: 1
 
-  # Fallback - Lead handles unassigned
   - pattern: "*"
     roles: [lead]
     priority: 99
@@ -513,20 +629,11 @@ assignment_rules:
 # ─────────────────────────────────────────────────────────────────────────────
 
 conflict_resolution:
-  # When multiple roles can claim a task
   strategy: first_claim_wins
-
-  # Task lock timeout (minutes)
   lock_timeout: 30
-
-  # Heartbeat interval for long tasks (minutes)
   heartbeat_interval: 5
-
-  # Who can force release locks
   force_release_roles:
     - lead
-
-  # Escalation path
   escalation:
     timeout_minutes: 60
     notify: lead
@@ -536,25 +643,17 @@ conflict_resolution:
 # ─────────────────────────────────────────────────────────────────────────────
 
 communication:
-  # All roles log to activity log
   logging:
     enabled: true
     log_file: .nyoworks/activity.log
 
-  # Handoff protocol
   handoff:
-    # When primary role completes, notify support roles
     notify_on_complete: true
-    # Include deliverables summary
     include_summary: true
-    # Wait for acknowledgment
     require_ack: false
 
-  # Blocking issues
   blocking:
-    # Notify lead on blocking issues
     notify_lead: true
-    # Log to GAPS.md
     log_to_gaps: true
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -562,7 +661,6 @@ communication:
 # ─────────────────────────────────────────────────────────────────────────────
 
 permissions:
-  # File access permissions per role
   file_access:
     lead:
       read: ["*"]
@@ -570,7 +668,7 @@ permissions:
 
     architect:
       read: ["*"]
-      write: ["docs/bible/02-*/**", "docs/bible/03-*/**", "docs/bible/05-*/**", "packages/database/src/db/schema/**"]
+      write: ["docs/bible/02-*/**", "docs/bible/04-*/**", "docs/bible/05-*/**", "packages/database/src/db/schema/**"]
 
     designer:
       read: ["*"]
@@ -590,15 +688,12 @@ permissions:
 
     qa:
       read: ["*"]
-      write: ["tests/**", "docs/bible/99-*/**"]
+      write: ["tests/**", "docs/bible/99-*/**", "docs/bible/07-*/**"]
 
     devops:
       read: ["*"]
       write: ["docker/**", ".github/**", "infra/**", "scripts/**"]
 
-  # MCP tool access (defined per role above)
-
-  # Phase transition permissions
   phase_transition:
     can_advance: [lead]
     can_rollback: [lead]

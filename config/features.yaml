@@ -1,13 +1,17 @@
 # ═══════════════════════════════════════════════════════════════════════════════
-# Available Features
+# NYOWORKS Feature Modules
 # ═══════════════════════════════════════════════════════════════════════════════
 
-# Core modules are always included:
+# Core modules (always included, cannot be disabled):
 # - auth (JWT + Argon2id)
 # - multi-tenancy (RLS)
 # - rbac (roles/permissions)
 # - i18n (TR/EN/NL)
 # - theme (dark/light)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Feature Modules (Lead agent asks which ones to use, deletes unused)
+# ─────────────────────────────────────────────────────────────────────────────
 
 features:
   - id: payments
@@ -15,147 +19,185 @@ features:
     description: Stripe integration for subscriptions and one-time payments
     category: billing
     complexity: high
-    dependencies:
-      required: []
-      optional: [notifications, export]
+    files:
+      - packages/features/payments/
+      - packages/database/src/schema/payments.ts
+      - packages/validators/src/payments.ts
+      - apps/api/src/routes/payments/
 
   - id: appointments
     name: Appointment Scheduling
     description: Booking and scheduling system with calendar integration
     category: scheduling
     complexity: medium
-    dependencies:
-      required: []
-      optional: [notifications, payments]
-
-  - id: inventory
-    name: Inventory Management
-    description: Warehouse management system with stock tracking
-    category: operations
-    complexity: high
-    dependencies:
-      required: []
-      optional: [notifications, export]
-
-  - id: crm
-    name: Customer Relationship Management
-    description: Contact management and deal tracking
-    category: sales
-    complexity: medium
-    dependencies:
-      required: []
-      optional: [notifications, export]
-
-  - id: cms
-    name: Content Management System
-    description: Content creation and publishing platform
-    category: content
-    complexity: medium
-    dependencies:
-      required: []
-      optional: [export]
-
-  - id: ecommerce
-    name: E-commerce
-    description: Products, cart, and checkout functionality
-    category: commerce
-    complexity: high
-    dependencies:
-      required: [payments]
-      optional: [inventory, notifications]
+    files:
+      - packages/features/appointments/
+      - packages/database/src/schema/appointments.ts
+      - packages/validators/src/appointments.ts
+      - apps/api/src/routes/appointments/
 
   - id: analytics
     name: Analytics & Reporting
     description: Dashboards and data visualization
     category: insights
     complexity: medium
-    dependencies:
-      required: []
-      optional: [export]
+    files:
+      - packages/features/analytics/
+      - packages/database/src/schema/analytics.ts
+      - packages/validators/src/analytics.ts
+      - apps/api/src/routes/analytics/
 
   - id: notifications
     name: Notifications
     description: Push notifications and email alerts
     category: communication
     complexity: medium
-    dependencies:
-      required: []
-      optional: []
+    files:
+      - packages/features/notifications/
+      - packages/database/src/schema/notifications.ts
+      - packages/validators/src/notifications.ts
+      - apps/api/src/routes/notifications/
 
   - id: audit
     name: Audit Logging
     description: Activity tracking and audit trail
     category: compliance
     complexity: low
-    dependencies:
-      required: []
-      optional: [export]
+    files:
+      - packages/features/audit/
+      - packages/database/src/schema/audit.ts
+      - packages/validators/src/audit.ts
+      - apps/api/src/routes/audit/
 
   - id: export
     name: Data Export
     description: CSV and PDF export functionality
     category: utility
     complexity: low
-    dependencies:
-      required: []
-      optional: []
+    files:
+      - packages/features/export/
+      - apps/api/src/routes/export/
 
   - id: realtime
     name: Real-time Features
     description: WebSocket connections and live updates
     category: communication
     complexity: medium
-    dependencies:
-      required: []
-      optional: []
+    files:
+      - packages/features/realtime/
+      - apps/api/src/routes/realtime/
+
+  - id: invoicing
+    name: Invoicing & E-Invoice
+    description: UBL/Peppol e-fatura, TR e-Arsiv, recurring billing
+    category: billing
+    complexity: high
+    files:
+      - packages/features/invoicing/
+      - packages/database/src/schema/invoicing.ts
+      - packages/validators/src/invoicing.ts
+      - apps/api/src/routes/invoicing/
+
+  - id: file-storage
+    name: File Storage
+    description: S3-compatible file uploads and document management
+    category: utility
+    complexity: medium
+    files:
+      - packages/features/file-storage/
+      - packages/database/src/schema/files.ts
+      - packages/validators/src/files.ts
+      - apps/api/src/routes/files/
+
+  - id: queue
+    name: Background Jobs
+    description: BullMQ async processing for heavy tasks
+    category: infrastructure
+    complexity: low
+    files:
+      - packages/features/queue/
+      - apps/api/src/routes/jobs/
+
+  - id: crm-contacts
+    name: CRM Contacts
+    description: Contact and company management for CRM/ERP systems
+    category: crm
+    complexity: medium
+    files:
+      - packages/features/crm-contacts/
+      - packages/database/src/schema/contacts.ts
+      - packages/database/src/schema/companies.ts
+      - packages/validators/src/contacts.ts
+      - apps/api/src/routes/contacts/
+
+  - id: webhooks
+    name: Webhooks
+    description: Outgoing webhook system for external integrations
+    category: integration
+    complexity: medium
+    requires:
+      - queue
+    files:
+      - packages/features/webhooks/
+      - packages/database/src/schema/webhooks.ts
+      - packages/validators/src/webhooks.ts
+      - apps/api/src/routes/webhooks/
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Recommended Bundles
+# Bundles (Suggested feature combinations for common use cases)
 # ─────────────────────────────────────────────────────────────────────────────
 
 bundles:
-  - id: saas-basic
-    name: Basic SaaS
-    description: Essential features for any SaaS
+  - id: minimal
+    name: Minimal
+    description: Just the essentials
+    features:
+      - analytics
+      - audit
+
+  - id: standard
+    name: Standard
+    description: Common features for most apps
     features:
       - analytics
       - notifications
       - audit
+      - export
 
-  - id: booking
-    name: Booking Platform
-    description: Appointment and scheduling focused
+  - id: full
+    name: Full
+    description: All features enabled
     features:
+      - payments
       - appointments
-      - notifications
       - analytics
-      - payments
-
-  - id: marketplace
-    name: E-commerce Marketplace
-    description: Full e-commerce capabilities
-    features:
-      - ecommerce
-      - payments
-      - inventory
       - notifications
-      - analytics
-      - export
-
-  - id: crm-suite
-    name: CRM Suite
-    description: Customer relationship focused
-    features:
-      - crm
-      - notifications
-      - analytics
-      - export
       - audit
-
-  - id: content
-    name: Content Platform
-    description: Content management focused
-    features:
-      - cms
-      - analytics
       - export
+      - realtime
+      - invoicing
+      - file-storage
+      - queue
+      - crm-contacts
+      - webhooks
+
+  - id: crm
+    name: CRM System
+    description: Customer relationship management
+    features:
+      - crm-contacts
+      - analytics
+      - notifications
+      - audit
+      - webhooks
+
+  - id: erp
+    name: ERP System
+    description: Enterprise resource planning
+    features:
+      - crm-contacts
+      - invoicing
+      - analytics
+      - audit
+      - export
+      - webhooks

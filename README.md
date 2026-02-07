@@ -1,26 +1,25 @@
-# NYOWORKS Framework v2.0
+# NYOWORKS Framework v2.1
 
-> Feature-based, modular SaaS framework with AI team orchestration via MCP
+> AI-orchestrated multi-agent framework for building SaaS applications via MCP
 
 ## Overview
 
 NYOWORKS Framework is a comprehensive solution for building SaaS applications with:
 
+- **8 Specialized AI Agents** - Orchestrated via MCP (lead, architect, backend, frontend, designer, data, qa, devops)
+- **Handoff Protocol** - Context preservation between agent sessions
+- **Sub-Phase System** - Granular workflow tracking (BACKEND.IMPL, FRONTEND.PAGES, etc.)
+- **Spec-Driven Development** - Minimum viable specs (10-20 lines) before implementation
 - **Feature Toggles** - Enable only what you need (build-time)
-- **AI Team Orchestration** - 7 specialized agents via MCP
+- **Cross-Platform** - Web (Next.js 16), Mobile (Expo SDK 54), Desktop (Tauri 2.0)
 - **Multi-tenancy** - PostgreSQL RLS for data isolation
-- **RBAC** - Role-based access control
-- **i18n** - TR/EN/NL support
-- **Theming** - Dark/light mode
+- **Visual Guidance** - Approved library catalog (charts, animations, icons, etc.)
 
 ## Quick Start
 
 ```bash
-# Clone the framework
 git clone https://github.com/nyoworks/nyoworks-framework.git
 cd nyoworks-framework
-
-# Create a new project
 ./setup.sh
 ```
 
@@ -31,85 +30,100 @@ cd nyoworks-framework
 | Runtime | Node.js 22+ |
 | Monorepo | Turborepo + pnpm 9.x |
 | Backend | Hono |
-| Frontend | Next.js 16+ (Server Actions) |
+| Frontend | Next.js 16 (App Router) |
 | Database | PostgreSQL 16 + Drizzle ORM |
-| Cache | Redis 7 |
+| Cache | Redis 7 (ioredis) |
 | Styling | Tailwind CSS 4 + shadcn/ui |
 | Auth | JWT (jose) + Argon2id |
-
-## Available Features
-
-| Feature | Description |
-|---------|-------------|
-| payments | Stripe subscriptions |
-| appointments | Booking/scheduling |
-| inventory | Warehouse management |
-| crm | Customer relationship |
-| cms | Content management |
-| ecommerce | Products/cart/checkout |
-| analytics | Dashboards/reports |
-| notifications | Push/email alerts |
-| audit | Activity logging |
-| export | CSV/PDF export |
-| realtime | WebSocket features |
+| Mobile | Expo SDK 54 + React Native 0.81 |
+| Desktop | Tauri 2.0 |
 
 ## AI Workflow
 
+### 8-Phase Pipeline
+
 ```
-/lead → /architect → /backend + /data → /frontend → /qa → /devops
+DISCOVERY -> ARCHITECTURE -> DESIGN -> PLANNING -> BACKEND -> FRONTEND -> QA -> DEPLOYMENT
+```
+
+### Sub-Phase Granularity (v2.1)
+
+```
+BACKEND:  IMPL -> TEST -> REVIEW
+FRONTEND: CONTRACT -> PREP -> INFRA -> LAYOUT -> PAGES
+QA:       UNIT -> INTEGRATION -> E2E -> SECURITY
 ```
 
 ### Agent Commands
 
 | Command | Role | Description |
 |---------|------|-------------|
-| /lead | Project Lead | Orchestrates workflow |
-| /architect | System Architect | Designs systems |
-| /backend | Backend Developer | Implements APIs |
-| /frontend | Frontend Developer | Builds UI |
-| /data | Database Engineer | Manages schemas |
-| /qa | QA Engineer | Ensures quality |
-| /devops | DevOps Engineer | Handles deployment |
+| /lead | Project Lead | Orchestrates workflow, manages sub-phases |
+| /architect | System Architect | Designs systems, cross-platform |
+| /backend | Backend Developer | Implements APIs, services |
+| /frontend | Frontend Developer | Builds UI, pages |
+| /designer | UI/UX Designer | Writes specs, design system |
+| /data | Database Engineer | Manages schemas, migrations |
+| /qa | QA Engineer | Testing, security audit |
+| /devops | DevOps Engineer | Docker, CI/CD, deployment |
 
-## CLI Commands
+## v2.1 Features
 
-```bash
-# Project status
-nyoworks status
+### Handoff Protocol
+Context preservation between agent sessions. When an agent completes work, it creates a handoff with artifacts, decisions, and warnings for the next agent.
 
-# Phase management
-nyoworks phase
-nyoworks phase --set BACKEND
-
-# Task management
-nyoworks task list
-nyoworks task create "Task title" --feature payments
-nyoworks task claim TASK-001 --role backend
-nyoworks task release TASK-001
-nyoworks task locks
-
-# Feature management
-nyoworks feature list
-nyoworks feature list --enabled
-nyoworks feature enable payments
-nyoworks feature disable crm
-nyoworks feature info payments
-
-# Bible documentation
-nyoworks bible status
-nyoworks bible check
-
-# Decisions
-nyoworks decision list
-nyoworks decision add T-001 "Title" "Description" "Rationale"
 ```
+create_handoff -> get_pending_handoffs -> acknowledge_handoff
+```
+
+### Spec-Driven Development
+Based on Addy Osmani "Beyond Vibe Coding" (2026), Martin Fowler SDD Analysis (2025), arXiv SDD paper (2026).
+
+```
+get_spec(taskId) -> create_spec() -> approve_spec() -> implement
+```
+
+### Visual Guidance
+Approved library catalog prevents AI from writing visual elements from scratch.
+
+| Category | Library |
+|----------|---------|
+| Charts | Recharts (shadcn/ui Charts) |
+| Animations | Motion (Framer Motion) |
+| Effects | Magic UI / Aceternity UI |
+| Icons | Lucide React |
+| Tables | TanStack Table (shadcn DataTable) |
+| Forms | React Hook Form + Zod (shadcn Form) |
+
+### Real Phase Validation
+Automated checks (execSync for tests/build) + manual approval (approve_check for security/staging).
+
+## MCP Server (67+ Tools)
+
+### Core Tools
+| Tool | Purpose |
+|------|---------|
+| `get_status` | Project state overview |
+| `create_task` / `get_tasks` / `update_task` | Task management |
+| `claim_task` / `release_task` / `heartbeat` | Task locking (30-min timeout) |
+| `advance_phase` / `rollback_phase` | Phase management |
+
+### v2.1 Tools (13 new)
+| Tool | Purpose |
+|------|---------|
+| `create_handoff` / `get_pending_handoffs` / `acknowledge_handoff` | Agent context handoff |
+| `set_sub_phases` / `get_sub_phase` / `advance_sub_phase` | Sub-phase management |
+| `create_spec` / `get_spec` / `approve_spec` / `require_spec` | Spec registry |
+| `approve_check` | Manual validation approval |
+| `get_visual_guidance` | Visual library catalog |
+| `get_shared_architecture` | Cross-platform guidance |
 
 ## Directory Structure
 
 ```
 nyoworks-framework/
-├── .claude/commands/      # AI role definitions
-├── mcp-server/            # MCP orchestration server
+├── .claude/commands/      # 8 AI agent definitions (v2.1)
+├── mcp-server/            # MCP orchestration server (67+ tools)
 ├── cli/                   # CLI tool
 ├── core/                  # Always-included modules
 │   ├── database/          # Schema, RLS
@@ -120,28 +134,29 @@ nyoworks-framework/
 │   ├── theme/             # CSS variables
 │   └── shared/            # Types, errors, logger
 ├── features/              # Optional feature modules
-├── templates/monorepo/    # Project template
-├── workflow/              # Phase/role configs
+├── templates/             # Project scaffolding
+│   ├── docker/            # Docker configs
+│   ├── github-workflows/  # CI/CD workflows
+│   └── monorepo/          # Monorepo skeleton
+├── workflow/              # Phase/role configs (v2.1 sub-phases)
 ├── docs/bible/            # Documentation templates
+│   ├── ui/                # Page specs, layout, assets (v2.1)
+│   ├── infra/             # Cross-platform architecture (v2.1)
+│   └── specs/             # SDD documentation (v2.1)
 └── config/                # Stack/features config
 ```
 
-## Bible Documentation
+## Academic Validation (February 2026)
 
-Each project includes a Bible for documentation:
+Framework decisions validated against 9 authoritative sources:
 
-```
-docs/bible/
-├── 00-master/     # Index, decisions
-├── 01-vision/     # Mission, principles
-├── 02-actors/     # Users, roles
-├── 03-data/       # Schema, models
-├── 04-features/   # Feature specs
-├── 05-api/        # Endpoints
-├── 06-ui/         # Components
-├── 07-tech/       # Architecture
-└── 99-tracking/   # Gaps, audit
-```
+| Feature | Supporting Sources | Strength |
+|---------|-------------------|----------|
+| Handoff Protocol | Osmani, Anthropic x2, Google ADK, IBM | STRONG |
+| Sub-Phase System | Osmani, Anthropic x2, arXiv | STRONG |
+| Spec Registry (10-20 lines) | Osmani, Fowler, arXiv, Anthropic | STRONG |
+| Role-based Agent Structure | Anthropic x2, Osmani | STRONG |
+| Real Validation (execSync) | Osmani, Anthropic, arXiv | STRONG |
 
 ## License
 
