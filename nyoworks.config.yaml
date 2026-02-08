@@ -5,13 +5,13 @@
 # setup.sh generates this automatically during project creation.
 
 framework:
-  version: "2.1.0"
+  version: "2.6.0"
 
 project:
   name: "${PROJECT_NAME}"
   code: "${PROJECT_CODE}"
   scope: "@${PROJECT_SLUG}"
-  type: "saas"
+  productType: "${PRODUCT_TYPE}"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Features
@@ -22,13 +22,20 @@ features:
   disabled: []
 
   available:
-    - payments
-    - appointments
     - analytics
-    - notifications
+    - appointments
     - audit
+    - auth-social
+    - crm
     - export
+    - i18n
+    - multitenant
+    - notifications
+    - payments
     - realtime
+    - search
+    - storage
+    - subscriptions
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Platforms

@@ -1,7 +1,7 @@
 # NYOWORKS Framework - Claude Code Rules
 
-> Framework Version: 2.2.0
-> Last Updated: 2026-02-06
+> Framework Version: 2.6.0
+> Last Updated: 2026-02-08
 
 ## Quick Reference
 

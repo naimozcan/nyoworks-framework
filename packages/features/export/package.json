@@ -1,0 +1,43 @@
+{
+  "name": "@nyoworks/feature-export",
+  "version": "2.6.0",
+  "description": "NYOWORKS Export Feature - PDF and CSV exports",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./schema": {
+      "import": "./dist/schema.js",
+      "types": "./dist/schema.d.ts"
+    },
+    "./router": {
+      "import": "./dist/router.js",
+      "types": "./dist/router.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts src/schema.ts src/router.ts --format esm --dts",
+    "dev": "tsup src/index.ts src/schema.ts src/router.ts --format esm --dts --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "jspdf": "^2.5.2",
+    "papaparse": "^5.5.2"
+  },
+  "peerDependencies": {
+    "@trpc/server": "^11.0.0",
+    "drizzle-orm": "^0.38.0",
+    "react": "^19.0.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/papaparse": "^5.3.15",
+    "tsup": "^8.5.1",
+    "typescript": "^5.7.0"
+  }
+}

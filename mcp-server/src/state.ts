@@ -191,6 +191,23 @@ function logError(tool: string, error: string, args: Record<string, unknown>): v
   saveState()
 }
 
+function logActivity(agent: string, action: string, details: string = ""): void {
+  loadState()
+  if (!state.activityLog) {
+    state.activityLog = []
+  }
+  state.activityLog.push({
+    timestamp: new Date().toISOString(),
+    agent,
+    action,
+    details,
+  })
+  if (state.activityLog.length > 500) {
+    state.activityLog = state.activityLog.slice(-500)
+  }
+  saveState()
+}
+
 export {
   getProjectRoot,
   getState,
@@ -202,4 +219,5 @@ export {
   parseDecisionsFromMarkdown,
   cleanupExpiredLocks,
   logError,
+  logActivity,
 }

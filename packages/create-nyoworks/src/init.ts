@@ -10,15 +10,41 @@ import { checkDependencies, showClaudeMaxWarning, getDockerComposeCommand } from
 const REPO = "naimozcan/nyoworks-framework"
 const BRANCH = "main"
 
+const PRODUCT_TYPES = [
+  { title: "E-Commerce", value: "ecommerce", description: "Online store, product sales" },
+  { title: "Booking", value: "booking", description: "Appointment/reservation system" },
+  { title: "SaaS Platform", value: "saas", description: "Subscription-based software" },
+  { title: "Marketplace", value: "marketplace", description: "Multi-vendor platform" },
+  { title: "Content/Blog", value: "content", description: "Blog, news, CMS" },
+  { title: "CRM", value: "crm", description: "Customer relationship management" },
+  { title: "Custom", value: "custom", description: "Manual feature selection" },
+]
+
+const REQUIRED_FEATURES: Record<string, string[]> = {
+  ecommerce: ["payments", "crm", "notifications", "search", "storage"],
+  booking: ["appointments", "payments", "crm", "notifications"],
+  saas: ["payments", "subscriptions", "analytics", "notifications", "audit", "multitenant"],
+  marketplace: ["payments", "crm", "analytics", "notifications", "audit", "search", "storage", "multitenant"],
+  content: ["analytics", "search", "storage"],
+  crm: ["crm", "analytics", "notifications", "audit", "export"],
+  custom: [],
+}
+
 const AVAILABLE_FEATURES = [
   { title: "Analytics", value: "analytics", description: "User behavior tracking" },
-  { title: "CRM", value: "crm", description: "Customer relationship management" },
-  { title: "Payments", value: "payments", description: "Stripe integration" },
-  { title: "Notifications", value: "notifications", description: "Email, SMS, Push" },
   { title: "Appointments", value: "appointments", description: "Booking system" },
   { title: "Audit", value: "audit", description: "Activity logging" },
+  { title: "Auth Social", value: "auth-social", description: "Google, Apple, GitHub OAuth" },
+  { title: "CRM", value: "crm", description: "Customer relationship management" },
   { title: "Export", value: "export", description: "PDF/CSV export" },
+  { title: "i18n", value: "i18n", description: "Multi-language support" },
+  { title: "Multitenant", value: "multitenant", description: "Multi-organization support" },
+  { title: "Notifications", value: "notifications", description: "Email, SMS, Push" },
+  { title: "Payments", value: "payments", description: "Stripe integration" },
   { title: "Realtime", value: "realtime", description: "WebSocket support" },
+  { title: "Search", value: "search", description: "Full-text search" },
+  { title: "Storage", value: "storage", description: "File uploads (S3/R2)" },
+  { title: "Subscriptions", value: "subscriptions", description: "Plans & usage limits" },
 ]
 
 const AVAILABLE_PLATFORMS = [
@@ -79,14 +105,46 @@ export async function createProject(projectName?: string) {
   console.log(pc.dim("  Create a new project"))
   console.log()
 
+  let productType = "custom"
+  let requiredFeatures: string[] = []
+
+  const nameResponse = await prompts({
+    type: projectName ? null : "text",
+    name: "name",
+    message: "Project name:",
+    initial: projectName || "my-project",
+    validate: (value) => (value.length > 0 ? true : "Project name is required"),
+  })
+
+  if (!nameResponse.name && !projectName) {
+    console.log(pc.red("Aborted."))
+    process.exit(1)
+  }
+
+  const productResponse = await prompts({
+    type: "select",
+    name: "productType",
+    message: "Product type:",
+    choices: PRODUCT_TYPES,
+    initial: 0,
+  })
+
+  if (productResponse.productType) {
+    productType = productResponse.productType
+    requiredFeatures = REQUIRED_FEATURES[productType] || []
+  }
+
+  const featureChoices = AVAILABLE_FEATURES.map((f) => {
+    const isRequired = requiredFeatures.includes(f.value)
+    return {
+      title: isRequired ? `${f.title} [required]` : f.title,
+      value: f.value,
+      description: f.description,
+      selected: isRequired,
+    }
+  })
+
   const response = await prompts([
-    {
-      type: projectName ? null : "text",
-      name: "name",
-      message: "Project name:",
-      initial: projectName || "my-project",
-      validate: (value) => (value.length > 0 ? true : "Project name is required"),
-    },
     {
       type: "multiselect",
       name: "platforms",
@@ -100,7 +158,7 @@ export async function createProject(projectName?: string) {
       type: "multiselect",
       name: "features",
       message: "Select features:",
-      choices: AVAILABLE_FEATURES,
+      choices: featureChoices,
       hint: "- Space to select. Return to submit",
       instructions: false,
     },
@@ -113,17 +171,13 @@ export async function createProject(projectName?: string) {
     },
   ])
 
-  if (!response.name && !projectName) {
-    console.log(pc.red("Aborted."))
-    process.exit(1)
-  }
-
-  const name = response.name || projectName!
+  const name = (nameResponse.name || projectName)!
   const code = generateCode(name)
   const slug = generateSlug(name)
   const databaseName = generateDatabaseName(name)
   const platforms: string[] = response.platforms || ["web"]
-  const features: string[] = response.features || []
+  const selectedFeatures: string[] = response.features || []
+  const features: string[] = [...new Set([...requiredFeatures, ...selectedFeatures])]
   const language: string = response.language || "tr"
 
   const targetDir = path.resolve(process.cwd(), slug)
@@ -180,6 +234,14 @@ export async function createProject(projectName?: string) {
     }
   }
 
+  for (const feature of features) {
+    const src = path.join(repoDir, `packages/features/${feature}`)
+    const dest = path.join(targetDir, `packages/features/${feature}`)
+    if (await fs.pathExists(src)) {
+      await fs.copy(src, dest)
+    }
+  }
+
   const rootFiles = [
     "package.json",
     "pnpm-workspace.yaml",
@@ -209,6 +271,7 @@ export async function createProject(projectName?: string) {
     "${PROJECT_CODE}": code,
     "${PROJECT_SLUG}": slug,
     "${DATABASE_NAME}": databaseName,
+    "${PRODUCT_TYPE}": productType,
     "${RESPONSE_LANGUAGE}": LANGUAGE_RESPONSES[language] || "Turkish",
   }
 
@@ -295,6 +358,7 @@ See \`docs/bible/data/schema.md\`
   console.log(pc.dim("  Configuration:"))
   console.log(pc.dim(`    Name: ${name}`))
   console.log(pc.dim(`    Code: ${code}`))
+  console.log(pc.dim(`    Product: ${productType}`))
   console.log(pc.dim(`    Platforms: ${platforms.join(", ")}`))
   console.log(pc.dim(`    Features: ${features.join(", ") || "none"}`))
   console.log(pc.dim(`    Language: ${LANGUAGE_RESPONSES[language] || "Turkish"}`))

@@ -1,6 +1,6 @@
 {
   "name": "@nyoworks/mcp-server",
-  "version": "2.1.0",
+  "version": "2.6.0",
   "description": "NYOWORKS MCP Server for AI Team Orchestration",
   "type": "module",
   "main": "dist/index.js",
