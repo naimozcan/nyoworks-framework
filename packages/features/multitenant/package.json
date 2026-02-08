@@ -29,6 +29,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@nyoworks/database": "workspace:*",
     "@nyoworks/shared": "workspace:*",
     "@paralleldrive/cuid2": "^3.3.0"
   },

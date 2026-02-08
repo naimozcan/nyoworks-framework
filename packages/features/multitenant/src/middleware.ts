@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { eq, and } from "drizzle-orm"
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { tenants, tenantMembers } from "./schema.js"
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -18,9 +19,7 @@ interface TenantContext {
 }
 
 interface ResolveTenantOptions {
-  db: {
-    select: (table: unknown) => unknown
-  }
+  db: DrizzleDatabase
   userId: string
   tenantIdOrSlug?: string
   headerTenantId?: string
@@ -31,6 +30,11 @@ interface ResolveTenantResult {
   success: boolean
   context?: TenantContext
   error?: string
+}
+
+interface GetDefaultTenantOptions {
+  db: DrizzleDatabase
+  userId: string
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -46,13 +50,12 @@ export async function resolveTenant(options: ResolveTenantOptions): Promise<Reso
     return { success: false, error: "No tenant identifier provided" }
   }
 
-  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenantIdentifier)
+  const isCuid = /^[a-z0-9]{24,}$/i.test(tenantIdentifier)
 
-  const dbTyped = db as any
-  const tenant = await dbTyped
+  const tenant = await db
     .select()
     .from(tenants)
-    .where(isUuid ? eq(tenants.id, tenantIdentifier) : eq(tenants.slug, tenantIdentifier))
+    .where(isCuid ? eq(tenants.id, tenantIdentifier) : eq(tenants.slug, tenantIdentifier))
     .limit(1)
 
   if (!tenant[0]) {
@@ -63,7 +66,7 @@ export async function resolveTenant(options: ResolveTenantOptions): Promise<Reso
     return { success: false, error: "Tenant is not active" }
   }
 
-  const member = await dbTyped
+  const member = await db
     .select()
     .from(tenantMembers)
     .where(
@@ -94,18 +97,10 @@ export async function resolveTenant(options: ResolveTenantOptions): Promise<Reso
 // Get Default Tenant
 // ─────────────────────────────────────────────────────────────────────────────
 
-interface GetDefaultTenantOptions {
-  db: {
-    select: (table: unknown) => unknown
-  }
-  userId: string
-}
-
 export async function getDefaultTenant(options: GetDefaultTenantOptions): Promise<ResolveTenantResult> {
   const { db, userId } = options
 
-  const dbTyped = db as any
-  const memberships = await dbTyped
+  const memberships = await db
     .select({
       tenantId: tenantMembers.tenantId,
       role: tenantMembers.role,
@@ -119,9 +114,13 @@ export async function getDefaultTenant(options: GetDefaultTenantOptions): Promis
   }
 
   const ownerMembership = memberships.find((m: { role: string }) => m.role === "owner")
-  const targetMembership = ownerMembership || memberships[0]
+  const targetMembership = ownerMembership ?? memberships[0]
 
-  const tenant = await dbTyped
+  if (!targetMembership) {
+    return { success: false, error: "No valid membership found" }
+  }
+
+  const tenant = await db
     .select()
     .from(tenants)
     .where(eq(tenants.id, targetMembership.tenantId))

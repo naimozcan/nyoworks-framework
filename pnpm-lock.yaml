@@ -635,6 +635,9 @@ importers:
 
   packages/features/multitenant:
     dependencies:
+      '@nyoworks/database':
+        specifier: workspace:*
+        version: link:../../database
       '@nyoworks/shared':
         specifier: workspace:*
         version: link:../../shared
