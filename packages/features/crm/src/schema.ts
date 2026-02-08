@@ -2,16 +2,17 @@
 // CRM Feature - Database Schema
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { pgTable, text, timestamp, uuid, jsonb, boolean, integer } from "drizzle-orm/pg-core"
+import { pgTable, text, timestamp, jsonb, boolean, integer } from "drizzle-orm/pg-core"
 import { relations } from "drizzle-orm"
+import { createId } from "@paralleldrive/cuid2"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Contacts Table
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const contacts = pgTable("contacts", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  tenantId: text("tenant_id").notNull(),
 
   firstName: text("first_name").notNull(),
   lastName: text("last_name"),
@@ -26,7 +27,7 @@ export const contacts = pgTable("contacts", {
   avatarUrl: text("avatar_url"),
   customFields: jsonb("custom_fields").$type<Record<string, unknown>>(),
 
-  ownerId: uuid("owner_id"),
+  ownerId: text("owner_id"),
 
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -37,8 +38,8 @@ export const contacts = pgTable("contacts", {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const tags = pgTable("tags", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  tenantId: text("tenant_id").notNull(),
 
   name: text("name").notNull(),
   color: text("color").notNull().default("#6366f1"),
@@ -52,9 +53,9 @@ export const tags = pgTable("tags", {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const contactTags = pgTable("contact_tags", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  contactId: uuid("contact_id").notNull().references(() => contacts.id, { onDelete: "cascade" }),
-  tagId: uuid("tag_id").notNull().references(() => tags.id, { onDelete: "cascade" }),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  contactId: text("contact_id").notNull().references(() => contacts.id, { onDelete: "cascade" }),
+  tagId: text("tag_id").notNull().references(() => tags.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 })
 
@@ -63,13 +64,13 @@ export const contactTags = pgTable("contact_tags", {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const notes = pgTable("notes", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  contactId: uuid("contact_id").notNull().references(() => contacts.id, { onDelete: "cascade" }),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  contactId: text("contact_id").notNull().references(() => contacts.id, { onDelete: "cascade" }),
 
   content: text("content").notNull(),
   isPinned: boolean("is_pinned").notNull().default(false),
 
-  authorId: uuid("author_id").notNull(),
+  authorId: text("author_id").notNull(),
 
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -80,8 +81,8 @@ export const notes = pgTable("notes", {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const activities = pgTable("activities", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  contactId: uuid("contact_id").notNull().references(() => contacts.id, { onDelete: "cascade" }),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  contactId: text("contact_id").notNull().references(() => contacts.id, { onDelete: "cascade" }),
 
   type: text("type").notNull(),
   title: text("title").notNull(),
@@ -92,7 +93,7 @@ export const activities = pgTable("activities", {
 
   metadata: jsonb("metadata").$type<Record<string, unknown>>(),
 
-  userId: uuid("user_id").notNull(),
+  userId: text("user_id").notNull(),
 
   createdAt: timestamp("created_at").notNull().defaultNow(),
 })
@@ -102,9 +103,9 @@ export const activities = pgTable("activities", {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const deals = pgTable("deals", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
-  contactId: uuid("contact_id").references(() => contacts.id, { onDelete: "set null" }),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  tenantId: text("tenant_id").notNull(),
+  contactId: text("contact_id").references(() => contacts.id, { onDelete: "set null" }),
 
   title: text("title").notNull(),
   value: integer("value"),
@@ -116,7 +117,7 @@ export const deals = pgTable("deals", {
   expectedCloseDate: timestamp("expected_close_date"),
   closedAt: timestamp("closed_at"),
 
-  ownerId: uuid("owner_id"),
+  ownerId: text("owner_id"),
 
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -168,3 +169,20 @@ export const dealsRelations = relations(deals, ({ one }) => ({
     references: [contacts.id],
   }),
 }))
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type Contact = typeof contacts.$inferSelect
+export type NewContact = typeof contacts.$inferInsert
+export type Tag = typeof tags.$inferSelect
+export type NewTag = typeof tags.$inferInsert
+export type ContactTag = typeof contactTags.$inferSelect
+export type NewContactTag = typeof contactTags.$inferInsert
+export type Note = typeof notes.$inferSelect
+export type NewNote = typeof notes.$inferInsert
+export type Activity = typeof activities.$inferSelect
+export type NewActivity = typeof activities.$inferInsert
+export type Deal = typeof deals.$inferSelect
+export type NewDeal = typeof deals.$inferInsert

@@ -2,16 +2,17 @@
 // i18n Feature - Database Schema
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { pgTable, text, timestamp, uuid, index, uniqueIndex } from "drizzle-orm/pg-core"
+import { pgTable, text, timestamp, index, uniqueIndex } from "drizzle-orm/pg-core"
 import { relations } from "drizzle-orm"
+import { createId } from "@paralleldrive/cuid2"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Translations Table
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const translations = pgTable("translations", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  tenantId: text("tenant_id").notNull(),
 
   locale: text("locale").notNull(),
   namespace: text("namespace").notNull().default("common"),
@@ -32,8 +33,8 @@ export const translations = pgTable("translations", {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const locales = pgTable("locales", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  tenantId: text("tenant_id").notNull(),
 
   code: text("code").notNull(),
   name: text("name").notNull(),

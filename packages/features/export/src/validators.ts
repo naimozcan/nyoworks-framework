@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { z } from "zod"
+import { PAGINATION } from "@nyoworks/shared/constants"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Export Job Status
@@ -25,9 +26,9 @@ export const exportFormat = z.enum([
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const createExportJobInput = z.object({
-  type: z.string().min(1).max(100),
+  type: z.string().min(1).max(PAGINATION.MAX_LIMIT),
   format: exportFormat,
-  filters: z.record(z.unknown()).optional(),
+  filters: z.record(z.string(), z.unknown()).optional(),
 })
 
 export const createExportJobOutput = z.object({
@@ -49,7 +50,7 @@ export const getExportJobOutput = z.object({
   type: z.string(),
   status: exportJobStatus,
   format: exportFormat,
-  filters: z.record(z.unknown()).nullable(),
+  filters: z.record(z.string(), z.unknown()).nullable(),
   fileUrl: z.string().nullable(),
   errorMessage: z.string().nullable(),
   startedAt: z.date().nullable(),
@@ -64,7 +65,7 @@ export const getExportJobOutput = z.object({
 export const listExportJobsInput = z.object({
   type: z.string().optional(),
   status: exportJobStatus.optional(),
-  limit: z.number().min(1).max(100).default(20),
+  limit: z.number().min(1).max(PAGINATION.MAX_LIMIT).default(PAGINATION.DEFAULT_LIMIT),
   offset: z.number().min(0).default(0),
 })
 

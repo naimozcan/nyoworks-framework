@@ -59,7 +59,7 @@ export const authRouter = router({
 
   refresh: publicProcedure
     .input(refreshInput)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input: _input }) => {
       return {
         accessToken: "placeholder",
         refreshToken: "placeholder",
@@ -67,7 +67,7 @@ export const authRouter = router({
     }),
 
   logout: protectedProcedure
-    .mutation(async ({ ctx }) => {
+    .mutation(async ({ ctx: _ctx }) => {
       return { success: true }
     }),
 

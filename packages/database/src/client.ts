@@ -3,8 +3,15 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { drizzle } from "drizzle-orm/postgres-js"
+import type { PostgresJsDatabase } from "drizzle-orm/postgres-js"
 import postgres from "postgres"
 import * as schema from "./schema"
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Database Type
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type DrizzleDatabase = PostgresJsDatabase<typeof schema>
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Connection
@@ -17,9 +24,9 @@ if (!connectionString) {
 }
 
 const client = postgres(connectionString, {
-  max: 20,
-  idle_timeout: 20,
-  connect_timeout: 10,
+  max: Number(process.env.DB_POOL_MAX) || 20,
+  idle_timeout: Number(process.env.DB_IDLE_TIMEOUT) || 20,
+  connect_timeout: Number(process.env.DB_CONNECT_TIMEOUT) || 10,
 })
 
 // ─────────────────────────────────────────────────────────────────────────────

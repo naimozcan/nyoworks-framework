@@ -3,7 +3,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { initTRPC, TRPCError } from "@trpc/server"
-import { z } from "zod"
 import { getStripeClient } from "./stripe.js"
 import {
   createCheckoutSessionInput,
@@ -14,12 +13,13 @@ import {
 } from "./validators.js"
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Context Type (to be extended by consuming app)
+// Context Type
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface PaymentsContext {
   user?: { id: string; email: string }
   tenantId?: string
+  db: unknown
 }
 
 const t = initTRPC.context<PaymentsContext>().create()
@@ -98,14 +98,20 @@ export const paymentsRouter = t.router({
 
       const subscription = await stripe.subscriptions.retrieve(input.subscriptionId)
 
+      const item = subscription.items.data[0]
+      const priceId = item ? (typeof item.price === "string" ? item.price : item.price.id) : ""
+
+      const sub = subscription as unknown as {
+        current_period_start: number
+        current_period_end: number
+      }
+
       return {
         id: subscription.id,
         status: subscription.status,
-        priceId: typeof subscription.items.data[0].price === "string"
-          ? subscription.items.data[0].price
-          : subscription.items.data[0].price.id,
-        currentPeriodStart: new Date(subscription.current_period_start * 1000),
-        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+        priceId,
+        currentPeriodStart: new Date(sub.current_period_start * 1000),
+        currentPeriodEnd: new Date(sub.current_period_end * 1000),
         cancelAtPeriodEnd: subscription.cancel_at_period_end,
       }
     }),
@@ -134,7 +140,6 @@ export const paymentsRouter = t.router({
       const invoices = await stripe.invoices.list({
         customer: input.customerId,
         limit: input.limit,
-        starting_after: input.offset > 0 ? undefined : undefined,
       })
 
       return {
@@ -144,8 +149,8 @@ export const paymentsRouter = t.router({
           amountDue: invoice.amount_due,
           amountPaid: invoice.amount_paid,
           currency: invoice.currency,
-          invoicePdf: invoice.invoice_pdf,
-          hostedInvoiceUrl: invoice.hosted_invoice_url,
+          invoicePdf: invoice.invoice_pdf ?? null,
+          hostedInvoiceUrl: invoice.hosted_invoice_url ?? null,
           createdAt: new Date(invoice.created * 1000),
         })),
         hasMore: invoices.has_more,

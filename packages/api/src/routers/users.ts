@@ -48,13 +48,13 @@ export const usersRouter = router({
 
   changePassword: protectedProcedure
     .input(changePasswordInput)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ ctx: _ctx, input: _input }) => {
       return { success: true }
     }),
 
   list: tenantProcedure
     .input(listUsersInput)
-    .query(async ({ ctx, input }) => {
+    .query(async ({ ctx: _ctx, input }) => {
       return {
         data: [],
         pagination: {
@@ -68,7 +68,7 @@ export const usersRouter = router({
 
   getById: tenantProcedure
     .input(z.object({ id: z.string().uuid() }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ ctx: _ctx, input: _input }) => {
       return null
     }),
 })

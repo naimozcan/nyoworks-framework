@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { z } from "zod"
+import { PAGINATION } from "@nyoworks/shared/constants"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Upload File
@@ -13,7 +14,7 @@ export const uploadFileInput = z.object({
   mimeType: z.string().min(1).max(127),
   size: z.number().int().positive(),
   isPublic: z.boolean().default(false),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
   folder: z.string().max(512).optional(),
 })
 
@@ -58,7 +59,7 @@ export const listFilesInput = z.object({
   folder: z.string().max(512).optional(),
   mimeType: z.string().max(127).optional(),
   isPublic: z.boolean().optional(),
-  limit: z.number().int().min(1).max(100).default(20),
+  limit: z.number().int().min(1).max(PAGINATION.MAX_LIMIT).default(PAGINATION.DEFAULT_LIMIT),
   offset: z.number().int().min(0).default(0),
   sortBy: z.enum(["createdAt", "filename", "size"]).default("createdAt"),
   sortOrder: z.enum(["asc", "desc"]).default("desc"),
@@ -73,7 +74,7 @@ export const fileOutput = z.object({
   url: z.string(),
   thumbnailUrl: z.string().nullable(),
   isPublic: z.boolean(),
-  metadata: z.record(z.unknown()).nullable(),
+  metadata: z.record(z.string(), z.unknown()).nullable(),
   createdAt: z.date(),
 })
 

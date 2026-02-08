@@ -2,16 +2,17 @@
 // Realtime Feature - Database Schema
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { pgTable, uuid, varchar, timestamp, jsonb, index } from "drizzle-orm/pg-core"
+import { pgTable, text, varchar, timestamp, jsonb, index } from "drizzle-orm/pg-core"
+import { createId } from "@paralleldrive/cuid2"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Presence Records Table
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const presenceRecords = pgTable("presence_records", {
-  id: uuid("id").primaryKey().defaultRandom(),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
   channelId: varchar("channel_id", { length: 255 }).notNull(),
-  userId: uuid("user_id").notNull(),
+  userId: text("user_id").notNull(),
   status: varchar("status", { length: 50 }).notNull().default("online"),
   metadata: jsonb("metadata").$type<Record<string, unknown>>(),
   connectedAt: timestamp("connected_at", { withTimezone: true }).defaultNow().notNull(),
@@ -28,9 +29,9 @@ export const presenceRecords = pgTable("presence_records", {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const channels = pgTable("realtime_channels", {
-  id: uuid("id").primaryKey().defaultRandom(),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
   name: varchar("name", { length: 255 }).notNull().unique(),
-  tenantId: uuid("tenant_id").notNull(),
+  tenantId: text("tenant_id").notNull(),
   type: varchar("type", { length: 50 }).notNull().default("public"),
   metadata: jsonb("metadata").$type<Record<string, unknown>>(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -45,9 +46,9 @@ export const channels = pgTable("realtime_channels", {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const messages = pgTable("realtime_messages", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  channelId: uuid("channel_id").notNull().references(() => channels.id, { onDelete: "cascade" }),
-  userId: uuid("user_id").notNull(),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  channelId: text("channel_id").notNull().references(() => channels.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull(),
   event: varchar("event", { length: 100 }).notNull(),
   payload: jsonb("payload").$type<Record<string, unknown>>(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),

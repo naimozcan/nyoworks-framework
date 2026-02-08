@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { z } from "zod"
+import { PAGINATION } from "@nyoworks/shared/constants"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Locale Validators
@@ -16,16 +17,16 @@ export const listLocalesInput = z.object({
 
 export const createLocaleInput = z.object({
   code: localeCode,
-  name: z.string().min(1).max(100),
-  nativeName: z.string().min(1).max(100),
+  name: z.string().min(1).max(PAGINATION.MAX_LIMIT),
+  nativeName: z.string().min(1).max(PAGINATION.MAX_LIMIT),
   isDefault: z.boolean().default(false),
   isEnabled: z.boolean().default(true),
 })
 
 export const updateLocaleInput = z.object({
   localeId: z.string().uuid(),
-  name: z.string().min(1).max(100).optional(),
-  nativeName: z.string().min(1).max(100).optional(),
+  name: z.string().min(1).max(PAGINATION.MAX_LIMIT).optional(),
+  nativeName: z.string().min(1).max(PAGINATION.MAX_LIMIT).optional(),
   isDefault: z.boolean().optional(),
   isEnabled: z.boolean().optional(),
 })
@@ -40,18 +41,18 @@ export const deleteLocaleInput = z.object({
 
 export const getTranslationsInput = z.object({
   locale: localeCode,
-  namespace: z.string().min(1).max(100).default("common"),
+  namespace: z.string().min(1).max(PAGINATION.MAX_LIMIT).default("common"),
 })
 
 export const getTranslationInput = z.object({
   locale: localeCode,
-  namespace: z.string().min(1).max(100).default("common"),
+  namespace: z.string().min(1).max(PAGINATION.MAX_LIMIT).default("common"),
   key: z.string().min(1).max(500),
 })
 
 export const addTranslationInput = z.object({
   locale: localeCode,
-  namespace: z.string().min(1).max(100).default("common"),
+  namespace: z.string().min(1).max(PAGINATION.MAX_LIMIT).default("common"),
   key: z.string().min(1).max(500),
   value: z.string().min(1).max(10000),
 })
@@ -67,18 +68,18 @@ export const deleteTranslationInput = z.object({
 
 export const bulkAddTranslationsInput = z.object({
   locale: localeCode,
-  namespace: z.string().min(1).max(100).default("common"),
+  namespace: z.string().min(1).max(PAGINATION.MAX_LIMIT).default("common"),
   translations: z.array(z.object({
     key: z.string().min(1).max(500),
     value: z.string().min(1).max(10000),
-  })).min(1).max(1000),
+  })).min(1).max(PAGINATION.MAX_LIMIT * 10),
 })
 
 export const listTranslationsInput = z.object({
   locale: localeCode.optional(),
-  namespace: z.string().min(1).max(100).optional(),
+  namespace: z.string().min(1).max(PAGINATION.MAX_LIMIT).optional(),
   search: z.string().max(200).optional(),
-  limit: z.number().min(1).max(100).default(50),
+  limit: z.number().min(1).max(PAGINATION.MAX_LIMIT).default(PAGINATION.MAX_LIMIT / 2),
   offset: z.number().min(0).default(0),
 })
 
@@ -92,14 +93,14 @@ export const listNamespacesInput = z.object({
 
 export const exportTranslationsInput = z.object({
   locale: localeCode,
-  namespace: z.string().min(1).max(100).optional(),
-  format: z.enum(["json", "flat"]).default("json"),
+  namespace: z.string().min(1).max(PAGINATION.MAX_LIMIT).optional(),
+  format: z.enum(["nested", "flat"]).default("nested"),
 })
 
 export const importTranslationsInput = z.object({
   locale: localeCode,
-  namespace: z.string().min(1).max(100).default("common"),
-  translations: z.record(z.string()),
+  namespace: z.string().min(1).max(PAGINATION.MAX_LIMIT).default("common"),
+  translations: z.record(z.string(), z.string()),
   overwrite: z.boolean().default(false),
 })
 

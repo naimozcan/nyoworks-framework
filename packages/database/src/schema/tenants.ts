@@ -2,10 +2,11 @@
 // Tenant Schema
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { pgTable, uuid, varchar, timestamp, jsonb, boolean } from "drizzle-orm/pg-core"
+import { pgTable, text, varchar, timestamp, jsonb, boolean } from "drizzle-orm/pg-core"
+import { createId } from "@paralleldrive/cuid2"
 
 export const tenants = pgTable("tenants", {
-  id: uuid("id").primaryKey().defaultRandom(),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
   name: varchar("name", { length: 255 }).notNull(),
   slug: varchar("slug", { length: 63 }).notNull().unique(),
   domain: varchar("domain", { length: 255 }),

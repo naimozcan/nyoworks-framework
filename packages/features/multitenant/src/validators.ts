@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { z } from "zod"
+import { PAGINATION } from "@nyoworks/shared/constants"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Tenant Validators
@@ -13,19 +14,19 @@ export const tenantPlan = z.enum(["free", "starter", "pro", "enterprise"])
 export const memberRole = z.enum(["owner", "admin", "member", "viewer"])
 
 export const createTenantInput = z.object({
-  name: z.string().min(1).max(100),
+  name: z.string().min(1).max(PAGINATION.MAX_LIMIT),
   slug: z.string().min(2).max(50).regex(/^[a-z0-9-]+$/),
   domain: z.string().max(255).optional(),
-  settings: z.record(z.unknown()).optional(),
+  settings: z.record(z.string(), z.unknown()).optional(),
   plan: tenantPlan.default("free"),
 })
 
 export const updateTenantInput = z.object({
   tenantId: z.string().uuid(),
-  name: z.string().min(1).max(100).optional(),
+  name: z.string().min(1).max(PAGINATION.MAX_LIMIT).optional(),
   slug: z.string().min(2).max(50).regex(/^[a-z0-9-]+$/).optional(),
   domain: z.string().max(255).nullable().optional(),
-  settings: z.record(z.unknown()).optional(),
+  settings: z.record(z.string(), z.unknown()).optional(),
   plan: tenantPlan.optional(),
   status: tenantStatus.optional(),
 })
@@ -43,7 +44,7 @@ export const deleteTenantInput = z.object({
 })
 
 export const listTenantsInput = z.object({
-  limit: z.number().min(1).max(100).default(20),
+  limit: z.number().min(1).max(PAGINATION.MAX_LIMIT).default(PAGINATION.DEFAULT_LIMIT),
   offset: z.number().min(0).default(0),
   status: tenantStatus.optional(),
 })
@@ -71,7 +72,7 @@ export const updateMemberRoleInput = z.object({
 
 export const listMembersInput = z.object({
   tenantId: z.string().uuid(),
-  limit: z.number().min(1).max(100).default(50),
+  limit: z.number().min(1).max(PAGINATION.MAX_LIMIT).default(PAGINATION.MAX_LIMIT / 2),
   offset: z.number().min(0).default(0),
 })
 

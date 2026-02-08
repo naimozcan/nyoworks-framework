@@ -2,17 +2,18 @@
 // Analytics Feature - Database Schema
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { pgTable, uuid, varchar, timestamp, jsonb, index, text, integer } from "drizzle-orm/pg-core"
+import { pgTable, text, varchar, timestamp, jsonb, index, integer } from "drizzle-orm/pg-core"
 import { relations } from "drizzle-orm"
+import { createId } from "@paralleldrive/cuid2"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Events Table
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const analyticsEvents = pgTable("analytics_events", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
-  userId: uuid("user_id"),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  tenantId: text("tenant_id").notNull(),
+  userId: text("user_id"),
   sessionId: varchar("session_id", { length: 255 }),
   eventName: varchar("event_name", { length: 255 }).notNull(),
   eventType: varchar("event_type", { length: 50 }).notNull().default("track"),
@@ -36,9 +37,9 @@ export const analyticsEvents = pgTable("analytics_events", {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const analyticsPageviews = pgTable("analytics_pageviews", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
-  userId: uuid("user_id"),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  tenantId: text("tenant_id").notNull(),
+  userId: text("user_id"),
   sessionId: varchar("session_id", { length: 255 }),
   pathname: text("pathname").notNull(),
   title: text("title"),
@@ -62,9 +63,9 @@ export const analyticsPageviews = pgTable("analytics_pageviews", {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const analyticsSessions = pgTable("analytics_sessions", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
-  userId: uuid("user_id"),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  tenantId: text("tenant_id").notNull(),
+  userId: text("user_id"),
   sessionId: varchar("session_id", { length: 255 }).notNull().unique(),
   startedAt: timestamp("started_at", { withTimezone: true }).defaultNow().notNull(),
   endedAt: timestamp("ended_at", { withTimezone: true }),

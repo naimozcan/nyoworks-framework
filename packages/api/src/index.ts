@@ -11,3 +11,11 @@ export {
   tenantProcedure,
   createCallerFactory,
 } from "./trpc"
+export type {
+  FeatureContext,
+  AuthenticatedContext,
+  TenantContext,
+  RequestInfoContext,
+  AuthenticatedRequestContext,
+  TenantRequestContext,
+} from "./feature-context"

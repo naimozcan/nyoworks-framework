@@ -2,16 +2,17 @@
 // Appointments Feature - Database Schema
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { pgTable, uuid, varchar, timestamp, integer, boolean, jsonb, index, text, time } from "drizzle-orm/pg-core"
+import { pgTable, text, varchar, timestamp, integer, boolean, jsonb, index, time } from "drizzle-orm/pg-core"
 import { relations } from "drizzle-orm"
+import { createId } from "@paralleldrive/cuid2"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Services Table
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const services = pgTable("appointment_services", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  tenantId: text("tenant_id").notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
   duration: integer("duration").notNull(),
@@ -31,9 +32,9 @@ export const services = pgTable("appointment_services", {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const providers = pgTable("appointment_providers", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
-  userId: uuid("user_id"),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  tenantId: text("tenant_id").notNull(),
+  userId: text("user_id"),
   name: varchar("name", { length: 255 }).notNull(),
   email: varchar("email", { length: 255 }),
   phone: varchar("phone", { length: 50 }),
@@ -54,9 +55,9 @@ export const providers = pgTable("appointment_providers", {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const providerServices = pgTable("appointment_provider_services", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  providerId: uuid("provider_id").notNull().references(() => providers.id, { onDelete: "cascade" }),
-  serviceId: uuid("service_id").notNull().references(() => services.id, { onDelete: "cascade" }),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  providerId: text("provider_id").notNull().references(() => providers.id, { onDelete: "cascade" }),
+  serviceId: text("service_id").notNull().references(() => services.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 }, (table) => [
   index("appointment_provider_services_provider_idx").on(table.providerId),
@@ -68,8 +69,8 @@ export const providerServices = pgTable("appointment_provider_services", {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const availability = pgTable("appointment_availability", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  providerId: uuid("provider_id").notNull().references(() => providers.id, { onDelete: "cascade" }),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  providerId: text("provider_id").notNull().references(() => providers.id, { onDelete: "cascade" }),
   dayOfWeek: integer("day_of_week").notNull(),
   startTime: time("start_time").notNull(),
   endTime: time("end_time").notNull(),
@@ -86,11 +87,11 @@ export const availability = pgTable("appointment_availability", {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const appointments = pgTable("appointments", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
-  userId: uuid("user_id").notNull(),
-  providerId: uuid("provider_id").notNull().references(() => providers.id, { onDelete: "restrict" }),
-  serviceId: uuid("service_id").notNull().references(() => services.id, { onDelete: "restrict" }),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  tenantId: text("tenant_id").notNull(),
+  userId: text("user_id").notNull(),
+  providerId: text("provider_id").notNull().references(() => providers.id, { onDelete: "restrict" }),
+  serviceId: text("service_id").notNull().references(() => services.id, { onDelete: "restrict" }),
   status: varchar("status", { length: 50 }).notNull().default("pending"),
   startTime: timestamp("start_time", { withTimezone: true }).notNull(),
   endTime: timestamp("end_time", { withTimezone: true }).notNull(),

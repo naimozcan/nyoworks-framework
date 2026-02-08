@@ -8,6 +8,7 @@ import {
   getExportJobInput,
   listExportJobsInput,
 } from "./validators.js"
+import { ExportService } from "./services/index.js"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Context Type
@@ -16,7 +17,7 @@ import {
 interface ExportContext {
   user?: { id: string }
   tenantId?: string
-  db?: unknown
+  db: unknown
 }
 
 const t = initTRPC.context<ExportContext>().create()
@@ -29,10 +30,14 @@ const isAuthenticated = t.middleware(({ ctx, next }) => {
   if (!ctx.user) {
     throw new TRPCError({ code: "UNAUTHORIZED" })
   }
+  if (!ctx.tenantId) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "Tenant ID required" })
+  }
   return next({
     ctx: {
       ...ctx,
       user: ctx.user,
+      tenantId: ctx.tenantId,
     },
   })
 })
@@ -47,56 +52,59 @@ export const exportRouter = t.router({
   create: protectedProcedure
     .input(createExportJobInput)
     .mutation(async ({ input, ctx }) => {
-      const jobId = crypto.randomUUID()
-      const now = new Date()
-
-      return {
-        id: jobId,
+      const service = new ExportService(ctx.db, ctx.tenantId)
+      return service.create({
+        userId: ctx.user.id,
         type: input.type,
-        status: "pending" as const,
         format: input.format,
-        filters: input.filters || null,
-        fileUrl: null,
-        errorMessage: null,
-        startedAt: null,
-        completedAt: null,
-        createdAt: now,
-      }
+        filters: input.filters,
+      })
     }),
 
   get: protectedProcedure
     .input(getExportJobInput)
     .query(async ({ input, ctx }) => {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Export job not found",
-      })
+      const service = new ExportService(ctx.db, ctx.tenantId)
+      return service.get(input.jobId)
     }),
 
   list: protectedProcedure
     .input(listExportJobsInput)
     .query(async ({ input, ctx }) => {
-      return {
-        jobs: [],
-        total: 0,
-        hasMore: false,
-      }
+      const service = new ExportService(ctx.db, ctx.tenantId)
+      return service.list(input)
     }),
 
   download: protectedProcedure
     .input(getExportJobInput)
     .query(async ({ input, ctx }) => {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Export job not found or not completed",
-      })
+      const service = new ExportService(ctx.db, ctx.tenantId)
+      const url = await service.getDownloadUrl(input.jobId)
+      return { url }
     }),
 
   cancel: protectedProcedure
     .input(getExportJobInput)
     .mutation(async ({ input, ctx }) => {
-      return { success: true }
+      const service = new ExportService(ctx.db, ctx.tenantId)
+      const success = await service.cancel(input.jobId)
+      return { success }
     }),
+
+  myJobs: protectedProcedure
+    .input(listExportJobsInput)
+    .query(async ({ input, ctx }) => {
+      const service = new ExportService(ctx.db, ctx.tenantId)
+      return service.getUserJobs(ctx.user.id, {
+        limit: input.limit,
+        offset: input.offset,
+      })
+    }),
+
+  stats: protectedProcedure.query(async ({ ctx }) => {
+    const service = new ExportService(ctx.db, ctx.tenantId)
+    return service.getStats()
+  }),
 })
 
 export type ExportRouter = typeof exportRouter

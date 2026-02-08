@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { z } from "zod"
+import { PAGINATION } from "@nyoworks/shared/constants"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Channel Validators
@@ -10,7 +11,7 @@ import { z } from "zod"
 
 export const joinChannelInput = z.object({
   channelId: z.string().min(1).max(255),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 })
 
 export const leaveChannelInput = z.object({
@@ -20,7 +21,7 @@ export const leaveChannelInput = z.object({
 export const createChannelInput = z.object({
   name: z.string().min(1).max(255),
   type: z.enum(["public", "private", "presence"]).default("public"),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 })
 
 export const getChannelInput = z.object({
@@ -29,7 +30,7 @@ export const getChannelInput = z.object({
 
 export const listChannelsInput = z.object({
   type: z.enum(["public", "private", "presence"]).optional(),
-  limit: z.number().min(1).max(100).default(50),
+  limit: z.number().min(1).max(PAGINATION.MAX_LIMIT).default(PAGINATION.MAX_LIMIT / 2),
   offset: z.number().min(0).default(0),
 })
 
@@ -39,15 +40,15 @@ export const listChannelsInput = z.object({
 
 export const broadcastInput = z.object({
   channelId: z.string().min(1).max(255),
-  event: z.string().min(1).max(100),
-  payload: z.record(z.unknown()),
+  event: z.string().min(1).max(PAGINATION.MAX_LIMIT),
+  payload: z.record(z.string(), z.unknown()),
   excludeSelf: z.boolean().default(false),
 })
 
 export const sendMessageInput = z.object({
   channelId: z.string().min(1).max(255),
-  event: z.string().min(1).max(100),
-  payload: z.record(z.unknown()),
+  event: z.string().min(1).max(PAGINATION.MAX_LIMIT),
+  payload: z.record(z.string(), z.unknown()),
   targetUserId: z.string().uuid().optional(),
 })
 
@@ -58,7 +59,7 @@ export const sendMessageInput = z.object({
 export const updatePresenceInput = z.object({
   channelId: z.string().min(1).max(255),
   status: z.enum(["online", "away", "busy", "offline"]).default("online"),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 })
 
 export const getPresenceInput = z.object({
@@ -69,7 +70,7 @@ export const trackPresenceInput = z.object({
   channelId: z.string().min(1).max(255),
   userId: z.string().uuid(),
   status: z.enum(["online", "away", "busy", "offline"]).default("online"),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 })
 
 export const untrackPresenceInput = z.object({
@@ -84,8 +85,8 @@ export const untrackPresenceInput = z.object({
 export const wsMessageInput = z.object({
   type: z.enum(["subscribe", "unsubscribe", "broadcast", "presence", "ping"]),
   channelId: z.string().min(1).max(255).optional(),
-  event: z.string().min(1).max(100).optional(),
-  payload: z.record(z.unknown()).optional(),
+  event: z.string().min(1).max(PAGINATION.MAX_LIMIT).optional(),
+  payload: z.record(z.string(), z.unknown()).optional(),
 })
 
 export const wsAuthInput = z.object({

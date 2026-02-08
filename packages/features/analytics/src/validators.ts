@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { z } from "zod"
+import { PAGINATION } from "@nyoworks/shared/constants"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Event Types
@@ -16,7 +17,7 @@ export const eventType = z.enum(["track", "identify", "page", "screen", "group",
 
 export const trackEventInput = z.object({
   eventName: z.string().min(1).max(255),
-  properties: z.record(z.unknown()).optional(),
+  properties: z.record(z.string(), z.unknown()).optional(),
   sessionId: z.string().optional(),
   timestamp: z.date().optional(),
 })
@@ -55,7 +56,7 @@ export const analyticsQueryInput = z.object({
   eventName: z.string().optional(),
   userId: z.string().uuid().optional(),
   groupBy: z.enum(["hour", "day", "week", "month"]).default("day"),
-  limit: z.number().min(1).max(1000).default(100),
+  limit: z.number().min(1).max(PAGINATION.MAX_LIMIT * 10).default(PAGINATION.MAX_LIMIT),
   offset: z.number().min(0).default(0),
 })
 

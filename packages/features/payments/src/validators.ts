@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { z } from "zod"
+import { PAGINATION } from "@nyoworks/shared/constants"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Checkout Session
@@ -13,7 +14,7 @@ export const createCheckoutSessionInput = z.object({
   successUrl: z.string().url(),
   cancelUrl: z.string().url(),
   customerId: z.string().uuid().optional(),
-  metadata: z.record(z.string()).optional(),
+  metadata: z.record(z.string(), z.string()).optional(),
 })
 
 export const checkoutSessionOutput = z.object({
@@ -73,7 +74,7 @@ export const subscriptionOutput = z.object({
 
 export const listInvoicesInput = z.object({
   customerId: z.string().uuid(),
-  limit: z.number().min(1).max(100).default(10),
+  limit: z.number().min(1).max(PAGINATION.MAX_LIMIT).default(PAGINATION.DEFAULT_LIMIT / 2),
   offset: z.number().min(0).default(0),
 })
 

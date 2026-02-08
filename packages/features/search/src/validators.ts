@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { z } from "zod"
+import { PAGINATION } from "@nyoworks/shared/constants"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Search Input
@@ -11,7 +12,7 @@ import { z } from "zod"
 export const searchInput = z.object({
   query: z.string().min(1).max(500),
   entityTypes: z.array(z.string()).optional(),
-  limit: z.number().min(1).max(100).default(20),
+  limit: z.number().min(1).max(PAGINATION.MAX_LIMIT).default(PAGINATION.DEFAULT_LIMIT),
   offset: z.number().min(0).default(0),
   highlight: z.boolean().default(true),
   highlightTag: z.string().default("<mark>"),
@@ -25,7 +26,7 @@ export const searchOutput = z.object({
     content: z.string(),
     headline: z.string().nullable(),
     rank: z.number(),
-    metadata: z.record(z.unknown()).nullable(),
+    metadata: z.record(z.string(), z.unknown()).nullable(),
   })),
   total: z.number(),
   hasMore: z.boolean(),
@@ -36,10 +37,10 @@ export const searchOutput = z.object({
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const indexDocumentInput = z.object({
-  entityType: z.string().min(1).max(100),
+  entityType: z.string().min(1).max(PAGINATION.MAX_LIMIT),
   entityId: z.string().uuid(),
   content: z.string().min(1),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 })
 
 export const indexDocumentOutput = z.object({
@@ -54,7 +55,7 @@ export const indexDocumentOutput = z.object({
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const removeFromIndexInput = z.object({
-  entityType: z.string().min(1).max(100),
+  entityType: z.string().min(1).max(PAGINATION.MAX_LIMIT),
   entityId: z.string().uuid(),
 })
 
@@ -69,11 +70,11 @@ export const removeFromIndexOutput = z.object({
 
 export const bulkIndexInput = z.object({
   documents: z.array(z.object({
-    entityType: z.string().min(1).max(100),
+    entityType: z.string().min(1).max(PAGINATION.MAX_LIMIT),
     entityId: z.string().uuid(),
     content: z.string().min(1),
-    metadata: z.record(z.unknown()).optional(),
-  })).min(1).max(1000),
+    metadata: z.record(z.string(), z.unknown()).optional(),
+  })).min(1).max(PAGINATION.MAX_LIMIT * 10),
 })
 
 export const bulkIndexOutput = z.object({
@@ -90,7 +91,7 @@ export const bulkIndexOutput = z.object({
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const reindexInput = z.object({
-  entityType: z.string().min(1).max(100).optional(),
+  entityType: z.string().min(1).max(PAGINATION.MAX_LIMIT).optional(),
 })
 
 export const reindexOutput = z.object({
@@ -103,7 +104,7 @@ export const reindexOutput = z.object({
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const suggestInput = z.object({
-  query: z.string().min(1).max(100),
+  query: z.string().min(1).max(PAGINATION.MAX_LIMIT),
   entityTypes: z.array(z.string()).optional(),
   limit: z.number().min(1).max(20).default(5),
 })

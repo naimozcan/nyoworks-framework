@@ -2,16 +2,17 @@
 // Audit Feature - Database Schema
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { pgTable, uuid, varchar, timestamp, text, jsonb, index } from "drizzle-orm/pg-core"
+import { pgTable, text, varchar, timestamp, jsonb, index } from "drizzle-orm/pg-core"
+import { createId } from "@paralleldrive/cuid2"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Audit Logs Table
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const auditLogs = pgTable("audit_logs", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
-  userId: uuid("user_id"),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  tenantId: text("tenant_id").notNull(),
+  userId: text("user_id"),
 
   action: varchar("action", { length: 50 }).notNull(),
   entityType: varchar("entity_type", { length: 100 }).notNull(),

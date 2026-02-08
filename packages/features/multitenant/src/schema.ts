@@ -2,15 +2,16 @@
 // Multitenant Feature - Database Schema
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { pgTable, text, timestamp, uuid, jsonb, index, uniqueIndex } from "drizzle-orm/pg-core"
+import { pgTable, text, timestamp, jsonb, index, uniqueIndex } from "drizzle-orm/pg-core"
 import { relations } from "drizzle-orm"
+import { createId } from "@paralleldrive/cuid2"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Tenants Table
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const tenants = pgTable("tenants", {
-  id: uuid("id").primaryKey().defaultRandom(),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
 
   name: text("name").notNull(),
   slug: text("slug").notNull().unique(),
@@ -34,10 +35,10 @@ export const tenants = pgTable("tenants", {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const tenantMembers = pgTable("tenant_members", {
-  id: uuid("id").primaryKey().defaultRandom(),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
 
-  tenantId: uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
-  userId: uuid("user_id").notNull(),
+  tenantId: text("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull(),
 
   role: text("role").notNull().default("member"),
 
@@ -54,9 +55,9 @@ export const tenantMembers = pgTable("tenant_members", {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const tenantInvites = pgTable("tenant_invites", {
-  id: uuid("id").primaryKey().defaultRandom(),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
 
-  tenantId: uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
+  tenantId: text("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
   email: text("email").notNull(),
   role: text("role").notNull().default("member"),
 

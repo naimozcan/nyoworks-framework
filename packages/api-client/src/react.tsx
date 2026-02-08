@@ -2,7 +2,7 @@
 // React tRPC Client (with React Query)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { createTRPCReact, httpBatchLink, loggerLink } from "@trpc/react-query"
+import { createTRPCReact, httpBatchLink, loggerLink, type CreateTRPCReact } from "@trpc/react-query"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import superjson from "superjson"
 import type { AppRouter } from "@nyoworks/api"
@@ -13,7 +13,7 @@ import { useState } from "react"
 // tRPC React Hooks
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const trpc = createTRPCReact<AppRouter>()
+export const trpc: CreateTRPCReact<AppRouter, unknown> = createTRPCReact<AppRouter>()
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Provider Config

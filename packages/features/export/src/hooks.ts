@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { useCallback, useState, useEffect, useRef } from "react"
-import type { ExportFormat, ExportJobStatus, GetExportJobOutput } from "./validators.js"
+import type { ExportFormat, GetExportJobOutput } from "./validators.js"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -188,7 +188,7 @@ export function useExportDownload(): UseExportDownloadReturn {
 
       if (contentDisposition) {
         const match = contentDisposition.match(/filename="(.+)"/)
-        if (match) {
+        if (match?.[1]) {
           downloadFilename = match[1]
         }
       }

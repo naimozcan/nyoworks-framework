@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { z } from "zod"
+import { PAGINATION } from "@nyoworks/shared/constants"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Action Types
@@ -27,13 +28,13 @@ export const auditAction = z.enum([
 
 export const createAuditLogInput = z.object({
   action: auditAction,
-  entityType: z.string().min(1).max(100),
+  entityType: z.string().min(1).max(PAGINATION.MAX_LIMIT),
   entityId: z.string().min(1).max(255),
-  oldValue: z.record(z.unknown()).optional(),
-  newValue: z.record(z.unknown()).optional(),
+  oldValue: z.record(z.string(), z.unknown()).optional(),
+  newValue: z.record(z.string(), z.unknown()).optional(),
   ipAddress: z.string().max(45).optional(),
-  userAgent: z.string().max(1000).optional(),
-  metadata: z.record(z.unknown()).optional(),
+  userAgent: z.string().max(PAGINATION.MAX_LIMIT * 10).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 })
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -41,12 +42,12 @@ export const createAuditLogInput = z.object({
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const listAuditLogsInput = z.object({
-  limit: z.number().min(1).max(100).default(20),
+  limit: z.number().min(1).max(PAGINATION.MAX_LIMIT).default(PAGINATION.DEFAULT_LIMIT),
   offset: z.number().min(0).default(0),
 
   userId: z.string().uuid().optional(),
   action: auditAction.optional(),
-  entityType: z.string().max(100).optional(),
+  entityType: z.string().max(PAGINATION.MAX_LIMIT).optional(),
   entityId: z.string().max(255).optional(),
 
   startDate: z.string().datetime().optional(),
@@ -71,9 +72,9 @@ export const getAuditLogInput = z.object({
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const getEntityHistoryInput = z.object({
-  entityType: z.string().min(1).max(100),
+  entityType: z.string().min(1).max(PAGINATION.MAX_LIMIT),
   entityId: z.string().min(1).max(255),
-  limit: z.number().min(1).max(100).default(50),
+  limit: z.number().min(1).max(PAGINATION.MAX_LIMIT).default(PAGINATION.MAX_LIMIT / 2),
   offset: z.number().min(0).default(0),
 })
 
@@ -83,7 +84,7 @@ export const getEntityHistoryInput = z.object({
 
 export const getUserActivityInput = z.object({
   userId: z.string().uuid(),
-  limit: z.number().min(1).max(100).default(50),
+  limit: z.number().min(1).max(PAGINATION.MAX_LIMIT).default(PAGINATION.MAX_LIMIT / 2),
   offset: z.number().min(0).default(0),
   startDate: z.string().datetime().optional(),
   endDate: z.string().datetime().optional(),
@@ -100,11 +101,11 @@ export const auditLogOutput = z.object({
   action: auditAction,
   entityType: z.string(),
   entityId: z.string(),
-  oldValue: z.record(z.unknown()).nullable(),
-  newValue: z.record(z.unknown()).nullable(),
+  oldValue: z.record(z.string(), z.unknown()).nullable(),
+  newValue: z.record(z.string(), z.unknown()).nullable(),
   ipAddress: z.string().nullable(),
   userAgent: z.string().nullable(),
-  metadata: z.record(z.unknown()).nullable(),
+  metadata: z.record(z.string(), z.unknown()).nullable(),
   createdAt: z.date(),
 })
 

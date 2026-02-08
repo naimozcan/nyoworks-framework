@@ -2,14 +2,15 @@
 // Role Schema
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { pgTable, uuid, varchar, timestamp, jsonb, boolean, index } from "drizzle-orm/pg-core"
+import { pgTable, text, varchar, timestamp, jsonb, boolean, index } from "drizzle-orm/pg-core"
 import { relations } from "drizzle-orm"
+import { createId } from "@paralleldrive/cuid2"
 import { tenants } from "./tenants"
 import { users } from "./users"
 
 export const roles = pgTable("roles", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  tenantId: text("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
   name: varchar("name", { length: 100 }).notNull(),
   description: varchar("description", { length: 500 }),
   permissions: jsonb("permissions").default([]).notNull(),

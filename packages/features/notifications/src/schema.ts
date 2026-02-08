@@ -2,8 +2,9 @@
 // Notifications Feature - Database Schema
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { pgTable, text, timestamp, uuid, jsonb, boolean, integer, pgEnum } from "drizzle-orm/pg-core"
+import { pgTable, text, timestamp, jsonb, boolean, integer, pgEnum } from "drizzle-orm/pg-core"
 import { relations } from "drizzle-orm"
+import { createId } from "@paralleldrive/cuid2"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Enums
@@ -17,8 +18,8 @@ export const notificationStatusEnum = pgEnum("notification_status", ["pending", 
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const notificationTemplates = pgTable("notification_templates", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  tenantId: text("tenant_id").notNull(),
 
   name: text("name").notNull(),
   slug: text("slug").notNull(),
@@ -43,12 +44,12 @@ export const notificationTemplates = pgTable("notification_templates", {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const notifications = pgTable("notifications", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  tenantId: text("tenant_id").notNull(),
 
-  templateId: uuid("template_id").references(() => notificationTemplates.id),
+  templateId: text("template_id").references(() => notificationTemplates.id),
 
-  userId: uuid("user_id"),
+  userId: text("user_id"),
   recipientEmail: text("recipient_email"),
   recipientPhone: text("recipient_phone"),
   recipientDeviceToken: text("recipient_device_token"),
@@ -82,8 +83,8 @@ export const notifications = pgTable("notifications", {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const notificationPreferences = pgTable("notification_preferences", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id").notNull(),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  userId: text("user_id").notNull(),
 
   emailEnabled: boolean("email_enabled").notNull().default(true),
   smsEnabled: boolean("sms_enabled").notNull().default(false),
@@ -107,8 +108,8 @@ export const notificationPreferences = pgTable("notification_preferences", {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const pushDevices = pgTable("push_devices", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id").notNull(),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  userId: text("user_id").notNull(),
 
   deviceToken: text("device_token").notNull(),
   platform: text("platform").notNull(),
@@ -125,8 +126,8 @@ export const pushDevices = pgTable("push_devices", {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const emailLogs = pgTable("email_logs", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  notificationId: uuid("notification_id").references(() => notifications.id),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  notificationId: text("notification_id").references(() => notifications.id),
 
   provider: text("provider").notNull(),
   providerId: text("provider_id"),

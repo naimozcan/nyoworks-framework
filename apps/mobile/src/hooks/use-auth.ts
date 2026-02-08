@@ -37,7 +37,7 @@ const TOKEN_KEY = "auth-token"
 // Store
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const useAuth = create<AuthState>((set) => ({
+export const useAuth = create<AuthState>()((set) => ({
   user: null,
   token: null,
   isAuthenticated: false,

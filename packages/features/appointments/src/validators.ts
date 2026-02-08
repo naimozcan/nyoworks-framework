@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { z } from "zod"
+import { PAGINATION } from "@nyoworks/shared/constants"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Common Types
@@ -29,7 +30,7 @@ export const createAppointmentInput = z.object({
   serviceId: z.string().uuid(),
   startTime: z.string().datetime(),
   notes: z.string().max(2000).optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 })
 
 export const updateAppointmentInput = z.object({
@@ -40,7 +41,7 @@ export const updateAppointmentInput = z.object({
   status: appointmentStatus.optional(),
   notes: z.string().max(2000).optional(),
   cancellationReason: z.string().max(500).optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 })
 
 export const getAppointmentInput = z.object({
@@ -57,7 +58,7 @@ export const listAppointmentsInput = z.object({
   status: appointmentStatus.optional(),
   startDate: z.string().datetime().optional(),
   endDate: z.string().datetime().optional(),
-  limit: z.number().min(1).max(100).default(20),
+  limit: z.number().min(1).max(PAGINATION.MAX_LIMIT).default(PAGINATION.DEFAULT_LIMIT),
   offset: z.number().min(0).default(0),
   sortBy: z.enum(["startTime", "createdAt"]).default("startTime"),
   sortOrder: z.enum(["asc", "desc"]).default("asc"),
@@ -87,7 +88,7 @@ export const createServiceInput = z.object({
   duration: z.number().min(5).max(480),
   price: z.number().min(0).optional(),
   currency: z.string().length(3).default("USD"),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 })
 
 export const updateServiceInput = z.object({
@@ -98,7 +99,7 @@ export const updateServiceInput = z.object({
   price: z.number().min(0).optional(),
   currency: z.string().length(3).optional(),
   isActive: z.boolean().optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 })
 
 export const getServiceInput = z.object({
@@ -111,7 +112,7 @@ export const deleteServiceInput = z.object({
 
 export const listServicesInput = z.object({
   isActive: z.boolean().optional(),
-  limit: z.number().min(1).max(100).default(50),
+  limit: z.number().min(1).max(PAGINATION.MAX_LIMIT).default(PAGINATION.MAX_LIMIT / 2),
   offset: z.number().min(0).default(0),
 })
 
@@ -127,7 +128,7 @@ export const createProviderInput = z.object({
   bio: z.string().max(2000).optional(),
   avatarUrl: z.string().url().optional(),
   serviceIds: z.array(z.string().uuid()).optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 })
 
 export const updateProviderInput = z.object({
@@ -138,7 +139,7 @@ export const updateProviderInput = z.object({
   bio: z.string().max(2000).optional(),
   avatarUrl: z.string().url().optional(),
   isActive: z.boolean().optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 })
 
 export const getProviderInput = z.object({
@@ -152,7 +153,7 @@ export const deleteProviderInput = z.object({
 export const listProvidersInput = z.object({
   isActive: z.boolean().optional(),
   serviceId: z.string().uuid().optional(),
-  limit: z.number().min(1).max(100).default(50),
+  limit: z.number().min(1).max(PAGINATION.MAX_LIMIT).default(PAGINATION.MAX_LIMIT / 2),
   offset: z.number().min(0).default(0),
 })
 

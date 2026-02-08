@@ -16,9 +16,7 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  experimental: {
-    typedRoutes: false,
-  },
+  typedRoutes: false,
 
   transpilePackages: [
     "@nyoworks/api-client",

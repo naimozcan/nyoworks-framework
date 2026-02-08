@@ -30,3 +30,5 @@ export {
 export * from "./router.js"
 export * from "./providers.js"
 export * from "./hooks.js"
+export * from "./repositories/index.js"
+export * from "./services/index.js"

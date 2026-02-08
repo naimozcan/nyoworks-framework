@@ -1,6 +1,6 @@
 {
   "name": "@nyoworks/mcp-server",
-  "version": "2.6.0",
+  "version": "2.7.0",
   "description": "NYOWORKS MCP Server for AI Team Orchestration",
   "type": "module",
   "main": "dist/index.js",
@@ -15,10 +15,10 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.12.1"
+    "@modelcontextprotocol/sdk": "^1.26.0"
   },
   "devDependencies": {
-    "@types/node": "^22.19.7",
+    "@types/node": "^25.2.2",
     "tsup": "^8.5.1",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",

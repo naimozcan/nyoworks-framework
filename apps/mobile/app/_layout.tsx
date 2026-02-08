@@ -36,7 +36,7 @@ const queryClient = new QueryClient({
 export default function RootLayout() {
   useEffect(() => {
     initializeApi({
-      url: process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3001/api/trpc",
+      baseUrl: process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3001",
     })
 
     SplashScreen.hideAsync()

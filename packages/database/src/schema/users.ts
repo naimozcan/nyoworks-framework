@@ -2,20 +2,21 @@
 // User Schema
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { pgTable, uuid, varchar, timestamp, boolean, index } from "drizzle-orm/pg-core"
+import { pgTable, text, varchar, timestamp, boolean, index } from "drizzle-orm/pg-core"
 import { relations } from "drizzle-orm"
+import { createId } from "@paralleldrive/cuid2"
 import { tenants } from "./tenants"
 import { roles } from "./roles"
 import { sessions } from "./sessions"
 
 export const users = pgTable("users", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  tenantId: text("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
   email: varchar("email", { length: 255 }).notNull(),
   password: varchar("password", { length: 255 }).notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   avatar: varchar("avatar", { length: 500 }),
-  roleId: uuid("role_id").references(() => roles.id, { onDelete: "set null" }),
+  roleId: text("role_id").references(() => roles.id, { onDelete: "set null" }),
   emailVerified: boolean("email_verified").default(false),
   lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),

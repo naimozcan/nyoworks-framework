@@ -3,38 +3,39 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { z } from "zod"
+import { PAGINATION } from "@nyoworks/shared/constants"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Contact Validators
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const createContactInput = z.object({
-  firstName: z.string().min(1).max(100),
-  lastName: z.string().max(100).optional(),
+  firstName: z.string().min(1).max(PAGINATION.MAX_LIMIT),
+  lastName: z.string().max(PAGINATION.MAX_LIMIT).optional(),
   email: z.string().email().optional(),
   phone: z.string().max(50).optional(),
   company: z.string().max(200).optional(),
   jobTitle: z.string().max(200).optional(),
-  source: z.string().max(100).optional(),
-  customFields: z.record(z.unknown()).optional(),
+  source: z.string().max(PAGINATION.MAX_LIMIT).optional(),
+  customFields: z.record(z.string(), z.unknown()).optional(),
   tagIds: z.array(z.string().uuid()).optional(),
 })
 
 export const updateContactInput = z.object({
   contactId: z.string().uuid(),
-  firstName: z.string().min(1).max(100).optional(),
-  lastName: z.string().max(100).optional(),
+  firstName: z.string().min(1).max(PAGINATION.MAX_LIMIT).optional(),
+  lastName: z.string().max(PAGINATION.MAX_LIMIT).optional(),
   email: z.string().email().optional(),
   phone: z.string().max(50).optional(),
   company: z.string().max(200).optional(),
   jobTitle: z.string().max(200).optional(),
   status: z.enum(["active", "inactive", "archived"]).optional(),
-  source: z.string().max(100).optional(),
-  customFields: z.record(z.unknown()).optional(),
+  source: z.string().max(PAGINATION.MAX_LIMIT).optional(),
+  customFields: z.record(z.string(), z.unknown()).optional(),
 })
 
 export const listContactsInput = z.object({
-  limit: z.number().min(1).max(100).default(20),
+  limit: z.number().min(1).max(PAGINATION.MAX_LIMIT).default(PAGINATION.DEFAULT_LIMIT),
   offset: z.number().min(0).default(0),
   search: z.string().max(200).optional(),
   status: z.enum(["active", "inactive", "archived"]).optional(),
@@ -104,7 +105,7 @@ export const deleteNoteInput = z.object({
 
 export const listNotesInput = z.object({
   contactId: z.string().uuid(),
-  limit: z.number().min(1).max(100).default(20),
+  limit: z.number().min(1).max(PAGINATION.MAX_LIMIT).default(PAGINATION.DEFAULT_LIMIT),
   offset: z.number().min(0).default(0),
 })
 
@@ -118,7 +119,7 @@ export const createActivityInput = z.object({
   title: z.string().min(1).max(200),
   description: z.string().max(2000).optional(),
   scheduledAt: z.string().datetime().optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 })
 
 export const updateActivityInput = z.object({
@@ -127,7 +128,7 @@ export const updateActivityInput = z.object({
   description: z.string().max(2000).optional(),
   scheduledAt: z.string().datetime().optional(),
   completedAt: z.string().datetime().optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 })
 
 export const deleteActivityInput = z.object({
@@ -137,7 +138,7 @@ export const deleteActivityInput = z.object({
 export const listActivitiesInput = z.object({
   contactId: z.string().uuid().optional(),
   type: z.enum(["call", "email", "meeting", "task", "note"]).optional(),
-  limit: z.number().min(1).max(100).default(20),
+  limit: z.number().min(1).max(PAGINATION.MAX_LIMIT).default(PAGINATION.DEFAULT_LIMIT),
   offset: z.number().min(0).default(0),
 })
 
@@ -151,7 +152,7 @@ export const createDealInput = z.object({
   value: z.number().min(0).optional(),
   currency: z.string().length(3).default("USD"),
   stage: z.enum(["lead", "qualified", "proposal", "negotiation", "won", "lost"]).default("lead"),
-  probability: z.number().min(0).max(100).default(0),
+  probability: z.number().min(0).max(PAGINATION.MAX_LIMIT).default(0),
   expectedCloseDate: z.string().datetime().optional(),
 })
 
@@ -162,7 +163,7 @@ export const updateDealInput = z.object({
   value: z.number().min(0).optional(),
   currency: z.string().length(3).optional(),
   stage: z.enum(["lead", "qualified", "proposal", "negotiation", "won", "lost"]).optional(),
-  probability: z.number().min(0).max(100).optional(),
+  probability: z.number().min(0).max(PAGINATION.MAX_LIMIT).optional(),
   expectedCloseDate: z.string().datetime().optional(),
 })
 
@@ -173,7 +174,7 @@ export const deleteDealInput = z.object({
 export const listDealsInput = z.object({
   contactId: z.string().uuid().optional(),
   stage: z.enum(["lead", "qualified", "proposal", "negotiation", "won", "lost"]).optional(),
-  limit: z.number().min(1).max(100).default(20),
+  limit: z.number().min(1).max(PAGINATION.MAX_LIMIT).default(PAGINATION.DEFAULT_LIMIT),
   offset: z.number().min(0).default(0),
   sortBy: z.enum(["createdAt", "value", "expectedCloseDate"]).default("createdAt"),
   sortOrder: z.enum(["asc", "desc"]).default("desc"),

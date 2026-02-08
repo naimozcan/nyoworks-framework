@@ -2,17 +2,18 @@
 // Payments Feature - Database Schema
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { pgTable, uuid, varchar, timestamp, integer, boolean, jsonb, index, text } from "drizzle-orm/pg-core"
+import { pgTable, text, varchar, timestamp, integer, boolean, jsonb, index } from "drizzle-orm/pg-core"
 import { relations } from "drizzle-orm"
+import { createId } from "@paralleldrive/cuid2"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Customers Table
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const customers = pgTable("payment_customers", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id").notNull(),
-  tenantId: uuid("tenant_id").notNull(),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  userId: text("user_id").notNull(),
+  tenantId: text("tenant_id").notNull(),
   stripeCustomerId: varchar("stripe_customer_id", { length: 255 }).notNull().unique(),
   email: varchar("email", { length: 255 }).notNull(),
   name: varchar("name", { length: 255 }),
@@ -30,8 +31,8 @@ export const customers = pgTable("payment_customers", {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const subscriptions = pgTable("payment_subscriptions", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  customerId: uuid("customer_id").notNull().references(() => customers.id, { onDelete: "cascade" }),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  customerId: text("customer_id").notNull().references(() => customers.id, { onDelete: "cascade" }),
   stripeSubscriptionId: varchar("stripe_subscription_id", { length: 255 }).notNull().unique(),
   stripePriceId: varchar("stripe_price_id", { length: 255 }).notNull(),
   status: varchar("status", { length: 50 }).notNull(),
@@ -53,9 +54,9 @@ export const subscriptions = pgTable("payment_subscriptions", {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const invoices = pgTable("payment_invoices", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  customerId: uuid("customer_id").notNull().references(() => customers.id, { onDelete: "cascade" }),
-  subscriptionId: uuid("subscription_id").references(() => subscriptions.id, { onDelete: "set null" }),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  customerId: text("customer_id").notNull().references(() => customers.id, { onDelete: "cascade" }),
+  subscriptionId: text("subscription_id").references(() => subscriptions.id, { onDelete: "set null" }),
   stripeInvoiceId: varchar("stripe_invoice_id", { length: 255 }).notNull().unique(),
   status: varchar("status", { length: 50 }).notNull(),
   amountDue: integer("amount_due").notNull(),
@@ -79,8 +80,8 @@ export const invoices = pgTable("payment_invoices", {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const paymentMethods = pgTable("payment_methods", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  customerId: uuid("customer_id").notNull().references(() => customers.id, { onDelete: "cascade" }),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  customerId: text("customer_id").notNull().references(() => customers.id, { onDelete: "cascade" }),
   stripePaymentMethodId: varchar("stripe_payment_method_id", { length: 255 }).notNull().unique(),
   type: varchar("type", { length: 50 }).notNull(),
   cardBrand: varchar("card_brand", { length: 50 }),

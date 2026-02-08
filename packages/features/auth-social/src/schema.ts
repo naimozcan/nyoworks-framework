@@ -2,16 +2,17 @@
 // Auth Social Feature - Database Schema
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { pgTable, uuid, varchar, timestamp, text, jsonb, index, uniqueIndex } from "drizzle-orm/pg-core"
+import { pgTable, text, varchar, timestamp, jsonb, index, uniqueIndex } from "drizzle-orm/pg-core"
 import { relations } from "drizzle-orm"
+import { createId } from "@paralleldrive/cuid2"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Social Accounts Table
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const socialAccounts = pgTable("social_accounts", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id").notNull(),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  userId: text("user_id").notNull(),
   provider: varchar("provider", { length: 50 }).notNull(),
   providerAccountId: varchar("provider_account_id", { length: 255 }).notNull(),
   accessToken: text("access_token"),

@@ -35,16 +35,26 @@ export async function sendEmailWithResend(options: SendEmailOptions) {
   const resend = getResendClient()
   const fromEmail = options.from || process.env.RESEND_FROM_EMAIL || "noreply@example.com"
 
-  const result = await resend.emails.send({
+  const baseOptions = {
     from: fromEmail,
     to: options.to,
     subject: options.subject,
-    text: options.text,
-    html: options.html,
-    reply_to: options.replyTo,
+    replyTo: options.replyTo,
     tags: options.tags,
-  })
+  }
 
+  if (options.html) {
+    const result = await resend.emails.send({
+      ...baseOptions,
+      html: options.html,
+    })
+    return result
+  }
+
+  const result = await resend.emails.send({
+    ...baseOptions,
+    text: options.text || "",
+  })
   return result
 }
 
@@ -170,8 +180,9 @@ export function extractTemplateVariables(template: string): string[] {
   let match
 
   while ((match = regex.exec(template)) !== null) {
-    if (!variables.includes(match[1])) {
-      variables.push(match[1])
+    const variable = match[1]
+    if (variable && !variables.includes(variable)) {
+      variables.push(variable)
     }
   }
 

@@ -48,7 +48,7 @@ export async function resolveTenant(options: ResolveTenantOptions): Promise<Reso
 
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenantIdentifier)
 
-  const dbTyped = db as never
+  const dbTyped = db as any
   const tenant = await dbTyped
     .select()
     .from(tenants)
@@ -104,7 +104,7 @@ interface GetDefaultTenantOptions {
 export async function getDefaultTenant(options: GetDefaultTenantOptions): Promise<ResolveTenantResult> {
   const { db, userId } = options
 
-  const dbTyped = db as never
+  const dbTyped = db as any
   const memberships = await dbTyped
     .select({
       tenantId: tenantMembers.tenantId,

@@ -1,21 +1,21 @@
 {
   "name": "@nyoworks/api-client",
-  "version": "0.1.0",
+  "version": "2.6.1",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     },
     "./react": {
-      "import": "./dist/react.js",
-      "types": "./dist/react.d.ts"
+      "types": "./dist/react.d.ts",
+      "import": "./dist/react.js"
     },
     "./vanilla": {
-      "import": "./dist/vanilla.js",
-      "types": "./dist/vanilla.d.ts"
+      "types": "./dist/vanilla.d.ts",
+      "import": "./dist/vanilla.js"
     }
   },
   "scripts": {
@@ -24,18 +24,18 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@trpc/client": "^11.0.0",
-    "@trpc/react-query": "^11.0.0",
-    "@tanstack/react-query": "^5.62.0",
-    "superjson": "^2.2.1"
+    "@tanstack/react-query": "^5.90.20",
+    "@trpc/client": "^11.9.0",
+    "@trpc/react-query": "^11.9.0",
+    "superjson": "^2.2.6"
   },
   "devDependencies": {
     "@nyoworks/api": "workspace:*",
-    "@types/node": "^22.15.0",
-    "@types/react": "^19.0.0",
-    "tsup": "^8.3.0",
-    "typescript": "^5.7.0",
-    "react": "^19.0.0"
+    "@types/node": "^25.2.2",
+    "@types/react": "^19.2.13",
+    "react": "^19.2.4",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3"
   },
   "peerDependencies": {
     "@nyoworks/api": "workspace:*",

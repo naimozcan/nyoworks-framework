@@ -2,15 +2,16 @@
 // Subscriptions Feature - Database Schema
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { pgTable, uuid, varchar, text, timestamp, integer, boolean, jsonb, index } from "drizzle-orm/pg-core"
+import { pgTable, text, varchar, timestamp, integer, boolean, jsonb, index } from "drizzle-orm/pg-core"
 import { relations } from "drizzle-orm"
+import { createId } from "@paralleldrive/cuid2"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Plans Table
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const plans = pgTable("subscription_plans", {
-  id: uuid("id").primaryKey().defaultRandom(),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
   name: varchar("name", { length: 100 }).notNull(),
   slug: varchar("slug", { length: 100 }).notNull().unique(),
   description: text("description"),
@@ -33,10 +34,10 @@ export const plans = pgTable("subscription_plans", {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const userSubscriptions = pgTable("user_subscriptions", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
-  userId: uuid("user_id").notNull(),
-  planId: uuid("plan_id").notNull().references(() => plans.id, { onDelete: "restrict" }),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  tenantId: text("tenant_id").notNull(),
+  userId: text("user_id").notNull(),
+  planId: text("plan_id").notNull().references(() => plans.id, { onDelete: "restrict" }),
   status: varchar("status", { length: 50 }).notNull().default("active"),
   currentPeriodStart: timestamp("current_period_start", { withTimezone: true }).notNull(),
   currentPeriodEnd: timestamp("current_period_end", { withTimezone: true }).notNull(),
@@ -58,8 +59,8 @@ export const userSubscriptions = pgTable("user_subscriptions", {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const usageRecords = pgTable("subscription_usage_records", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  subscriptionId: uuid("subscription_id").notNull().references(() => userSubscriptions.id, { onDelete: "cascade" }),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  subscriptionId: text("subscription_id").notNull().references(() => userSubscriptions.id, { onDelete: "cascade" }),
   feature: varchar("feature", { length: 100 }).notNull(),
   used: integer("used").notNull().default(0),
   limit: integer("limit").notNull(),

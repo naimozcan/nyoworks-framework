@@ -13,7 +13,7 @@ export const updateTenantSchema = z.object({
   name: nameSchema.optional(),
   domain: z.string().max(255).optional().nullable(),
   logo: z.string().url().max(500).optional().nullable(),
-  settings: z.record(z.unknown()).optional(),
+  settings: z.record(z.string(), z.unknown()).optional(),
 })
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -34,7 +34,7 @@ export const tenantSettingsSchema = z.object({
   timezone: z.string().default("UTC"),
   dateFormat: z.string().default("YYYY-MM-DD"),
   timeFormat: z.enum(["12h", "24h"]).default("24h"),
-  features: z.record(z.boolean()).default({}),
+  features: z.record(z.string(), z.boolean()).default({}),
 })
 
 // ─────────────────────────────────────────────────────────────────────────────

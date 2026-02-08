@@ -2,7 +2,8 @@
 // Search Feature - Database Schema
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { pgTable, uuid, varchar, text, timestamp, jsonb, index, customType } from "drizzle-orm/pg-core"
+import { pgTable, text, varchar, timestamp, jsonb, index, customType } from "drizzle-orm/pg-core"
+import { createId } from "@paralleldrive/cuid2"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Custom Types
@@ -19,11 +20,11 @@ const tsvector = customType<{ data: string }>({
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const searchIndex = pgTable("search_index", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  tenantId: text("tenant_id").notNull(),
 
   entityType: varchar("entity_type", { length: 100 }).notNull(),
-  entityId: uuid("entity_id").notNull(),
+  entityId: text("entity_id").notNull(),
 
   content: text("content").notNull(),
   metadata: jsonb("metadata").$type<Record<string, unknown>>(),

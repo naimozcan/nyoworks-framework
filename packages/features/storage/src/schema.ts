@@ -2,16 +2,17 @@
 // Storage Feature - Database Schema
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { pgTable, uuid, varchar, timestamp, bigint, boolean, jsonb, index, text } from "drizzle-orm/pg-core"
+import { pgTable, text, varchar, timestamp, bigint, boolean, jsonb, index } from "drizzle-orm/pg-core"
+import { createId } from "@paralleldrive/cuid2"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Files Table
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const files = pgTable("storage_files", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
-  userId: uuid("user_id").notNull(),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  tenantId: text("tenant_id").notNull(),
+  userId: text("user_id").notNull(),
   key: varchar("key", { length: 1024 }).notNull(),
   filename: varchar("filename", { length: 255 }).notNull(),
   mimeType: varchar("mime_type", { length: 127 }).notNull(),

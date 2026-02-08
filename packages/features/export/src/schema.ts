@@ -2,16 +2,17 @@
 // Export Feature - Database Schema
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { pgTable, uuid, varchar, timestamp, text, jsonb, index } from "drizzle-orm/pg-core"
+import { pgTable, text, varchar, timestamp, jsonb, index } from "drizzle-orm/pg-core"
+import { createId } from "@paralleldrive/cuid2"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Export Jobs Table
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const exportJobs = pgTable("export_jobs", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
-  userId: uuid("user_id").notNull(),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  tenantId: text("tenant_id").notNull(),
+  userId: text("user_id").notNull(),
   type: varchar("type", { length: 100 }).notNull(),
   status: varchar("status", { length: 50 }).notNull().default("pending"),
   format: varchar("format", { length: 20 }).notNull(),

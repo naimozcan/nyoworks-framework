@@ -7,31 +7,45 @@
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     },
     "./schema": {
-      "import": "./dist/schema.js",
-      "types": "./dist/schema.d.ts"
+      "types": "./dist/schema.d.ts",
+      "import": "./dist/schema.js"
     },
     "./router": {
-      "import": "./dist/router.js",
-      "types": "./dist/router.d.ts"
+      "types": "./dist/router.d.ts",
+      "import": "./dist/router.js"
+    },
+    "./repositories": {
+      "types": "./dist/repositories/index.d.ts",
+      "import": "./dist/repositories/index.js"
+    },
+    "./services": {
+      "types": "./dist/services/index.d.ts",
+      "import": "./dist/services/index.js"
     }
   },
   "scripts": {
-    "build": "tsup src/index.ts src/schema.ts src/router.ts --format esm --dts",
-    "dev": "tsup src/index.ts src/schema.ts src/router.ts --format esm --dts --watch",
+    "build": "tsup src/index.ts src/schema.ts src/router.ts src/repositories/index.ts src/services/index.ts --format esm --dts --external react",
+    "dev": "tsup src/index.ts src/schema.ts src/router.ts src/repositories/index.ts src/services/index.ts --format esm --dts --external react --watch",
     "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@nyoworks/shared": "workspace:*",
+    "@paralleldrive/cuid2": "^3.3.0"
   },
   "peerDependencies": {
     "@trpc/server": "^11.0.0",
-    "drizzle-orm": "^0.38.0",
-    "zod": "^3.24.0"
+    "drizzle-orm": "^0.45.0",
+    "react": "^19.0.0",
+    "zod": "^4.0.0"
   },
   "devDependencies": {
-    "@types/node": "^22.0.0",
+    "@types/node": "^25.2.2",
+    "@types/react": "^19.2.13",
     "tsup": "^8.5.1",
-    "typescript": "^5.7.0"
+    "typescript": "^5.9.3"
   }
 }

@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { z } from "zod"
+import { PAGINATION } from "@nyoworks/shared/constants"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Common Types
@@ -21,25 +22,25 @@ export const sendEmailInput = z.object({
   body: z.string().min(1),
   htmlBody: z.string().optional(),
   templateId: z.string().uuid().optional(),
-  templateData: z.record(z.unknown()).optional(),
+  templateData: z.record(z.string(), z.unknown()).optional(),
   scheduledFor: z.string().datetime().optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 })
 
 export const sendSmsInput = z.object({
   to: z.string().min(10).max(15),
   body: z.string().min(1).max(1600),
   templateId: z.string().uuid().optional(),
-  templateData: z.record(z.unknown()).optional(),
+  templateData: z.record(z.string(), z.unknown()).optional(),
   scheduledFor: z.string().datetime().optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 })
 
 export const sendPushInput = z.object({
   userId: z.string().uuid(),
-  title: z.string().min(1).max(100),
+  title: z.string().min(1).max(PAGINATION.MAX_LIMIT),
   body: z.string().min(1).max(500),
-  data: z.record(z.unknown()).optional(),
+  data: z.record(z.string(), z.unknown()).optional(),
   imageUrl: z.string().url().optional(),
   actionUrl: z.string().optional(),
   scheduledFor: z.string().datetime().optional(),
@@ -47,19 +48,19 @@ export const sendPushInput = z.object({
 
 export const sendInAppInput = z.object({
   userId: z.string().uuid(),
-  title: z.string().min(1).max(100),
+  title: z.string().min(1).max(PAGINATION.MAX_LIMIT),
   body: z.string().min(1).max(500),
   type: z.enum(["info", "success", "warning", "error"]).default("info"),
   actionUrl: z.string().optional(),
   actionLabel: z.string().optional(),
-  data: z.record(z.unknown()).optional(),
+  data: z.record(z.string(), z.unknown()).optional(),
 })
 
 export const sendBulkEmailInput = z.object({
   recipients: z.array(z.object({
     email: z.string().email(),
-    data: z.record(z.unknown()).optional(),
-  })).min(1).max(1000),
+    data: z.record(z.string(), z.unknown()).optional(),
+  })).min(1).max(PAGINATION.MAX_LIMIT * 10),
   subject: z.string().min(1).max(200),
   body: z.string().min(1),
   htmlBody: z.string().optional(),
@@ -72,8 +73,8 @@ export const sendBulkEmailInput = z.object({
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const createTemplateInput = z.object({
-  name: z.string().min(1).max(100),
-  slug: z.string().min(1).max(100).regex(/^[a-z0-9-]+$/),
+  name: z.string().min(1).max(PAGINATION.MAX_LIMIT),
+  slug: z.string().min(1).max(PAGINATION.MAX_LIMIT).regex(/^[a-z0-9-]+$/),
   description: z.string().max(500).optional(),
   channel: notificationChannel,
   subject: z.string().max(200).optional(),
@@ -84,7 +85,7 @@ export const createTemplateInput = z.object({
 
 export const updateTemplateInput = z.object({
   templateId: z.string().uuid(),
-  name: z.string().min(1).max(100).optional(),
+  name: z.string().min(1).max(PAGINATION.MAX_LIMIT).optional(),
   description: z.string().max(500).optional(),
   subject: z.string().max(200).optional(),
   body: z.string().min(1).optional(),
@@ -114,7 +115,7 @@ export const listNotificationsInput = z.object({
   userId: z.string().uuid().optional(),
   channel: notificationChannel.optional(),
   status: notificationStatus.optional(),
-  limit: z.number().min(1).max(100).default(20),
+  limit: z.number().min(1).max(PAGINATION.MAX_LIMIT).default(PAGINATION.DEFAULT_LIMIT),
   offset: z.number().min(0).default(0),
 })
 
@@ -158,7 +159,7 @@ export const updatePreferencesInput = z.object({
 export const registerDeviceInput = z.object({
   deviceToken: z.string().min(1),
   platform: z.enum(["ios", "android", "web"]),
-  deviceName: z.string().max(100).optional(),
+  deviceName: z.string().max(PAGINATION.MAX_LIMIT).optional(),
 })
 
 export const unregisterDeviceInput = z.object({
