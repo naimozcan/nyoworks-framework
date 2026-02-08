@@ -213,7 +213,7 @@ export async function createProject(projectName?: string) {
     "packages/ui",
     "packages/assets",
     "apps/server",
-    "docs",
+    "docs/bible",
     "mcp-server",
     ".claude",
   ]
