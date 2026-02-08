@@ -6,123 +6,232 @@
 
 ## ZORUNLU SORULAR (DISCOVERY Phase)
 
-DISCOVERY fazinda asagidaki soru akisini TAKIP ET. Urun tipine gore sorular dinamik olarak degisir.
+DISCOVERY fazinda AskUserQuestion tool'unu kullanarak coktan secmeli sorular sor.
+Her adimda MAKSIMUM 4 soru sor (tool limiti).
+Sorulari SIRALI olarak sor, hepsini ayni anda degil.
 
-### Adim 1: Temel Bilgiler (Tum Projeler)
+### Adim 1: Hedef Kitle
 
-**Proje Kimligi:**
-1. Proje adi nedir?
-2. Musteri/sirket adi?
-3. Proje kodu (kisa, uppercase, ornek: ACME)?
+```
+AskUserQuestion({
+  questions: [
+    {
+      question: "Bu uygulama kime hitap ediyor?",
+      header: "Hedef Kitle",
+      options: [
+        { label: "B2C (Bireysel)", description: "Son kullanicilar, tuketiciler" },
+        { label: "B2B (Kurumsal)", description: "Isletmeler, sirketler" },
+        { label: "B2B2C (Her ikisi)", description: "Hem isletme hem tuketici" },
+        { label: "Internal", description: "Sirket ici kullanim" }
+      ],
+      multiSelect: false
+    },
+    {
+      question: "Kac farkli kullanici rolu olacak?",
+      header: "Kullanici Rolleri",
+      options: [
+        { label: "2 rol", description: "Admin + User" },
+        { label: "3 rol", description: "Admin + Staff + User" },
+        { label: "4+ rol", description: "Karmasik yetki sistemi" }
+      ],
+      multiSelect: false
+    }
+  ]
+})
+```
 
-**Hedef Kitle:**
-1. Birincil kullanici kim? (B2B/B2C/internal)
-2. Kac farkli kullanici tipi var?
-3. Her kullanici tipi ne yapar?
+### Adim 2: E-ticaret Ozel Sorulari
 
-### Adim 2: Urun Tipi Belirleme (KRITIK)
+Eger urun tipi ecommerce ise:
 
-**Sor:** "Uygulamanin ana amaci ne? Asagidakilerden birini sec:"
+```
+AskUserQuestion({
+  questions: [
+    {
+      question: "Ne tur urunler satilacak?",
+      header: "Urun Tipi",
+      options: [
+        { label: "Fiziksel", description: "Kargo ile gonderilen urunler" },
+        { label: "Dijital", description: "Indirilebilir dosyalar, lisanslar" },
+        { label: "Hizmet", description: "Danismanlik, egitim, abonelik" },
+        { label: "Karma", description: "Birden fazla tip" }
+      ],
+      multiSelect: false
+    },
+    {
+      question: "Stok takibi gerekli mi?",
+      header: "Stok",
+      options: [
+        { label: "Evet", description: "Stok miktari takip edilsin" },
+        { label: "Hayir", description: "Sinirsiz stok varsay" }
+      ],
+      multiSelect: false
+    },
+    {
+      question: "Satis modeli nedir?",
+      header: "Satis Modeli",
+      options: [
+        { label: "Tek Satici", description: "Sadece siz satiyorsunuz" },
+        { label: "Marketplace", description: "Bircok satici var" }
+      ],
+      multiSelect: false
+    }
+  ]
+})
+```
 
-| # | Urun Tipi | Aciklama |
-|---|-----------|----------|
-| 1 | Randevu Sistemi | Booking, rezervasyon, appointment |
-| 2 | Is Yonetim Sistemi | CRM, ERP, WMS, musteri/stok takibi |
-| 3 | SaaS Urun | Abonelik bazli, multi-tenant yazilim |
-| 4 | E-ticaret | Online magaza, urun satisi |
-| 5 | Kurumsal Web Sitesi | Sirket tanitim, landing page |
-| 6 | NL Compliance | Peppol/UBL e-fatura, muhasebe |
-| 7 | Mobil Uygulama | iOS/Android native app |
+### Adim 3: Odeme ve Kargo
 
-**Cevaba gore `config/product-types.yaml` dosyasindan ilgili urun tipini yukle.**
+```
+AskUserQuestion({
+  questions: [
+    {
+      question: "Hangi odeme yontemleri?",
+      header: "Odeme",
+      options: [
+        { label: "Kredi Karti", description: "Stripe entegrasyonu" },
+        { label: "Havale/EFT", description: "Banka transferi" },
+        { label: "Kapida Odeme", description: "Teslimat sirasinda" },
+        { label: "Hepsi", description: "Tum yontemler" }
+      ],
+      multiSelect: true
+    },
+    {
+      question: "Kargo entegrasyonu gerekli mi?",
+      header: "Kargo",
+      options: [
+        { label: "Evet - TR", description: "Aras, Yurtici, MNG, PTT" },
+        { label: "Evet - Uluslararasi", description: "DHL, UPS, FedEx" },
+        { label: "Hayir", description: "Manuel kargo yonetimi" }
+      ],
+      multiSelect: false
+    },
+    {
+      question: "Vergi hesaplama?",
+      header: "Vergi",
+      options: [
+        { label: "KDV (TR)", description: "%20 standart KDV" },
+        { label: "VAT (EU)", description: "Avrupa Birligi VAT" },
+        { label: "Tax-free", description: "Vergi hesaplanmayacak" }
+      ],
+      multiSelect: false
+    }
+  ]
+})
+```
 
-### Adim 3: Urun Tipine Ozel Sorular
+### Adim 4: Indirim ve Promosyon
 
-Secilen urun tipine gore asagidaki sorulari sor:
+```
+AskUserQuestion({
+  questions: [
+    {
+      question: "Kupon/indirim sistemi olacak mi?",
+      header: "Indirim",
+      options: [
+        { label: "Evet - Basit", description: "Yuzde veya sabit indirim" },
+        { label: "Evet - Gelismis", description: "N al M ode, ucretsiz kargo" },
+        { label: "Hayir", description: "Indirim sistemi yok" }
+      ],
+      multiSelect: false
+    },
+    {
+      question: "Sadakat programi?",
+      header: "Sadakat",
+      options: [
+        { label: "Evet", description: "Puan/odullu sistem" },
+        { label: "Hayir", description: "Sadakat programi yok" }
+      ],
+      multiSelect: false
+    }
+  ]
+})
+```
 
-#### Tip 1: Randevu Sistemleri
-- Birden fazla hizmet turu var mi? (sac kesimi, masaj, danismanlik)
-- Musaitlik takvimi nasil? (haftalik sabit / dinamik)
-- Odeme randevu oncesi mi sonrasi mi?
-- Iptal/erteleme politikasi ne?
-- Hatirlatma bildirimleri? (SMS, email, push, WhatsApp)
+### Adim 5: Teslimat Tercihleri
 
-#### Tip 2: Is Yonetim Sistemleri (WMS/CRM/ERP)
-- Hangi is surecleri? (satis, stok, muhasebe, uretim, proje)
-- Musteri segmentasyonu? (B2B/B2C/karma)
-- Teklif -> Siparis -> Fatura akisi var mi?
-- Stok/envanter takibi gerekli mi?
-- Calisan/ekip yonetimi dahil mi?
-- Ozel raporlama ihtiyaclari?
+```
+AskUserQuestion({
+  questions: [
+    {
+      question: "Proje turu nedir?",
+      header: "Proje Turu",
+      options: [
+        { label: "MVP", description: "Minimum viable product, hizli cikis" },
+        { label: "Full Product", description: "Tum ozellikler eksiksiz" }
+      ],
+      multiSelect: false
+    },
+    {
+      question: "Hosting tercihi?",
+      header: "Hosting",
+      options: [
+        { label: "Vercel (Onerilir)", description: "Next.js icin optimize" },
+        { label: "Railway", description: "Full-stack PaaS" },
+        { label: "AWS/GCP", description: "Enterprise cloud" },
+        { label: "Self-hosted", description: "Kendi sunucum" }
+      ],
+      multiSelect: false
+    },
+    {
+      question: "Coklu dil destegi?",
+      header: "Dil",
+      options: [
+        { label: "Tek dil", description: "Sadece varsayilan dil" },
+        { label: "Coklu dil", description: "i18n destegi gerekli" }
+      ],
+      multiSelect: false
+    }
+  ]
+})
+```
 
-#### Tip 3: SaaS Urun
-- Fiyatlandirma modeli? (freemium, tiered, usage-based, per-seat)
-- Trial suresi var mi?
-- Onboarding nasil? (self-service, sales-assisted)
-- API erisimi sunulacak mi?
-- White-label secenegi var mi?
+### Urun Tipine Gore Soru Setleri
 
-#### Tip 4: E-ticaret
-- Urun tipi? (fiziksel, dijital, hizmet, karma)
-- Stok takibi gerekli mi?
-- Kargo entegrasyonu? (hangi firmalar)
-- Vergi hesaplama? (KDV, OTV, uluslararasi)
-- Kupon/indirim sistemi?
-- Marketplace mi tek satici mi?
+Eger urun tipi farkli ise (booking, saas, vb.) o tipe ozel sorulari sor:
 
-#### Tip 5: Kurumsal Web Sitesi
-- Iletisim formu gerekli mi?
-- Blog/haber bolumu var mi?
-- Coklu dil destegi?
-- SEO onceligi ne kadar yuksek?
-- Yonetim paneli gerekli mi?
+#### Booking/Randevu Sistemleri:
+- Hizmet turleri (tek/coklu)
+- Musaitlik takvimi (sabit/dinamik)
+- Odeme zamani (once/sonra)
+- Hatirlatma kanallari (SMS/email/push/WhatsApp)
 
-#### Tip 6: NL Compliance (e-fatura)
-- Hangi ulkeler? (NL, TR, AB)
-- Peppol Access Point entegrasyonu var mi?
-- e-Arsiv gerekli mi? (TR icin)
-- Muhasebe yazilimi entegrasyonu? (Exact, Twinfield, Moneybird)
-- Fatura numaralama formati?
+#### SaaS:
+- Fiyatlandirma (freemium/tiered/usage-based/per-seat)
+- Trial suresi (7/14/30 gun)
+- Onboarding (self-service/sales-assisted)
+- API erisimi (var/yok)
 
-#### Tip 7: Mobil Uygulama
-- Offline calisma gerekli mi?
-- Push notification onceligi?
-- Kamera/galeri erisimi gerekli mi?
-- Konum servisleri kullanilacak mi?
-- App Store/Play Store yayini mi?
+#### Is Yonetim (CRM/ERP):
+- Surecler (satis/stok/muhasebe/uretim)
+- Musteri segmenti (B2B/B2C/karma)
+- Teklif-Siparis-Fatura akisi (var/yok)
+- Raporlama ihtiyaclari
 
-### Adim 4: Otomatik Feature Onerisi
+### Cevaplari Kaydet
 
-Urun tipine gore ZORUNLU ve OPSIYONEL feature'lari oner:
+Tum cevaplar alindiktan sonra:
 
-| Urun Tipi | Zorunlu | Opsiyonel |
-|-----------|---------|-----------|
-| Randevu | appointments, notifications | payments, analytics, audit |
-| Is Yonetim | analytics, audit | crm-contacts, accounting, inventory, invoicing |
-| SaaS | payments, audit, analytics | notifications, export, webhooks, queue |
-| E-ticaret | payments, notifications | inventory, invoicing, file-storage |
-| Kurumsal | (yok) | analytics, file-storage |
-| NL Compliance | invoicing, audit | accounting, export, crm-contacts |
-| Mobil | notifications | realtime, file-storage, payments |
+1. **Bible Guncelle:**
+   - `docs/bible/product/vision.md` - Toplanan bilgilerle doldur
+   - `docs/bible/users/types.md` - Kullanici tipleri
+   - `docs/bible/users/roles.md` - Roller
 
-**Sor:** "Su feature'lari oneriyorum: [liste]. Eklemek/cikarilmasini istedigin var mi?"
+2. **MCP State Guncelle:**
+   ```
+   mcp__nyoworks__init_project({...})
+   mcp__nyoworks__enable_feature({...})
+   ```
 
-### Adim 5: Platform ve Teknik Sorular
+3. **Gereksiz Feature'lari Sil:**
+   ```bash
+   rm -rf packages/features/{gereksiz-feature}/
+   ```
 
-**Platform:**
-1. Hangi platformlar? (web zorunlu, mobile/desktop opsiyonel)
-2. Mobile gerekiyorsa: iOS, Android, ikisi de?
-3. Desktop gerekiyorsa: Windows, macOS, Linux?
-
-**Teknik:**
-1. Varsayilan dil? (TR/EN/NL)
-2. Multi-language destegi gerekli mi?
-3. Mevcut bir sistem var mi? (entegrasyon?)
-
-**Teslimat:**
-1. Deadline var mi?
-2. MVP mi, full product mi?
-3. Hosting tercihi? (Vercel, Railway, self-hosted)
+4. **Fazi Tamamla:**
+   ```
+   mcp__nyoworks__advance_phase()
+   ```
 
 ### Adim 6: Platform Yapisini Olustur (SECILMEYENLERI SIL)
 
