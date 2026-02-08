@@ -2,6 +2,8 @@
 // Notifications Service
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
+import { getEmailEnv } from "@nyoworks/shared"
 import { TRPCError } from "@trpc/server"
 import {
   NotificationsRepository,
@@ -80,7 +82,7 @@ export class NotificationsService {
   private readonly devicesRepo: DevicesRepository
   private readonly emailLogsRepo: EmailLogsRepository
 
-  constructor(db: unknown, tenantId: string) {
+  constructor(db: DrizzleDatabase, tenantId: string) {
     this.notificationsRepo = new NotificationsRepository(db, tenantId)
     this.templatesRepo = new TemplatesRepository(db, tenantId)
     this.devicesRepo = new DevicesRepository(db)
@@ -134,7 +136,7 @@ export class NotificationsService {
           notificationId: notification.id,
           provider: "resend",
           providerId: result.data?.id,
-          fromEmail: process.env.RESEND_FROM_EMAIL || "noreply@example.com",
+          fromEmail: getEmailEnv()?.RESEND_FROM_EMAIL || "noreply@example.com",
           toEmail: input.to,
           subject,
           status: "sent",

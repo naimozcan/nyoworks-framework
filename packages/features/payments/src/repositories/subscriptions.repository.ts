@@ -2,6 +2,7 @@
 // Subscriptions Repository
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { eq, and, desc } from "drizzle-orm"
 import { subscriptions, type Subscription, type NewSubscription } from "../schema.js"
 
@@ -10,21 +11,19 @@ import { subscriptions, type Subscription, type NewSubscription } from "../schem
 // ─────────────────────────────────────────────────────────────────────────────
 
 export class SubscriptionsRepository {
-  constructor(private readonly db: unknown) {}
+  constructor(private readonly db: DrizzleDatabase) {}
 
   async create(data: Omit<NewSubscription, "id" | "createdAt" | "updatedAt">): Promise<Subscription> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .insert(subscriptions)
       .values(data)
       .returning()
 
-    return result
+    return result!
   }
 
   async findById(id: string): Promise<Subscription | null> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select()
       .from(subscriptions)
       .where(eq(subscriptions.id, id))
@@ -34,8 +33,7 @@ export class SubscriptionsRepository {
   }
 
   async findByStripeSubscriptionId(stripeSubscriptionId: string): Promise<Subscription | null> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select()
       .from(subscriptions)
       .where(eq(subscriptions.stripeSubscriptionId, stripeSubscriptionId))
@@ -45,8 +43,7 @@ export class SubscriptionsRepository {
   }
 
   async findByCustomerId(customerId: string): Promise<Subscription[]> {
-    const db = this.db as any
-    return db
+    return this.db
       .select()
       .from(subscriptions)
       .where(eq(subscriptions.customerId, customerId))
@@ -54,8 +51,7 @@ export class SubscriptionsRepository {
   }
 
   async findActiveByCustomerId(customerId: string): Promise<Subscription | null> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select()
       .from(subscriptions)
       .where(and(eq(subscriptions.customerId, customerId), eq(subscriptions.status, "active")))
@@ -65,8 +61,7 @@ export class SubscriptionsRepository {
   }
 
   async update(id: string, data: Partial<Subscription>): Promise<Subscription | null> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .update(subscriptions)
       .set({
         ...data,
@@ -79,8 +74,7 @@ export class SubscriptionsRepository {
   }
 
   async updateByStripeId(stripeSubscriptionId: string, data: Partial<Subscription>): Promise<Subscription | null> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .update(subscriptions)
       .set({
         ...data,
@@ -93,8 +87,7 @@ export class SubscriptionsRepository {
   }
 
   async delete(id: string): Promise<boolean> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .delete(subscriptions)
       .where(eq(subscriptions.id, id))
       .returning()

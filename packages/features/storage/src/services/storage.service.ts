@@ -2,7 +2,9 @@
 // Storage Service
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { TRPCError } from "@trpc/server"
+import { STORAGE } from "@nyoworks/shared"
 import { FilesRepository, type ListOptions } from "../repositories/index.js"
 import type { StorageFile } from "../schema.js"
 import {
@@ -101,7 +103,7 @@ export class StorageService {
   private readonly repository: FilesRepository
 
   constructor(
-    db: unknown,
+    db: DrizzleDatabase,
     private readonly tenantId: string
   ) {
     this.repository = new FilesRepository(db, tenantId)
@@ -111,9 +113,8 @@ export class StorageService {
     const key = generateKey(this.tenantId, input.userId, input.filename, input.folder)
     const bucket = getBucket()
     const url = buildPublicUrl(key)
-    const expiresIn = 3600
 
-    const presignedUrl = await createPresignedUploadUrl(key, input.mimeType, expiresIn)
+    const presignedUrl = await createPresignedUploadUrl(key, input.mimeType, STORAGE.PRESIGNED_URL_DEFAULT_EXPIRY)
 
     const file = await this.repository.create({
       userId: input.userId,
@@ -131,7 +132,7 @@ export class StorageService {
       fileId: file.id,
       presignedUrl,
       key,
-      expiresIn,
+      expiresIn: STORAGE.PRESIGNED_URL_DEFAULT_EXPIRY,
     }
   }
 

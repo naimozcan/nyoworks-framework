@@ -2,7 +2,7 @@
 // Notifications Feature - tRPC Router
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { initTRPC, TRPCError } from "@trpc/server"
+import { router, tenantProcedure, protectedProcedure } from "@nyoworks/api"
 import {
   sendEmailInput,
   sendSmsInput,
@@ -27,66 +27,32 @@ import {
 } from "./services/index.js"
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Context Type
-// ─────────────────────────────────────────────────────────────────────────────
-
-interface NotificationsContext {
-  user?: { id: string; email: string }
-  tenantId?: string
-  db: unknown
-}
-
-const t = initTRPC.context<NotificationsContext>().create()
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Middleware
-// ─────────────────────────────────────────────────────────────────────────────
-
-const isAuthenticated = t.middleware(({ ctx, next }) => {
-  if (!ctx.user) {
-    throw new TRPCError({ code: "UNAUTHORIZED" })
-  }
-  if (!ctx.tenantId) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "Tenant ID required" })
-  }
-  return next({
-    ctx: {
-      ...ctx,
-      user: ctx.user,
-      tenantId: ctx.tenantId,
-    },
-  })
-})
-
-const protectedProcedure = t.procedure.use(isAuthenticated)
-
-// ─────────────────────────────────────────────────────────────────────────────
 // Send Router
 // ─────────────────────────────────────────────────────────────────────────────
 
-const sendRouter = t.router({
-  email: protectedProcedure
+const sendRouter = router({
+  email: tenantProcedure
     .input(sendEmailInput)
     .mutation(async ({ input, ctx }) => {
       const service = new NotificationsService(ctx.db, ctx.tenantId)
       return service.sendEmail(input)
     }),
 
-  sms: protectedProcedure
+  sms: tenantProcedure
     .input(sendSmsInput)
     .mutation(async ({ input, ctx }) => {
       const service = new NotificationsService(ctx.db, ctx.tenantId)
       return service.sendSms(input)
     }),
 
-  push: protectedProcedure
+  push: tenantProcedure
     .input(sendPushInput)
     .mutation(async ({ input, ctx }) => {
       const service = new NotificationsService(ctx.db, ctx.tenantId)
       return service.sendPush(input)
     }),
 
-  inApp: protectedProcedure
+  inApp: tenantProcedure
     .input(sendInAppInput)
     .mutation(async ({ input, ctx }) => {
       const service = new NotificationsService(ctx.db, ctx.tenantId)
@@ -98,15 +64,15 @@ const sendRouter = t.router({
 // Templates Router
 // ─────────────────────────────────────────────────────────────────────────────
 
-const templatesRouter = t.router({
-  create: protectedProcedure
+const templatesRouter = router({
+  create: tenantProcedure
     .input(createTemplateInput)
     .mutation(async ({ input, ctx }) => {
       const service = new TemplatesService(ctx.db, ctx.tenantId)
       return service.create(input)
     }),
 
-  update: protectedProcedure
+  update: tenantProcedure
     .input(updateTemplateInput)
     .mutation(async ({ input, ctx }) => {
       const { templateId, ...updateData } = input
@@ -114,19 +80,19 @@ const templatesRouter = t.router({
       return service.update(templateId, updateData)
     }),
 
-  get: protectedProcedure
+  get: tenantProcedure
     .input(getTemplateInput)
     .query(async ({ input, ctx }) => {
       const service = new TemplatesService(ctx.db, ctx.tenantId)
       return service.get(input.templateId)
     }),
 
-  list: protectedProcedure.query(async ({ ctx }) => {
+  list: tenantProcedure.query(async ({ ctx }) => {
     const service = new TemplatesService(ctx.db, ctx.tenantId)
     return service.list()
   }),
 
-  delete: protectedProcedure
+  delete: tenantProcedure
     .input(deleteTemplateInput)
     .mutation(async ({ input, ctx }) => {
       const service = new TemplatesService(ctx.db, ctx.tenantId)
@@ -138,27 +104,27 @@ const templatesRouter = t.router({
 // Notifications List Router
 // ─────────────────────────────────────────────────────────────────────────────
 
-const listRouter = t.router({
-  all: protectedProcedure
+const listRouter = router({
+  all: tenantProcedure
     .input(listNotificationsInput)
     .query(async ({ input, ctx }) => {
       const service = new NotificationsService(ctx.db, ctx.tenantId)
       return service.listByUser(ctx.user.id, input)
     }),
 
-  unreadCount: protectedProcedure.query(async ({ ctx }) => {
+  unreadCount: tenantProcedure.query(async ({ ctx }) => {
     const service = new NotificationsService(ctx.db, ctx.tenantId)
     return service.getUnreadCount(ctx.user.id, "in_app")
   }),
 
-  markAsRead: protectedProcedure
+  markAsRead: tenantProcedure
     .input(markAsReadInput)
     .mutation(async ({ input, ctx }) => {
       const service = new NotificationsService(ctx.db, ctx.tenantId)
       return service.markAsRead(input.notificationId, ctx.user.id)
     }),
 
-  markAllAsRead: protectedProcedure
+  markAllAsRead: tenantProcedure
     .input(markAllAsReadInput)
     .mutation(async ({ input, ctx }) => {
       const service = new NotificationsService(ctx.db, ctx.tenantId)
@@ -170,7 +136,7 @@ const listRouter = t.router({
 // Preferences Router
 // ─────────────────────────────────────────────────────────────────────────────
 
-const preferencesRouter = t.router({
+const preferencesRouter = router({
   get: protectedProcedure.query(async ({ ctx }) => {
     const service = new PreferencesService(ctx.db)
     return service.get(ctx.user.id)
@@ -188,7 +154,7 @@ const preferencesRouter = t.router({
 // Devices Router
 // ─────────────────────────────────────────────────────────────────────────────
 
-const devicesRouter = t.router({
+const devicesRouter = router({
   register: protectedProcedure
     .input(registerDeviceInput)
     .mutation(async ({ input, ctx }) => {
@@ -213,7 +179,7 @@ const devicesRouter = t.router({
 // Main Router
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const notificationsRouter = t.router({
+export const notificationsRouter = router({
   send: sendRouter,
   templates: templatesRouter,
   list: listRouter,

@@ -2,6 +2,7 @@
 // Search Repository
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { eq, and, sql } from "drizzle-orm"
 import { searchIndex, type SearchIndex } from "../schema.js"
 
@@ -51,7 +52,7 @@ export interface EntityTypeCount {
 
 export class SearchRepository {
   constructor(
-    private readonly db: any,
+    private readonly db: DrizzleDatabase,
     private readonly tenantId: string
   ) {}
 
@@ -94,10 +95,12 @@ export class SearchRepository {
       WHERE ${whereClause}
     `)
 
-    const total = Number(countResult.rows[0]?.total || 0)
+    const countRows = countResult as unknown as { rows: Array<{ total: number }> }
+    const resultRows = results as unknown as { rows: Array<Record<string, unknown>> }
+    const total = Number(countRows.rows[0]?.total || 0)
 
     return {
-      items: results.rows.map((row: any) => ({
+      items: resultRows.rows.map((row: Record<string, unknown>) => ({
         id: row.id as string,
         entityType: row.entity_type as string,
         entityId: row.entity_id as string,
@@ -147,7 +150,7 @@ export class SearchRepository {
         .where(eq(searchIndex.id, existing.id))
         .returning()
 
-      return updated
+      return updated!
     }
 
     const [created] = await this.db
@@ -162,7 +165,7 @@ export class SearchRepository {
       })
       .returning()
 
-    return created
+    return created!
   }
 
   async remove(entityType: string, entityId: string): Promise<number> {
@@ -190,9 +193,9 @@ export class SearchRepository {
       ${entityType ? sql`AND entity_type = ${entityType}` : sql``}
     `)
 
-    let whereClause: any = eq(searchIndex.tenantId, this.tenantId)
+    let whereClause = eq(searchIndex.tenantId, this.tenantId)
     if (entityType) {
-      whereClause = and(whereClause, eq(searchIndex.entityType, entityType))
+      whereClause = and(whereClause, eq(searchIndex.entityType, entityType))!
     }
 
     const [countResult] = await this.db
@@ -201,7 +204,7 @@ export class SearchRepository {
       .where(whereClause)
       .limit(1)
 
-    return countResult?.count ?? 0
+    return Number(countResult?.count ?? 0)
   }
 
   async suggest(query: string, entityTypes?: string[], limit: number = 10): Promise<SuggestResult[]> {
@@ -225,7 +228,8 @@ export class SearchRepository {
       LIMIT ${limit}
     `)
 
-    return results.rows.map((row: any) => ({
+    const suggestRows = results as unknown as { rows: Array<Record<string, unknown>> }
+    return suggestRows.rows.map((row: Record<string, unknown>) => ({
       text: row.text as string,
       entityType: row.entity_type as string,
       count: Number(row.count),
@@ -243,6 +247,8 @@ export class SearchRepository {
       ORDER BY count DESC
     `)
 
+    const statsRows = results as unknown as { rows: Array<Record<string, unknown>> }
+
     const [totalResult] = await this.db
       .select({ total: sql<number>`count(*)` })
       .from(searchIndex)
@@ -250,8 +256,8 @@ export class SearchRepository {
       .limit(1)
 
     return {
-      total: totalResult?.total ?? 0,
-      byEntityType: results.rows.map((row: any) => ({
+      total: Number(totalResult?.total ?? 0),
+      byEntityType: statsRows.rows.map((row: Record<string, unknown>) => ({
         entityType: row.entity_type as string,
         count: Number(row.count),
       })),

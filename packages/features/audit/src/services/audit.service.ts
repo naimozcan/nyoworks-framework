@@ -2,6 +2,7 @@
 // Audit Service
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { TRPCError } from "@trpc/server"
 import { AuditRepository } from "../repositories/index.js"
 import type { AuditLog } from "../schema.js"
@@ -42,7 +43,7 @@ interface ListInput {
 export class AuditService {
   private readonly repository: AuditRepository
 
-  constructor(db: unknown, tenantId: string) {
+  constructor(db: DrizzleDatabase, tenantId: string) {
     this.repository = new AuditRepository(db, tenantId)
   }
 

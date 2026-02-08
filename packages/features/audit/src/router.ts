@@ -2,7 +2,7 @@
 // Audit Feature - tRPC Router
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { initTRPC, TRPCError } from "@trpc/server"
+import { router, tenantProcedure } from "@nyoworks/api"
 import {
   createAuditLogInput,
   listAuditLogsInput,
@@ -13,49 +13,11 @@ import {
 import { AuditService } from "./services/index.js"
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Context Type
-// ─────────────────────────────────────────────────────────────────────────────
-
-interface AuditContext {
-  user?: { id: string; email: string }
-  tenantId?: string
-  requestInfo?: {
-    ipAddress?: string
-    userAgent?: string
-  }
-  db: unknown
-}
-
-const t = initTRPC.context<AuditContext>().create()
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Middleware
-// ─────────────────────────────────────────────────────────────────────────────
-
-const isAuthenticated = t.middleware(({ ctx, next }) => {
-  if (!ctx.user) {
-    throw new TRPCError({ code: "UNAUTHORIZED" })
-  }
-  if (!ctx.tenantId) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "Tenant ID required" })
-  }
-  return next({
-    ctx: {
-      ...ctx,
-      user: ctx.user,
-      tenantId: ctx.tenantId,
-    },
-  })
-})
-
-const protectedProcedure = t.procedure.use(isAuthenticated)
-
-// ─────────────────────────────────────────────────────────────────────────────
 // Router
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const auditRouter = t.router({
-  log: protectedProcedure
+export const auditRouter = router({
+  log: tenantProcedure
     .input(createAuditLogInput)
     .mutation(async ({ input, ctx }) => {
       const service = new AuditService(ctx.db, ctx.tenantId)
@@ -72,21 +34,21 @@ export const auditRouter = t.router({
       })
     }),
 
-  list: protectedProcedure
+  list: tenantProcedure
     .input(listAuditLogsInput)
     .query(async ({ input, ctx }) => {
       const service = new AuditService(ctx.db, ctx.tenantId)
       return service.list(input)
     }),
 
-  get: protectedProcedure
+  get: tenantProcedure
     .input(getAuditLogInput)
     .query(async ({ input, ctx }) => {
       const service = new AuditService(ctx.db, ctx.tenantId)
       return service.get(input.auditLogId)
     }),
 
-  getEntityHistory: protectedProcedure
+  getEntityHistory: tenantProcedure
     .input(getEntityHistoryInput)
     .query(async ({ input, ctx }) => {
       const service = new AuditService(ctx.db, ctx.tenantId)
@@ -96,7 +58,7 @@ export const auditRouter = t.router({
       })
     }),
 
-  getUserActivity: protectedProcedure
+  getUserActivity: tenantProcedure
     .input(getUserActivityInput)
     .query(async ({ input, ctx }) => {
       const service = new AuditService(ctx.db, ctx.tenantId)
@@ -108,7 +70,7 @@ export const auditRouter = t.router({
       })
     }),
 
-  getStats: protectedProcedure.query(async ({ ctx }) => {
+  getStats: tenantProcedure.query(async ({ ctx }) => {
     const service = new AuditService(ctx.db, ctx.tenantId)
     return service.getStats()
   }),

@@ -2,6 +2,7 @@
 // Notifications Feature - Provider Clients
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import { getEmailEnv, getSmsEnv, getPushEnv } from "@nyoworks/shared"
 import { Resend } from "resend"
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -12,7 +13,8 @@ let resendClient: Resend | null = null
 
 export function getResendClient(): Resend {
   if (!resendClient) {
-    const apiKey = process.env.RESEND_API_KEY
+    const emailEnv = getEmailEnv()
+    const apiKey = emailEnv?.RESEND_API_KEY
     if (!apiKey) {
       throw new Error("RESEND_API_KEY environment variable is not set")
     }
@@ -33,7 +35,8 @@ export interface SendEmailOptions {
 
 export async function sendEmailWithResend(options: SendEmailOptions) {
   const resend = getResendClient()
-  const fromEmail = options.from || process.env.RESEND_FROM_EMAIL || "noreply@example.com"
+  const emailEnv = getEmailEnv()
+  const fromEmail = options.from || emailEnv?.RESEND_FROM_EMAIL || "noreply@example.com"
 
   const baseOptions = {
     from: fromEmail,
@@ -69,9 +72,10 @@ export interface SendSmsOptions {
 }
 
 export async function sendSms(options: SendSmsOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
-  const accountSid = process.env.TWILIO_ACCOUNT_SID
-  const authToken = process.env.TWILIO_AUTH_TOKEN
-  const fromNumber = options.from || process.env.TWILIO_PHONE_NUMBER
+  const smsEnv = getSmsEnv()
+  const accountSid = smsEnv?.TWILIO_ACCOUNT_SID
+  const authToken = smsEnv?.TWILIO_AUTH_TOKEN
+  const fromNumber = options.from || smsEnv?.TWILIO_PHONE_NUMBER
 
   if (!accountSid || !authToken || !fromNumber) {
     return { success: false, error: "SMS provider not configured" }
@@ -119,7 +123,8 @@ export interface PushNotificationPayload {
 }
 
 export async function sendPushNotification(payload: PushNotificationPayload): Promise<{ success: boolean; messageId?: string; error?: string }> {
-  const fcmServerKey = process.env.FCM_SERVER_KEY
+  const pushEnv = getPushEnv()
+  const fcmServerKey = pushEnv?.FCM_SERVER_KEY
 
   if (!fcmServerKey) {
     return { success: false, error: "FCM not configured" }

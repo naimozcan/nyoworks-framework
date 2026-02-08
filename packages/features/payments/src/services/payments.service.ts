@@ -2,6 +2,7 @@
 // Payments Service
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { TRPCError } from "@trpc/server"
 import type Stripe from "stripe"
 import { getStripeClient, verifyWebhookSignature } from "../stripe.js"
@@ -77,7 +78,7 @@ export class PaymentsService {
   private readonly paymentMethodsRepo: PaymentMethodsRepository
 
   constructor(
-    db: unknown,
+    db: DrizzleDatabase,
     private readonly tenantId: string
   ) {
     this.stripe = getStripeClient()

@@ -2,7 +2,7 @@
 // Subscriptions Feature - tRPC Router
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { initTRPC, TRPCError } from "@trpc/server"
+import { router, publicProcedure, tenantProcedure } from "@nyoworks/api"
 import {
   createPlanInput,
   updatePlanInput,
@@ -23,52 +23,18 @@ import {
 import { SubscriptionsService } from "./services/index.js"
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Context Type
-// ─────────────────────────────────────────────────────────────────────────────
-
-interface SubscriptionsContext {
-  user?: { id: string; email: string }
-  tenantId?: string
-  db: unknown
-}
-
-const t = initTRPC.context<SubscriptionsContext>().create()
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Middleware
-// ─────────────────────────────────────────────────────────────────────────────
-
-const isAuthenticated = t.middleware(({ ctx, next }) => {
-  if (!ctx.user) {
-    throw new TRPCError({ code: "UNAUTHORIZED" })
-  }
-  if (!ctx.tenantId) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "Tenant ID required" })
-  }
-  return next({
-    ctx: {
-      ...ctx,
-      user: ctx.user,
-      tenantId: ctx.tenantId,
-    },
-  })
-})
-
-const protectedProcedure = t.procedure.use(isAuthenticated)
-
-// ─────────────────────────────────────────────────────────────────────────────
 // Plans Router
 // ─────────────────────────────────────────────────────────────────────────────
 
-const plansRouter = t.router({
-  create: protectedProcedure
+const plansRouter = router({
+  create: tenantProcedure
     .input(createPlanInput)
     .mutation(async ({ input, ctx }) => {
       const service = new SubscriptionsService(ctx.db, ctx.tenantId)
       return service.createPlan(input)
     }),
 
-  update: protectedProcedure
+  update: tenantProcedure
     .input(updatePlanInput)
     .mutation(async ({ input, ctx }) => {
       const { planId, ...updateData } = input
@@ -76,14 +42,14 @@ const plansRouter = t.router({
       return service.updatePlan(planId, updateData)
     }),
 
-  get: t.procedure
+  get: publicProcedure
     .input(getPlanInput)
     .query(async ({ input, ctx }) => {
       const service = new SubscriptionsService(ctx.db, ctx.tenantId || "")
       return service.getPlan(input.planId)
     }),
 
-  list: t.procedure
+  list: publicProcedure
     .input(listPlansInput)
     .query(async ({ input, ctx }) => {
       const service = new SubscriptionsService(ctx.db, ctx.tenantId || "")
@@ -91,7 +57,7 @@ const plansRouter = t.router({
       return { items }
     }),
 
-  delete: protectedProcedure
+  delete: tenantProcedure
     .input(deletePlanInput)
     .mutation(async ({ input, ctx }) => {
       const service = new SubscriptionsService(ctx.db, ctx.tenantId)
@@ -104,8 +70,8 @@ const plansRouter = t.router({
 // Subscription Lifecycle Router
 // ─────────────────────────────────────────────────────────────────────────────
 
-const subscriptionLifecycleRouter = t.router({
-  subscribe: protectedProcedure
+const subscriptionLifecycleRouter = router({
+  subscribe: tenantProcedure
     .input(subscribeInput)
     .mutation(async ({ input, ctx }) => {
       const service = new SubscriptionsService(ctx.db, ctx.tenantId)
@@ -117,7 +83,7 @@ const subscriptionLifecycleRouter = t.router({
       })
     }),
 
-  cancel: protectedProcedure
+  cancel: tenantProcedure
     .input(cancelSubscriptionInput)
     .mutation(async ({ input, ctx }) => {
       const service = new SubscriptionsService(ctx.db, ctx.tenantId)
@@ -126,33 +92,33 @@ const subscriptionLifecycleRouter = t.router({
       })
     }),
 
-  resume: protectedProcedure
+  resume: tenantProcedure
     .input(resumeSubscriptionInput)
     .mutation(async ({ input, ctx }) => {
       const service = new SubscriptionsService(ctx.db, ctx.tenantId)
       return service.resumeSubscription(input.subscriptionId)
     }),
 
-  changePlan: protectedProcedure
+  changePlan: tenantProcedure
     .input(changePlanInput)
     .mutation(async ({ input, ctx }) => {
       const service = new SubscriptionsService(ctx.db, ctx.tenantId)
       return service.changePlan(input.subscriptionId, input.newPlanId)
     }),
 
-  get: protectedProcedure
+  get: tenantProcedure
     .input(getSubscriptionInput)
     .query(async ({ input, ctx }) => {
       const service = new SubscriptionsService(ctx.db, ctx.tenantId)
       return service.getSubscription(input.subscriptionId)
     }),
 
-  current: protectedProcedure.query(async ({ ctx }) => {
+  current: tenantProcedure.query(async ({ ctx }) => {
     const service = new SubscriptionsService(ctx.db, ctx.tenantId)
     return service.getCurrentSubscription(ctx.user.id)
   }),
 
-  list: protectedProcedure
+  list: tenantProcedure
     .input(listSubscriptionsInput)
     .query(async ({ input, ctx }) => {
       const service = new SubscriptionsService(ctx.db, ctx.tenantId)
@@ -165,15 +131,15 @@ const subscriptionLifecycleRouter = t.router({
 // Usage Router
 // ─────────────────────────────────────────────────────────────────────────────
 
-const usageRouter = t.router({
-  checkLimit: protectedProcedure
+const usageRouter = router({
+  checkLimit: tenantProcedure
     .input(checkLimitInput)
     .query(async ({ input, ctx }) => {
       const service = new SubscriptionsService(ctx.db, ctx.tenantId)
       return service.checkLimit(ctx.user.id, input.feature, input.increment)
     }),
 
-  record: protectedProcedure
+  record: tenantProcedure
     .input(recordUsageInput)
     .mutation(async ({ input, ctx }) => {
       const service = new SubscriptionsService(ctx.db, ctx.tenantId)
@@ -185,7 +151,7 @@ const usageRouter = t.router({
       )
     }),
 
-  get: protectedProcedure
+  get: tenantProcedure
     .input(getUsageInput)
     .query(async ({ input, ctx }) => {
       const service = new SubscriptionsService(ctx.db, ctx.tenantId)
@@ -193,7 +159,7 @@ const usageRouter = t.router({
       return { items }
     }),
 
-  reset: protectedProcedure
+  reset: tenantProcedure
     .input(resetUsageInput)
     .mutation(async ({ input, ctx }) => {
       const service = new SubscriptionsService(ctx.db, ctx.tenantId)
@@ -205,7 +171,7 @@ const usageRouter = t.router({
 // Main Router
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const subscriptionsRouter = t.router({
+export const subscriptionsRouter = router({
   plans: plansRouter,
   subscriptions: subscriptionLifecycleRouter,
   usage: usageRouter,

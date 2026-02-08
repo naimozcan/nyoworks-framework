@@ -2,7 +2,9 @@
 // Realtime Service
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { TRPCError } from "@trpc/server"
+import { TIMEOUTS, DEFAULTS } from "@nyoworks/shared"
 import { ChannelsRepository, PresenceRepository, MessagesRepository } from "../repositories/index.js"
 import type { Channel, PresenceRecord, Message } from "../schema.js"
 
@@ -59,7 +61,7 @@ class RealtimeService {
   private readonly messagesRepo: MessagesRepository
 
   constructor(
-    db: unknown,
+    db: DrizzleDatabase,
     tenantId: string,
     private readonly broadcast?: BroadcastFn
   ) {
@@ -155,7 +157,7 @@ class RealtimeService {
   }
 
   async getPresence(channelId: string): Promise<{ members: PresenceRecord[] }> {
-    const staleThreshold = new Date(Date.now() - 5 * 60 * 1000)
+    const staleThreshold = new Date(Date.now() - TIMEOUTS.PRESENCE_STALE)
     const members = await this.presenceRepo.findByChannel(channelId, staleThreshold)
 
     return { members }
@@ -199,7 +201,7 @@ class RealtimeService {
   }
 
   async getHistory(channelId: string): Promise<{ items: Message[] }> {
-    const items = await this.messagesRepo.findByChannel(channelId, { limit: 100 })
+    const items = await this.messagesRepo.findByChannel(channelId, { limit: DEFAULTS.HISTORY_LIMIT })
     return { items }
   }
 }

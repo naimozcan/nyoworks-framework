@@ -2,6 +2,7 @@
 // Auth Social Feature - OAuth Providers
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import { getOAuthEnv } from "@nyoworks/shared"
 import type { SocialProfile, SocialProviderType } from "./schema.js"
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -29,31 +30,34 @@ export interface TokenResponse {
 // Provider Configurations
 // ─────────────────────────────────────────────────────────────────────────────
 
-const providers: Record<SocialProviderType, OAuthConfig> = {
-  google: {
-    clientId: process.env.GOOGLE_CLIENT_ID || "",
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
-    authorizationUrl: "https://accounts.google.com/o/oauth2/v2/auth",
-    tokenUrl: "https://oauth2.googleapis.com/token",
-    userInfoUrl: "https://www.googleapis.com/oauth2/v2/userinfo",
-    scopes: ["openid", "email", "profile"],
-  },
-  apple: {
-    clientId: process.env.APPLE_CLIENT_ID || "",
-    clientSecret: process.env.APPLE_CLIENT_SECRET || "",
-    authorizationUrl: "https://appleid.apple.com/auth/authorize",
-    tokenUrl: "https://appleid.apple.com/auth/token",
-    userInfoUrl: "",
-    scopes: ["name", "email"],
-  },
-  github: {
-    clientId: process.env.GITHUB_CLIENT_ID || "",
-    clientSecret: process.env.GITHUB_CLIENT_SECRET || "",
-    authorizationUrl: "https://github.com/login/oauth/authorize",
-    tokenUrl: "https://github.com/login/oauth/access_token",
-    userInfoUrl: "https://api.github.com/user",
-    scopes: ["read:user", "user:email"],
-  },
+function getProviders(): Record<SocialProviderType, OAuthConfig> {
+  const oauthEnv = getOAuthEnv()
+  return {
+    google: {
+      clientId: oauthEnv?.GOOGLE_CLIENT_ID || "",
+      clientSecret: oauthEnv?.GOOGLE_CLIENT_SECRET || "",
+      authorizationUrl: "https://accounts.google.com/o/oauth2/v2/auth",
+      tokenUrl: "https://oauth2.googleapis.com/token",
+      userInfoUrl: "https://www.googleapis.com/oauth2/v2/userinfo",
+      scopes: ["openid", "email", "profile"],
+    },
+    apple: {
+      clientId: oauthEnv?.APPLE_CLIENT_ID || "",
+      clientSecret: oauthEnv?.APPLE_CLIENT_SECRET || "",
+      authorizationUrl: "https://appleid.apple.com/auth/authorize",
+      tokenUrl: "https://appleid.apple.com/auth/token",
+      userInfoUrl: "",
+      scopes: ["name", "email"],
+    },
+    github: {
+      clientId: oauthEnv?.GITHUB_CLIENT_ID || "",
+      clientSecret: oauthEnv?.GITHUB_CLIENT_SECRET || "",
+      authorizationUrl: "https://github.com/login/oauth/authorize",
+      tokenUrl: "https://github.com/login/oauth/access_token",
+      userInfoUrl: "https://api.github.com/user",
+      scopes: ["read:user", "user:email"],
+    },
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -61,6 +65,7 @@ const providers: Record<SocialProviderType, OAuthConfig> = {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function getProviderConfig(provider: SocialProviderType): OAuthConfig {
+  const providers = getProviders()
   const config = providers[provider]
   if (!config) {
     throw new Error(`Unknown provider: ${provider}`)
@@ -317,4 +322,4 @@ export function generateState(): string {
 // Exports
 // ─────────────────────────────────────────────────────────────────────────────
 
-export { providers }
+export { getProviders }

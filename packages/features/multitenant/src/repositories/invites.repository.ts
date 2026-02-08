@@ -2,6 +2,7 @@
 // Tenant Invites Repository
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { eq, and, gt } from "drizzle-orm"
 import { tenantInvites, type TenantInvite, type NewTenantInvite } from "../schema.js"
 
@@ -10,23 +11,19 @@ import { tenantInvites, type TenantInvite, type NewTenantInvite } from "../schem
 // ─────────────────────────────────────────────────────────────────────────────
 
 class InvitesRepository {
-  constructor(private readonly db: unknown) {}
+  constructor(private readonly db: DrizzleDatabase) {}
 
   async create(data: Omit<NewTenantInvite, "id" | "createdAt">): Promise<TenantInvite> {
-    const db = this.db as any
-
-    const [result] = await db
+    const [result] = await this.db
       .insert(tenantInvites)
       .values(data)
       .returning()
 
-    return result
+    return result!
   }
 
   async findByToken(token: string): Promise<TenantInvite | null> {
-    const db = this.db as any
-
-    const result = await db
+    const result = await this.db
       .select()
       .from(tenantInvites)
       .where(and(eq(tenantInvites.token, token), gt(tenantInvites.expiresAt, new Date())))
@@ -36,9 +33,7 @@ class InvitesRepository {
   }
 
   async findByTenantAndEmail(tenantId: string, email: string): Promise<TenantInvite | null> {
-    const db = this.db as any
-
-    const result = await db
+    const result = await this.db
       .select()
       .from(tenantInvites)
       .where(
@@ -54,18 +49,14 @@ class InvitesRepository {
   }
 
   async findByTenant(tenantId: string): Promise<TenantInvite[]> {
-    const db = this.db as any
-
-    return db
+    return this.db
       .select()
       .from(tenantInvites)
       .where(and(eq(tenantInvites.tenantId, tenantId), gt(tenantInvites.expiresAt, new Date())))
   }
 
   async deleteById(id: string): Promise<TenantInvite | null> {
-    const db = this.db as any
-
-    const [result] = await db
+    const [result] = await this.db
       .delete(tenantInvites)
       .where(eq(tenantInvites.id, id))
       .returning()
@@ -74,9 +65,7 @@ class InvitesRepository {
   }
 
   async deleteByIdAndTenant(id: string, tenantId: string): Promise<TenantInvite | null> {
-    const db = this.db as any
-
-    const [result] = await db
+    const [result] = await this.db
       .delete(tenantInvites)
       .where(and(eq(tenantInvites.id, id), eq(tenantInvites.tenantId, tenantId)))
       .returning()

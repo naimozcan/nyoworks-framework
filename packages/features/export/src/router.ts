@@ -2,7 +2,7 @@
 // Export Feature - tRPC Router
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { initTRPC, TRPCError } from "@trpc/server"
+import { router, tenantProcedure } from "@nyoworks/api"
 import {
   createExportJobInput,
   getExportJobInput,
@@ -11,45 +11,11 @@ import {
 import { ExportService } from "./services/index.js"
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Context Type
-// ─────────────────────────────────────────────────────────────────────────────
-
-interface ExportContext {
-  user?: { id: string }
-  tenantId?: string
-  db: unknown
-}
-
-const t = initTRPC.context<ExportContext>().create()
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Middleware
-// ─────────────────────────────────────────────────────────────────────────────
-
-const isAuthenticated = t.middleware(({ ctx, next }) => {
-  if (!ctx.user) {
-    throw new TRPCError({ code: "UNAUTHORIZED" })
-  }
-  if (!ctx.tenantId) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "Tenant ID required" })
-  }
-  return next({
-    ctx: {
-      ...ctx,
-      user: ctx.user,
-      tenantId: ctx.tenantId,
-    },
-  })
-})
-
-const protectedProcedure = t.procedure.use(isAuthenticated)
-
-// ─────────────────────────────────────────────────────────────────────────────
 // Router
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const exportRouter = t.router({
-  create: protectedProcedure
+export const exportRouter = router({
+  create: tenantProcedure
     .input(createExportJobInput)
     .mutation(async ({ input, ctx }) => {
       const service = new ExportService(ctx.db, ctx.tenantId)
@@ -61,21 +27,21 @@ export const exportRouter = t.router({
       })
     }),
 
-  get: protectedProcedure
+  get: tenantProcedure
     .input(getExportJobInput)
     .query(async ({ input, ctx }) => {
       const service = new ExportService(ctx.db, ctx.tenantId)
       return service.get(input.jobId)
     }),
 
-  list: protectedProcedure
+  list: tenantProcedure
     .input(listExportJobsInput)
     .query(async ({ input, ctx }) => {
       const service = new ExportService(ctx.db, ctx.tenantId)
       return service.list(input)
     }),
 
-  download: protectedProcedure
+  download: tenantProcedure
     .input(getExportJobInput)
     .query(async ({ input, ctx }) => {
       const service = new ExportService(ctx.db, ctx.tenantId)
@@ -83,7 +49,7 @@ export const exportRouter = t.router({
       return { url }
     }),
 
-  cancel: protectedProcedure
+  cancel: tenantProcedure
     .input(getExportJobInput)
     .mutation(async ({ input, ctx }) => {
       const service = new ExportService(ctx.db, ctx.tenantId)
@@ -91,7 +57,7 @@ export const exportRouter = t.router({
       return { success }
     }),
 
-  myJobs: protectedProcedure
+  myJobs: tenantProcedure
     .input(listExportJobsInput)
     .query(async ({ input, ctx }) => {
       const service = new ExportService(ctx.db, ctx.tenantId)
@@ -101,7 +67,7 @@ export const exportRouter = t.router({
       })
     }),
 
-  stats: protectedProcedure.query(async ({ ctx }) => {
+  stats: tenantProcedure.query(async ({ ctx }) => {
     const service = new ExportService(ctx.db, ctx.tenantId)
     return service.getStats()
   }),

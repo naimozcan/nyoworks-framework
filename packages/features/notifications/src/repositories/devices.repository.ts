@@ -2,6 +2,7 @@
 // Push Devices Repository
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { eq, and } from "drizzle-orm"
 import { pushDevices } from "../schema.js"
 
@@ -17,11 +18,10 @@ type NewPushDevice = typeof pushDevices.$inferInsert
 // ─────────────────────────────────────────────────────────────────────────────
 
 export class DevicesRepository {
-  constructor(private readonly db: unknown) {}
+  constructor(private readonly db: DrizzleDatabase) {}
 
   async findByToken(deviceToken: string): Promise<PushDevice | null> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select()
       .from(pushDevices)
       .where(eq(pushDevices.deviceToken, deviceToken))
@@ -31,32 +31,29 @@ export class DevicesRepository {
   }
 
   async findByUserId(userId: string, activeOnly: boolean = true): Promise<PushDevice[]> {
-    const db = this.db as any
-    let query = db
-      .select()
-      .from(pushDevices)
-      .where(eq(pushDevices.userId, userId))
+    const conditions = [eq(pushDevices.userId, userId)]
 
     if (activeOnly) {
-      query = query.where(eq(pushDevices.isActive, true))
+      conditions.push(eq(pushDevices.isActive, true))
     }
 
-    return query
+    return this.db
+      .select()
+      .from(pushDevices)
+      .where(and(...conditions))
   }
 
   async create(data: Omit<NewPushDevice, "id" | "createdAt">): Promise<PushDevice> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .insert(pushDevices)
       .values(data)
       .returning()
 
-    return result
+    return result!
   }
 
   async update(deviceToken: string, data: Partial<PushDevice>): Promise<PushDevice | null> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .update(pushDevices)
       .set(data)
       .where(eq(pushDevices.deviceToken, deviceToken))
@@ -66,8 +63,7 @@ export class DevicesRepository {
   }
 
   async deactivate(deviceToken: string, userId: string): Promise<boolean> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .update(pushDevices)
       .set({ isActive: false })
       .where(

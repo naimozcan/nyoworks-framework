@@ -2,6 +2,7 @@
 // Providers Repository
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { eq, and, asc, sql } from "drizzle-orm"
 import { providers, providerServices, services, type Provider, type NewProvider } from "../schema.js"
 
@@ -25,13 +26,12 @@ export interface ProviderListResult {
 
 export class ProvidersRepository {
   constructor(
-    private readonly db: unknown,
+    private readonly db: DrizzleDatabase,
     private readonly tenantId: string
   ) {}
 
   async create(data: Omit<NewProvider, "id" | "createdAt" | "updatedAt" | "tenantId">): Promise<Provider> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .insert(providers)
       .values({
         ...data,
@@ -39,12 +39,11 @@ export class ProvidersRepository {
       })
       .returning()
 
-    return result
+    return result!
   }
 
   async findById(id: string): Promise<Provider | null> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select()
       .from(providers)
       .where(and(eq(providers.id, id), eq(providers.tenantId, this.tenantId)))
@@ -54,8 +53,7 @@ export class ProvidersRepository {
   }
 
   async update(id: string, data: Partial<Omit<Provider, "id" | "tenantId" | "createdAt">>): Promise<Provider | null> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .update(providers)
       .set({
         ...data,
@@ -68,8 +66,7 @@ export class ProvidersRepository {
   }
 
   async delete(id: string): Promise<boolean> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .delete(providers)
       .where(and(eq(providers.id, id), eq(providers.tenantId, this.tenantId)))
       .returning()
@@ -78,19 +75,18 @@ export class ProvidersRepository {
   }
 
   async list(options: ProviderListOptions): Promise<ProviderListResult> {
-    const db = this.db as any
     const { limit, offset } = options
 
-    let query = db
-      .select()
-      .from(providers)
-      .where(eq(providers.tenantId, this.tenantId))
+    const conditions = [eq(providers.tenantId, this.tenantId)]
 
     if (options.isActive !== undefined) {
-      query = query.where(eq(providers.isActive, options.isActive))
+      conditions.push(eq(providers.isActive, options.isActive))
     }
 
-    const items = await query
+    const items = await this.db
+      .select()
+      .from(providers)
+      .where(and(...conditions))
       .orderBy(asc(providers.name))
       .limit(limit)
       .offset(offset)
@@ -99,8 +95,7 @@ export class ProvidersRepository {
   }
 
   async addService(providerId: string, serviceId: string): Promise<void> {
-    const db = this.db as any
-    await db.insert(providerServices).values({
+    await this.db.insert(providerServices).values({
       providerId,
       serviceId,
     })
@@ -109,8 +104,7 @@ export class ProvidersRepository {
   async addServices(providerId: string, serviceIds: string[]): Promise<void> {
     if (serviceIds.length === 0) return
 
-    const db = this.db as any
-    await db.insert(providerServices).values(
+    await this.db.insert(providerServices).values(
       serviceIds.map((serviceId) => ({
         providerId,
         serviceId,
@@ -119,15 +113,13 @@ export class ProvidersRepository {
   }
 
   async removeService(providerId: string, serviceId: string): Promise<void> {
-    const db = this.db as any
-    await db
+    await this.db
       .delete(providerServices)
       .where(and(eq(providerServices.providerId, providerId), eq(providerServices.serviceId, serviceId)))
   }
 
   async getServices(providerId: string): Promise<unknown[]> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select({ service: services })
       .from(providerServices)
       .innerJoin(services, eq(providerServices.serviceId, services.id))
@@ -137,12 +129,11 @@ export class ProvidersRepository {
   }
 
   async count(): Promise<number> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select({ count: sql<number>`count(*)` })
       .from(providers)
       .where(eq(providers.tenantId, this.tenantId))
 
-    return result[0]?.count ?? 0
+    return Number(result[0]?.count ?? 0)
   }
 }

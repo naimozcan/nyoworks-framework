@@ -2,6 +2,7 @@
 // Locales Repository
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { eq, and, asc } from "drizzle-orm"
 import { locales, type Locale, type NewLocale } from "../schema.js"
 
@@ -19,7 +20,7 @@ export interface ListLocalesOptions {
 
 export class LocalesRepository {
   constructor(
-    private readonly db: any,
+    private readonly db: DrizzleDatabase,
     private readonly tenantId: string
   ) {}
 
@@ -76,7 +77,7 @@ export class LocalesRepository {
       })
       .returning()
 
-    return result
+    return result!
   }
 
   async update(id: string, data: Partial<Pick<Locale, "name" | "nativeName" | "isDefault" | "isEnabled">>): Promise<Locale | null> {

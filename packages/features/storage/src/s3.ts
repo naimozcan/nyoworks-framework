@@ -2,6 +2,7 @@
 // Storage Feature - S3 Client
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import { getStorageEnv, STORAGE } from "@nyoworks/shared"
 import {
   S3Client,
   PutObjectCommand,
@@ -28,10 +29,11 @@ export interface S3Config {
 
 export function getS3Client(): S3Client {
   if (!s3Client) {
-    const endpoint = process.env.S3_ENDPOINT
-    const region = process.env.S3_REGION || process.env.AWS_REGION
-    const accessKeyId = process.env.S3_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID
-    const secretAccessKey = process.env.S3_SECRET_ACCESS_KEY || process.env.AWS_SECRET_ACCESS_KEY
+    const storageEnv = getStorageEnv()
+    const endpoint = storageEnv?.S3_ENDPOINT
+    const region = storageEnv?.S3_REGION || storageEnv?.AWS_REGION
+    const accessKeyId = storageEnv?.S3_ACCESS_KEY_ID || storageEnv?.AWS_ACCESS_KEY_ID
+    const secretAccessKey = storageEnv?.S3_SECRET_ACCESS_KEY || storageEnv?.AWS_SECRET_ACCESS_KEY
 
     if (!region) {
       throw new Error("S3_REGION or AWS_REGION environment variable is not set")
@@ -57,7 +59,8 @@ export function getS3Client(): S3Client {
 }
 
 export function getBucket(): string {
-  const bucket = process.env.S3_BUCKET
+  const storageEnv = getStorageEnv()
+  const bucket = storageEnv?.S3_BUCKET
   if (!bucket) {
     throw new Error("S3_BUCKET environment variable is not set")
   }
@@ -65,7 +68,8 @@ export function getBucket(): string {
 }
 
 export function getPublicUrl(): string | undefined {
-  return process.env.S3_PUBLIC_URL
+  const storageEnv = getStorageEnv()
+  return storageEnv?.S3_PUBLIC_URL
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -75,7 +79,7 @@ export function getPublicUrl(): string | undefined {
 export async function createPresignedUploadUrl(
   key: string,
   mimeType: string,
-  expiresIn = 3600
+  expiresIn: number = STORAGE.PRESIGNED_URL_DEFAULT_EXPIRY
 ): Promise<string> {
   const client = getS3Client()
   const bucket = getBucket()
@@ -91,7 +95,7 @@ export async function createPresignedUploadUrl(
 
 export async function createPresignedDownloadUrl(
   key: string,
-  expiresIn = 3600
+  expiresIn: number = STORAGE.PRESIGNED_URL_DEFAULT_EXPIRY
 ): Promise<string> {
   const client = getS3Client()
   const bucket = getBucket()
@@ -145,9 +149,10 @@ export async function headObject(key: string): Promise<{ contentLength: number; 
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function buildPublicUrl(key: string): string {
-  const publicUrl = getPublicUrl()
+  const storageEnv = getStorageEnv()
+  const publicUrl = storageEnv?.S3_PUBLIC_URL
   const bucket = getBucket()
-  const endpoint = process.env.S3_ENDPOINT
+  const endpoint = storageEnv?.S3_ENDPOINT
 
   if (publicUrl) {
     return `${publicUrl.replace(/\/$/, "")}/${key}`
@@ -157,7 +162,7 @@ export function buildPublicUrl(key: string): string {
     return `${endpoint.replace(/\/$/, "")}/${bucket}/${key}`
   }
 
-  const region = process.env.S3_REGION || process.env.AWS_REGION || "us-east-1"
+  const region = storageEnv?.S3_REGION || storageEnv?.AWS_REGION || "us-east-1"
   return `https://${bucket}.s3.${region}.amazonaws.com/${key}`
 }
 

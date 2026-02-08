@@ -2,6 +2,7 @@
 // Analytics Pageviews Repository
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { eq, and, gte, lte, sql, desc, count } from "drizzle-orm"
 import { analyticsPageviews, analyticsSessions, type AnalyticsPageview, type NewAnalyticsPageview } from "../schema.js"
 
@@ -31,7 +32,7 @@ export interface PageCount {
 
 export class PageviewsRepository {
   constructor(
-    private readonly db: any,
+    private readonly db: DrizzleDatabase,
     private readonly tenantId: string
   ) {}
 
@@ -44,7 +45,7 @@ export class PageviewsRepository {
       })
       .returning()
 
-    return result
+    return result!
   }
 
   async findById(id: string): Promise<AnalyticsPageview | null> {

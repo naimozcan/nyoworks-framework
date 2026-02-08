@@ -2,6 +2,7 @@
 // Payment Methods Repository
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { eq, and } from "drizzle-orm"
 import { paymentMethods, type PaymentMethod, type NewPaymentMethod } from "../schema.js"
 
@@ -10,21 +11,19 @@ import { paymentMethods, type PaymentMethod, type NewPaymentMethod } from "../sc
 // ─────────────────────────────────────────────────────────────────────────────
 
 export class PaymentMethodsRepository {
-  constructor(private readonly db: unknown) {}
+  constructor(private readonly db: DrizzleDatabase) {}
 
   async create(data: Omit<NewPaymentMethod, "id" | "createdAt">): Promise<PaymentMethod> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .insert(paymentMethods)
       .values(data)
       .returning()
 
-    return result
+    return result!
   }
 
   async findById(id: string): Promise<PaymentMethod | null> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select()
       .from(paymentMethods)
       .where(eq(paymentMethods.id, id))
@@ -34,8 +33,7 @@ export class PaymentMethodsRepository {
   }
 
   async findByStripePaymentMethodId(stripePaymentMethodId: string): Promise<PaymentMethod | null> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select()
       .from(paymentMethods)
       .where(eq(paymentMethods.stripePaymentMethodId, stripePaymentMethodId))
@@ -45,16 +43,14 @@ export class PaymentMethodsRepository {
   }
 
   async findByCustomerId(customerId: string): Promise<PaymentMethod[]> {
-    const db = this.db as any
-    return db
+    return this.db
       .select()
       .from(paymentMethods)
       .where(eq(paymentMethods.customerId, customerId))
   }
 
   async findDefaultByCustomerId(customerId: string): Promise<PaymentMethod | null> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select()
       .from(paymentMethods)
       .where(and(eq(paymentMethods.customerId, customerId), eq(paymentMethods.isDefault, true)))
@@ -64,8 +60,7 @@ export class PaymentMethodsRepository {
   }
 
   async update(id: string, data: Partial<PaymentMethod>): Promise<PaymentMethod | null> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .update(paymentMethods)
       .set(data)
       .where(eq(paymentMethods.id, id))
@@ -75,14 +70,12 @@ export class PaymentMethodsRepository {
   }
 
   async setDefault(id: string, customerId: string): Promise<PaymentMethod | null> {
-    const db = this.db as any
-
-    await db
+    await this.db
       .update(paymentMethods)
       .set({ isDefault: false })
       .where(eq(paymentMethods.customerId, customerId))
 
-    const [result] = await db
+    const [result] = await this.db
       .update(paymentMethods)
       .set({ isDefault: true })
       .where(eq(paymentMethods.id, id))
@@ -92,8 +85,7 @@ export class PaymentMethodsRepository {
   }
 
   async delete(id: string): Promise<boolean> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .delete(paymentMethods)
       .where(eq(paymentMethods.id, id))
       .returning()
@@ -102,8 +94,7 @@ export class PaymentMethodsRepository {
   }
 
   async deleteByStripeId(stripePaymentMethodId: string): Promise<boolean> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .delete(paymentMethods)
       .where(eq(paymentMethods.stripePaymentMethodId, stripePaymentMethodId))
       .returning()
@@ -124,8 +115,7 @@ export class PaymentMethodsRepository {
     },
     customerId: string
   ): Promise<PaymentMethod> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .insert(paymentMethods)
       .values({
         customerId,
@@ -139,6 +129,6 @@ export class PaymentMethodsRepository {
       })
       .returning()
 
-    return result
+    return result!
   }
 }

@@ -2,7 +2,7 @@
 // CRM Feature - tRPC Router
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { initTRPC, TRPCError } from "@trpc/server"
+import { router, tenantProcedure } from "@nyoworks/api"
 import {
   createContactInput,
   updateContactInput,
@@ -30,45 +30,11 @@ import {
 import { CRMService } from "./services/index.js"
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Context Type
-// ─────────────────────────────────────────────────────────────────────────────
-
-interface CRMContext {
-  user?: { id: string; email: string }
-  tenantId?: string
-  db: unknown
-}
-
-const t = initTRPC.context<CRMContext>().create()
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Middleware
-// ─────────────────────────────────────────────────────────────────────────────
-
-const isAuthenticated = t.middleware(({ ctx, next }) => {
-  if (!ctx.user) {
-    throw new TRPCError({ code: "UNAUTHORIZED" })
-  }
-  if (!ctx.tenantId) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "Tenant ID required" })
-  }
-  return next({
-    ctx: {
-      ...ctx,
-      user: ctx.user,
-      tenantId: ctx.tenantId,
-    },
-  })
-})
-
-const protectedProcedure = t.procedure.use(isAuthenticated)
-
-// ─────────────────────────────────────────────────────────────────────────────
 // Contacts Router
 // ─────────────────────────────────────────────────────────────────────────────
 
-const contactsRouter = t.router({
-  create: protectedProcedure
+const contactsRouter = router({
+  create: tenantProcedure
     .input(createContactInput)
     .mutation(async ({ input, ctx }) => {
       const service = new CRMService(ctx.db, ctx.tenantId)
@@ -78,7 +44,7 @@ const contactsRouter = t.router({
       })
     }),
 
-  update: protectedProcedure
+  update: tenantProcedure
     .input(updateContactInput)
     .mutation(async ({ input, ctx }) => {
       const { contactId, ...updateData } = input
@@ -86,21 +52,21 @@ const contactsRouter = t.router({
       return service.updateContact(contactId, updateData)
     }),
 
-  get: protectedProcedure
+  get: tenantProcedure
     .input(getContactInput)
     .query(async ({ input, ctx }) => {
       const service = new CRMService(ctx.db, ctx.tenantId)
       return service.getContact(input.contactId)
     }),
 
-  list: protectedProcedure
+  list: tenantProcedure
     .input(listContactsInput)
     .query(async ({ input, ctx }) => {
       const service = new CRMService(ctx.db, ctx.tenantId)
       return service.listContacts(input)
     }),
 
-  delete: protectedProcedure
+  delete: tenantProcedure
     .input(deleteContactInput)
     .mutation(async ({ input, ctx }) => {
       const service = new CRMService(ctx.db, ctx.tenantId)
@@ -112,15 +78,15 @@ const contactsRouter = t.router({
 // Tags Router
 // ─────────────────────────────────────────────────────────────────────────────
 
-const tagsRouter = t.router({
-  create: protectedProcedure
+const tagsRouter = router({
+  create: tenantProcedure
     .input(createTagInput)
     .mutation(async ({ input, ctx }) => {
       const service = new CRMService(ctx.db, ctx.tenantId)
       return service.createTag(input)
     }),
 
-  update: protectedProcedure
+  update: tenantProcedure
     .input(updateTagInput)
     .mutation(async ({ input, ctx }) => {
       const { tagId, ...updateData } = input
@@ -128,26 +94,26 @@ const tagsRouter = t.router({
       return service.updateTag(tagId, updateData)
     }),
 
-  list: protectedProcedure.query(async ({ ctx }) => {
+  list: tenantProcedure.query(async ({ ctx }) => {
     const service = new CRMService(ctx.db, ctx.tenantId)
     return service.listTags()
   }),
 
-  delete: protectedProcedure
+  delete: tenantProcedure
     .input(deleteTagInput)
     .mutation(async ({ input, ctx }) => {
       const service = new CRMService(ctx.db, ctx.tenantId)
       return service.deleteTag(input.tagId)
     }),
 
-  addToContact: protectedProcedure
+  addToContact: tenantProcedure
     .input(addTagToContactInput)
     .mutation(async ({ input, ctx }) => {
       const service = new CRMService(ctx.db, ctx.tenantId)
       return service.addTagToContact(input.contactId, input.tagId)
     }),
 
-  removeFromContact: protectedProcedure
+  removeFromContact: tenantProcedure
     .input(removeTagFromContactInput)
     .mutation(async ({ input, ctx }) => {
       const service = new CRMService(ctx.db, ctx.tenantId)
@@ -159,8 +125,8 @@ const tagsRouter = t.router({
 // Notes Router
 // ─────────────────────────────────────────────────────────────────────────────
 
-const notesRouter = t.router({
-  create: protectedProcedure
+const notesRouter = router({
+  create: tenantProcedure
     .input(createNoteInput)
     .mutation(async ({ input, ctx }) => {
       const service = new CRMService(ctx.db, ctx.tenantId)
@@ -170,7 +136,7 @@ const notesRouter = t.router({
       })
     }),
 
-  update: protectedProcedure
+  update: tenantProcedure
     .input(updateNoteInput)
     .mutation(async ({ input, ctx }) => {
       const { noteId, ...updateData } = input
@@ -178,14 +144,14 @@ const notesRouter = t.router({
       return service.updateNote(noteId, updateData)
     }),
 
-  list: protectedProcedure
+  list: tenantProcedure
     .input(listNotesInput)
     .query(async ({ input, ctx }) => {
       const service = new CRMService(ctx.db, ctx.tenantId)
       return service.listNotes(input)
     }),
 
-  delete: protectedProcedure
+  delete: tenantProcedure
     .input(deleteNoteInput)
     .mutation(async ({ input, ctx }) => {
       const service = new CRMService(ctx.db, ctx.tenantId)
@@ -197,8 +163,8 @@ const notesRouter = t.router({
 // Activities Router
 // ─────────────────────────────────────────────────────────────────────────────
 
-const activitiesRouter = t.router({
-  create: protectedProcedure
+const activitiesRouter = router({
+  create: tenantProcedure
     .input(createActivityInput)
     .mutation(async ({ input, ctx }) => {
       const service = new CRMService(ctx.db, ctx.tenantId)
@@ -208,7 +174,7 @@ const activitiesRouter = t.router({
       })
     }),
 
-  update: protectedProcedure
+  update: tenantProcedure
     .input(updateActivityInput)
     .mutation(async ({ input, ctx }) => {
       const { activityId, ...updateData } = input
@@ -216,14 +182,14 @@ const activitiesRouter = t.router({
       return service.updateActivity(activityId, updateData)
     }),
 
-  list: protectedProcedure
+  list: tenantProcedure
     .input(listActivitiesInput)
     .query(async ({ input, ctx }) => {
       const service = new CRMService(ctx.db, ctx.tenantId)
       return service.listActivities(input)
     }),
 
-  delete: protectedProcedure
+  delete: tenantProcedure
     .input(deleteActivityInput)
     .mutation(async ({ input, ctx }) => {
       const service = new CRMService(ctx.db, ctx.tenantId)
@@ -235,8 +201,8 @@ const activitiesRouter = t.router({
 // Deals Router
 // ─────────────────────────────────────────────────────────────────────────────
 
-const dealsRouter = t.router({
-  create: protectedProcedure
+const dealsRouter = router({
+  create: tenantProcedure
     .input(createDealInput)
     .mutation(async ({ input, ctx }) => {
       const service = new CRMService(ctx.db, ctx.tenantId)
@@ -246,7 +212,7 @@ const dealsRouter = t.router({
       })
     }),
 
-  update: protectedProcedure
+  update: tenantProcedure
     .input(updateDealInput)
     .mutation(async ({ input, ctx }) => {
       const { dealId, ...updateData } = input
@@ -254,21 +220,21 @@ const dealsRouter = t.router({
       return service.updateDeal(dealId, updateData)
     }),
 
-  list: protectedProcedure
+  list: tenantProcedure
     .input(listDealsInput)
     .query(async ({ input, ctx }) => {
       const service = new CRMService(ctx.db, ctx.tenantId)
       return service.listDeals(input)
     }),
 
-  delete: protectedProcedure
+  delete: tenantProcedure
     .input(deleteDealInput)
     .mutation(async ({ input, ctx }) => {
       const service = new CRMService(ctx.db, ctx.tenantId)
       return service.deleteDeal(input.dealId)
     }),
 
-  pipeline: protectedProcedure.query(async ({ ctx }) => {
+  pipeline: tenantProcedure.query(async ({ ctx }) => {
     const service = new CRMService(ctx.db, ctx.tenantId)
     return service.getPipeline()
   }),
@@ -278,7 +244,7 @@ const dealsRouter = t.router({
 // Main Router
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const crmRouter = t.router({
+export const crmRouter = router({
   contacts: contactsRouter,
   tags: tagsRouter,
   notes: notesRouter,

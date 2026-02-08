@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import { TIMEOUTS, STORAGE_KEYS } from "@nyoworks/shared"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -22,8 +23,8 @@ interface AnalyticsConfig {
 // Session Management
 // ─────────────────────────────────────────────────────────────────────────────
 
-const SESSION_KEY = "analytics_session_id"
-const SESSION_TIMEOUT = 30 * 60 * 1000
+const SESSION_KEY = STORAGE_KEYS.ANALYTICS_SESSION
+const SESSION_TIMEOUT = TIMEOUTS.SESSION_TIMEOUT
 
 function getSessionId(): string | null {
   if (typeof window === "undefined") return null

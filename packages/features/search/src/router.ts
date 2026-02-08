@@ -2,7 +2,7 @@
 // Search Feature - tRPC Router
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { initTRPC, TRPCError } from "@trpc/server"
+import { router, tenantProcedure } from "@nyoworks/api"
 import {
   searchInput,
   indexDocumentInput,
@@ -14,45 +14,11 @@ import {
 import { SearchService } from "./services/index.js"
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Context Type
-// ─────────────────────────────────────────────────────────────────────────────
-
-interface SearchContext {
-  user?: { id: string; email: string }
-  tenantId?: string
-  db: unknown
-}
-
-const t = initTRPC.context<SearchContext>().create()
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Middleware
-// ─────────────────────────────────────────────────────────────────────────────
-
-const isAuthenticated = t.middleware(({ ctx, next }) => {
-  if (!ctx.user) {
-    throw new TRPCError({ code: "UNAUTHORIZED" })
-  }
-  if (!ctx.tenantId) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "Tenant ID required" })
-  }
-  return next({
-    ctx: {
-      ...ctx,
-      user: ctx.user,
-      tenantId: ctx.tenantId,
-    },
-  })
-})
-
-const protectedProcedure = t.procedure.use(isAuthenticated)
-
-// ─────────────────────────────────────────────────────────────────────────────
 // Router
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const searchRouter = t.router({
-  search: protectedProcedure
+export const searchRouter = router({
+  search: tenantProcedure
     .input(searchInput)
     .query(async ({ input, ctx }) => {
       const service = new SearchService(ctx.db, ctx.tenantId)
@@ -66,7 +32,7 @@ export const searchRouter = t.router({
       })
     }),
 
-  index: protectedProcedure
+  index: tenantProcedure
     .input(indexDocumentInput)
     .mutation(async ({ input, ctx }) => {
       const service = new SearchService(ctx.db, ctx.tenantId)
@@ -78,35 +44,35 @@ export const searchRouter = t.router({
       })
     }),
 
-  remove: protectedProcedure
+  remove: tenantProcedure
     .input(removeFromIndexInput)
     .mutation(async ({ input, ctx }) => {
       const service = new SearchService(ctx.db, ctx.tenantId)
       return service.removeFromIndex(input.entityType, input.entityId)
     }),
 
-  bulkIndex: protectedProcedure
+  bulkIndex: tenantProcedure
     .input(bulkIndexInput)
     .mutation(async ({ input, ctx }) => {
       const service = new SearchService(ctx.db, ctx.tenantId)
       return service.bulkIndex(input.documents)
     }),
 
-  reindex: protectedProcedure
+  reindex: tenantProcedure
     .input(reindexInput)
     .mutation(async ({ input, ctx }) => {
       const service = new SearchService(ctx.db, ctx.tenantId)
       return service.reindex(input.entityType)
     }),
 
-  suggest: protectedProcedure
+  suggest: tenantProcedure
     .input(suggestInput)
     .query(async ({ input, ctx }) => {
       const service = new SearchService(ctx.db, ctx.tenantId)
       return service.suggest(input.query, input.entityTypes, input.limit)
     }),
 
-  stats: protectedProcedure.query(async ({ ctx }) => {
+  stats: tenantProcedure.query(async ({ ctx }) => {
     const service = new SearchService(ctx.db, ctx.tenantId)
     return service.getStats()
   }),

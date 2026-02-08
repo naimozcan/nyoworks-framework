@@ -2,6 +2,7 @@
 // Subscriptions Service
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { TRPCError } from "@trpc/server"
 import {
   PlansRepository,
@@ -65,7 +66,7 @@ export class SubscriptionsService {
   private readonly subscriptionsRepo: SubscriptionsRepository
   private readonly usageRepo: UsageRepository
 
-  constructor(db: unknown, tenantId: string) {
+  constructor(db: DrizzleDatabase, tenantId: string) {
     this.plansRepo = new PlansRepository(db)
     this.subscriptionsRepo = new SubscriptionsRepository(db, tenantId)
     this.usageRepo = new UsageRepository(db)

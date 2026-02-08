@@ -2,6 +2,7 @@
 // Analytics Sessions Repository
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { eq, and, gte, lte, sql, count } from "drizzle-orm"
 import { analyticsSessions, type AnalyticsSession, type NewAnalyticsSession } from "../schema.js"
 
@@ -26,7 +27,7 @@ export interface SessionStats {
 
 export class SessionsRepository {
   constructor(
-    private readonly db: any,
+    private readonly db: DrizzleDatabase,
     private readonly tenantId: string
   ) {}
 
@@ -39,7 +40,7 @@ export class SessionsRepository {
       })
       .returning()
 
-    return result
+    return result!
   }
 
   async findById(id: string): Promise<AnalyticsSession | null> {

@@ -2,6 +2,7 @@
 // Analytics Service
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { TRPCError } from "@trpc/server"
 import { randomUUID } from "crypto"
 import {
@@ -97,7 +98,7 @@ export class AnalyticsService {
   private readonly sessionsRepo: SessionsRepository
 
   constructor(
-    db: unknown,
+    db: DrizzleDatabase,
     tenantId: string
   ) {
     this.eventsRepo = new EventsRepository(db, tenantId)

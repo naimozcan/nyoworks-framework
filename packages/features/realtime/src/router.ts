@@ -2,7 +2,7 @@
 // Realtime Feature - tRPC Router
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { initTRPC, TRPCError } from "@trpc/server"
+import { router, tenantProcedure } from "@nyoworks/api"
 import {
   joinChannelInput,
   leaveChannelInput,
@@ -18,77 +18,42 @@ import {
 import { RealtimeService } from "./services/index.js"
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Context Type
-// ─────────────────────────────────────────────────────────────────────────────
-
-interface RealtimeContext {
-  user?: { id: string; email: string }
-  tenantId?: string
-  db: unknown
-  broadcast?: (channelId: string, event: string, payload: unknown, excludeUserId?: string) => void
-}
-
-const t = initTRPC.context<RealtimeContext>().create()
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Middleware
-// ─────────────────────────────────────────────────────────────────────────────
-
-const isAuthenticated = t.middleware(({ ctx, next }) => {
-  if (!ctx.user) {
-    throw new TRPCError({ code: "UNAUTHORIZED" })
-  }
-  if (!ctx.tenantId) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "Tenant ID required" })
-  }
-  return next({
-    ctx: {
-      ...ctx,
-      user: ctx.user,
-      tenantId: ctx.tenantId,
-    },
-  })
-})
-
-const protectedProcedure = t.procedure.use(isAuthenticated)
-
-// ─────────────────────────────────────────────────────────────────────────────
 // Channels Router
 // ─────────────────────────────────────────────────────────────────────────────
 
-const channelsRouter = t.router({
-  create: protectedProcedure
+const channelsRouter = router({
+  create: tenantProcedure
     .input(createChannelInput)
     .mutation(async ({ input, ctx }) => {
-      const service = new RealtimeService(ctx.db, ctx.tenantId, ctx.broadcast)
+      const service = new RealtimeService(ctx.db, ctx.tenantId)
       return service.createChannel(input)
     }),
 
-  get: protectedProcedure
+  get: tenantProcedure
     .input(getChannelInput)
     .query(async ({ input, ctx }) => {
-      const service = new RealtimeService(ctx.db, ctx.tenantId, ctx.broadcast)
+      const service = new RealtimeService(ctx.db, ctx.tenantId)
       return service.getChannel(input.channelId)
     }),
 
-  list: protectedProcedure
+  list: tenantProcedure
     .input(listChannelsInput)
     .query(async ({ input, ctx }) => {
-      const service = new RealtimeService(ctx.db, ctx.tenantId, ctx.broadcast)
+      const service = new RealtimeService(ctx.db, ctx.tenantId)
       return service.listChannels(input)
     }),
 
-  join: protectedProcedure
+  join: tenantProcedure
     .input(joinChannelInput)
     .mutation(async ({ input, ctx }) => {
-      const service = new RealtimeService(ctx.db, ctx.tenantId, ctx.broadcast)
+      const service = new RealtimeService(ctx.db, ctx.tenantId)
       return service.joinChannel(ctx.user.id, input)
     }),
 
-  leave: protectedProcedure
+  leave: tenantProcedure
     .input(leaveChannelInput)
     .mutation(async ({ input, ctx }) => {
-      const service = new RealtimeService(ctx.db, ctx.tenantId, ctx.broadcast)
+      const service = new RealtimeService(ctx.db, ctx.tenantId)
       return service.leaveChannel(ctx.user.id, input.channelId)
     }),
 })
@@ -97,39 +62,39 @@ const channelsRouter = t.router({
 // Presence Router
 // ─────────────────────────────────────────────────────────────────────────────
 
-const presenceRouter = t.router({
-  update: protectedProcedure
+const presenceRouter = router({
+  update: tenantProcedure
     .input(updatePresenceInput)
     .mutation(async ({ input, ctx }) => {
-      const service = new RealtimeService(ctx.db, ctx.tenantId, ctx.broadcast)
+      const service = new RealtimeService(ctx.db, ctx.tenantId)
       return service.updatePresence(ctx.user.id, input)
     }),
 
-  get: protectedProcedure
+  get: tenantProcedure
     .input(getPresenceInput)
     .query(async ({ input, ctx }) => {
-      const service = new RealtimeService(ctx.db, ctx.tenantId, ctx.broadcast)
+      const service = new RealtimeService(ctx.db, ctx.tenantId)
       return service.getPresence(input.channelId)
     }),
 
-  track: protectedProcedure
+  track: tenantProcedure
     .input(trackPresenceInput)
     .mutation(async ({ input, ctx }) => {
-      const service = new RealtimeService(ctx.db, ctx.tenantId, ctx.broadcast)
+      const service = new RealtimeService(ctx.db, ctx.tenantId)
       return service.trackPresence(input)
     }),
 
-  untrack: protectedProcedure
+  untrack: tenantProcedure
     .input(untrackPresenceInput)
     .mutation(async ({ input, ctx }) => {
-      const service = new RealtimeService(ctx.db, ctx.tenantId, ctx.broadcast)
+      const service = new RealtimeService(ctx.db, ctx.tenantId)
       return service.untrackPresence(input.channelId, input.userId)
     }),
 
-  heartbeat: protectedProcedure
+  heartbeat: tenantProcedure
     .input(getPresenceInput)
     .mutation(async ({ input, ctx }) => {
-      const service = new RealtimeService(ctx.db, ctx.tenantId, ctx.broadcast)
+      const service = new RealtimeService(ctx.db, ctx.tenantId)
       return service.heartbeat(input.channelId, ctx.user.id)
     }),
 })
@@ -138,18 +103,18 @@ const presenceRouter = t.router({
 // Broadcast Router
 // ─────────────────────────────────────────────────────────────────────────────
 
-const broadcastRouter = t.router({
-  send: protectedProcedure
+const broadcastRouter = router({
+  send: tenantProcedure
     .input(broadcastInput)
     .mutation(async ({ input, ctx }) => {
-      const service = new RealtimeService(ctx.db, ctx.tenantId, ctx.broadcast)
+      const service = new RealtimeService(ctx.db, ctx.tenantId)
       return service.sendBroadcast(ctx.user.id, input)
     }),
 
-  history: protectedProcedure
+  history: tenantProcedure
     .input(getPresenceInput)
     .query(async ({ input, ctx }) => {
-      const service = new RealtimeService(ctx.db, ctx.tenantId, ctx.broadcast)
+      const service = new RealtimeService(ctx.db, ctx.tenantId)
       return service.getHistory(input.channelId)
     }),
 })
@@ -158,7 +123,7 @@ const broadcastRouter = t.router({
 // Main Router
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const realtimeRouter = t.router({
+export const realtimeRouter = router({
   channels: channelsRouter,
   presence: presenceRouter,
   broadcast: broadcastRouter,

@@ -2,25 +2,19 @@
 // Feature Context Types
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import type { DrizzleDatabase } from "@nyoworks/database"
-import type { User } from "./context"
+import type { Context, User } from "./context"
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Base Feature Context
+// Re-export Context as FeatureContext (same type)
 // ─────────────────────────────────────────────────────────────────────────────
 
-export interface FeatureContext {
-  user: User | null
-  tenantId: string | null
-  db: DrizzleDatabase
-  requestId: string
-}
+export type FeatureContext = Context
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Authenticated Context (after isAuthenticated middleware)
 // ─────────────────────────────────────────────────────────────────────────────
 
-export interface AuthenticatedContext extends FeatureContext {
+export interface AuthenticatedContext extends Context {
   user: User
 }
 
@@ -29,33 +23,5 @@ export interface AuthenticatedContext extends FeatureContext {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface TenantContext extends AuthenticatedContext {
-  tenantId: string
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Request Info Context (with request metadata)
-// ─────────────────────────────────────────────────────────────────────────────
-
-export interface RequestInfoContext extends FeatureContext {
-  requestInfo?: {
-    userAgent?: string
-    ipAddress?: string
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Authenticated Request Context (combined)
-// ─────────────────────────────────────────────────────────────────────────────
-
-export interface AuthenticatedRequestContext extends AuthenticatedContext, RequestInfoContext {
-  user: User
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Tenant Request Context (full context)
-// ─────────────────────────────────────────────────────────────────────────────
-
-export interface TenantRequestContext extends TenantContext, RequestInfoContext {
-  user: User
   tenantId: string
 }

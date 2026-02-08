@@ -2,6 +2,7 @@
 // Notifications Repository
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { eq, and, desc, sql } from "drizzle-orm"
 import { notifications } from "../schema.js"
 
@@ -28,13 +29,12 @@ interface ListOptions {
 
 export class NotificationsRepository {
   constructor(
-    private readonly db: unknown,
+    private readonly db: DrizzleDatabase,
     private readonly tenantId: string
   ) {}
 
   async create(data: Omit<NewNotification, "id" | "createdAt" | "tenantId">): Promise<Notification> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .insert(notifications)
       .values({
         ...data,
@@ -42,12 +42,11 @@ export class NotificationsRepository {
       })
       .returning()
 
-    return result
+    return result!
   }
 
   async findById(id: string): Promise<Notification | null> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select()
       .from(notifications)
       .where(and(eq(notifications.id, id), eq(notifications.tenantId, this.tenantId)))
@@ -58,26 +57,24 @@ export class NotificationsRepository {
 
   async list(options: ListOptions): Promise<Notification[]> {
     const { limit, offset } = options
-    const db = this.db as any
-
-    let query = db
-      .select()
-      .from(notifications)
-      .where(eq(notifications.tenantId, this.tenantId))
+    const conditions = [eq(notifications.tenantId, this.tenantId)]
 
     if (options.userId) {
-      query = query.where(eq(notifications.userId, options.userId))
+      conditions.push(eq(notifications.userId, options.userId))
     }
 
     if (options.channel) {
-      query = query.where(eq(notifications.channel, options.channel))
+      conditions.push(eq(notifications.channel, options.channel))
     }
 
     if (options.status) {
-      query = query.where(eq(notifications.status, options.status))
+      conditions.push(eq(notifications.status, options.status))
     }
 
-    return query
+    return this.db
+      .select()
+      .from(notifications)
+      .where(and(...conditions))
       .orderBy(desc(notifications.createdAt))
       .limit(limit)
       .offset(offset)
@@ -85,30 +82,27 @@ export class NotificationsRepository {
 
   async listByUser(userId: string, options: { limit: number; offset: number; channel?: NotificationChannel; status?: NotificationStatus }): Promise<Notification[]> {
     const { limit, offset } = options
-    const db = this.db as any
-
-    let query = db
-      .select()
-      .from(notifications)
-      .where(eq(notifications.userId, userId))
+    const conditions = [eq(notifications.userId, userId)]
 
     if (options.channel) {
-      query = query.where(eq(notifications.channel, options.channel))
+      conditions.push(eq(notifications.channel, options.channel))
     }
 
     if (options.status) {
-      query = query.where(eq(notifications.status, options.status))
+      conditions.push(eq(notifications.status, options.status))
     }
 
-    return query
+    return this.db
+      .select()
+      .from(notifications)
+      .where(and(...conditions))
       .orderBy(desc(notifications.createdAt))
       .limit(limit)
       .offset(offset)
   }
 
   async update(id: string, data: Partial<Notification>): Promise<Notification | null> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .update(notifications)
       .set(data)
       .where(and(eq(notifications.id, id), eq(notifications.tenantId, this.tenantId)))
@@ -118,8 +112,7 @@ export class NotificationsRepository {
   }
 
   async markAsRead(id: string, userId: string): Promise<boolean> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .update(notifications)
       .set({
         status: "read",
@@ -137,47 +130,42 @@ export class NotificationsRepository {
   }
 
   async markAllAsRead(userId: string, channel?: NotificationChannel): Promise<number> {
-    const db = this.db as any
+    const conditions = [
+      eq(notifications.userId, userId),
+      eq(notifications.status, "delivered")
+    ]
 
-    let query = db
+    if (channel) {
+      conditions.push(eq(notifications.channel, channel))
+    }
+
+    const result = await this.db
       .update(notifications)
       .set({
         status: "read",
         readAt: new Date(),
       })
-      .where(
-        and(
-          eq(notifications.userId, userId),
-          eq(notifications.status, "delivered")
-        )
-      )
+      .where(and(...conditions))
+      .returning()
 
-    if (channel) {
-      query = query.where(eq(notifications.channel, channel))
-    }
-
-    const result = await query.returning()
     return result.length
   }
 
   async countUnread(userId: string, channel?: NotificationChannel): Promise<number> {
-    const db = this.db as any
-
-    let query = db
-      .select({ count: sql<number>`count(*)` })
-      .from(notifications)
-      .where(
-        and(
-          eq(notifications.userId, userId),
-          eq(notifications.status, "delivered")
-        )
-      )
+    const conditions = [
+      eq(notifications.userId, userId),
+      eq(notifications.status, "delivered")
+    ]
 
     if (channel) {
-      query = query.where(eq(notifications.channel, channel))
+      conditions.push(eq(notifications.channel, channel))
     }
 
-    const result = await query
-    return result[0]?.count ?? 0
+    const result = await this.db
+      .select({ count: sql<number>`count(*)` })
+      .from(notifications)
+      .where(and(...conditions))
+
+    return Number(result[0]?.count ?? 0)
   }
 }

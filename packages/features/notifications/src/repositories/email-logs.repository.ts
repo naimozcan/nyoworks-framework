@@ -2,6 +2,7 @@
 // Email Logs Repository
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { eq, desc } from "drizzle-orm"
 import { emailLogs } from "../schema.js"
 
@@ -17,21 +18,19 @@ type NewEmailLog = typeof emailLogs.$inferInsert
 // ─────────────────────────────────────────────────────────────────────────────
 
 export class EmailLogsRepository {
-  constructor(private readonly db: unknown) {}
+  constructor(private readonly db: DrizzleDatabase) {}
 
   async create(data: Omit<NewEmailLog, "id" | "createdAt">): Promise<EmailLog> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .insert(emailLogs)
       .values(data)
       .returning()
 
-    return result
+    return result!
   }
 
   async findByNotificationId(notificationId: string): Promise<EmailLog[]> {
-    const db = this.db as any
-    return db
+    return this.db
       .select()
       .from(emailLogs)
       .where(eq(emailLogs.notificationId, notificationId))
@@ -39,8 +38,7 @@ export class EmailLogsRepository {
   }
 
   async update(id: string, data: Partial<EmailLog>): Promise<EmailLog | null> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .update(emailLogs)
       .set(data)
       .where(eq(emailLogs.id, id))
@@ -50,8 +48,7 @@ export class EmailLogsRepository {
   }
 
   async markOpened(id: string): Promise<boolean> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .update(emailLogs)
       .set({ openedAt: new Date() })
       .where(eq(emailLogs.id, id))
@@ -61,8 +58,7 @@ export class EmailLogsRepository {
   }
 
   async markClicked(id: string): Promise<boolean> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .update(emailLogs)
       .set({ clickedAt: new Date() })
       .where(eq(emailLogs.id, id))

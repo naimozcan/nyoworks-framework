@@ -2,6 +2,7 @@
 // Notification Preferences Repository
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { eq } from "drizzle-orm"
 import { notificationPreferences } from "../schema.js"
 
@@ -17,11 +18,10 @@ type NewNotificationPreference = typeof notificationPreferences.$inferInsert
 // ─────────────────────────────────────────────────────────────────────────────
 
 export class PreferencesRepository {
-  constructor(private readonly db: unknown) {}
+  constructor(private readonly db: DrizzleDatabase) {}
 
   async findByUserId(userId: string): Promise<NotificationPreference | null> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select()
       .from(notificationPreferences)
       .where(eq(notificationPreferences.userId, userId))
@@ -31,18 +31,16 @@ export class PreferencesRepository {
   }
 
   async create(data: Omit<NewNotificationPreference, "id" | "createdAt" | "updatedAt">): Promise<NotificationPreference> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .insert(notificationPreferences)
       .values(data)
       .returning()
 
-    return result
+    return result!
   }
 
   async update(userId: string, data: Partial<NotificationPreference>): Promise<NotificationPreference | null> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .update(notificationPreferences)
       .set({
         ...data,

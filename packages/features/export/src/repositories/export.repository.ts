@@ -2,6 +2,7 @@
 // Export Repository
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { eq, and, desc, sql } from "drizzle-orm"
 import { exportJobs, type ExportJob, type NewExportJob } from "../schema.js"
 
@@ -28,13 +29,12 @@ export interface ListResult {
 
 export class ExportRepository {
   constructor(
-    private readonly db: unknown,
+    private readonly db: DrizzleDatabase,
     private readonly tenantId: string
   ) {}
 
   async create(data: Omit<NewExportJob, "id" | "createdAt" | "tenantId">): Promise<ExportJob> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .insert(exportJobs)
       .values({
         ...data,
@@ -42,12 +42,11 @@ export class ExportRepository {
       })
       .returning()
 
-    return result
+    return result!
   }
 
   async findById(id: string): Promise<ExportJob | null> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select()
       .from(exportJobs)
       .where(and(eq(exportJobs.id, id), eq(exportJobs.tenantId, this.tenantId)))
@@ -58,32 +57,31 @@ export class ExportRepository {
 
   async list(options: ListOptions): Promise<ListResult> {
     const { limit, offset } = options
-    const db = this.db as any
 
-    let query = db
-      .select()
-      .from(exportJobs)
-      .where(eq(exportJobs.tenantId, this.tenantId))
+    const conditions = [eq(exportJobs.tenantId, this.tenantId)]
 
     if (options.type) {
-      query = query.where(eq(exportJobs.type, options.type))
+      conditions.push(eq(exportJobs.type, options.type))
     }
 
     if (options.status) {
-      query = query.where(eq(exportJobs.status, options.status))
+      conditions.push(eq(exportJobs.status, options.status))
     }
 
-    const items = await query
+    const items = await this.db
+      .select()
+      .from(exportJobs)
+      .where(and(...conditions))
       .orderBy(desc(exportJobs.createdAt))
       .limit(limit)
       .offset(offset)
 
-    const countResult = await db
+    const countResult = await this.db
       .select({ count: sql<number>`count(*)` })
       .from(exportJobs)
       .where(eq(exportJobs.tenantId, this.tenantId))
 
-    const total = countResult[0]?.count ?? 0
+    const total = Number(countResult[0]?.count ?? 0)
 
     return {
       items,
@@ -95,9 +93,8 @@ export class ExportRepository {
   async findByUser(userId: string, options?: { limit?: number; offset?: number }): Promise<ExportJob[]> {
     const limit = options?.limit ?? 50
     const offset = options?.offset ?? 0
-    const db = this.db as any
 
-    return db
+    return this.db
       .select()
       .from(exportJobs)
       .where(
@@ -112,8 +109,7 @@ export class ExportRepository {
   }
 
   async update(id: string, data: Partial<Pick<ExportJob, "status" | "fileUrl" | "errorMessage" | "startedAt" | "completedAt">>): Promise<ExportJob | null> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .update(exportJobs)
       .set(data)
       .where(and(eq(exportJobs.id, id), eq(exportJobs.tenantId, this.tenantId)))
@@ -123,8 +119,7 @@ export class ExportRepository {
   }
 
   async delete(id: string): Promise<boolean> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .delete(exportJobs)
       .where(and(eq(exportJobs.id, id), eq(exportJobs.tenantId, this.tenantId)))
       .returning()
@@ -133,8 +128,7 @@ export class ExportRepository {
   }
 
   async countByStatus(): Promise<Record<string, number>> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select({
         status: exportJobs.status,
         count: sql<number>`count(*)`,
@@ -143,6 +137,6 @@ export class ExportRepository {
       .where(eq(exportJobs.tenantId, this.tenantId))
       .groupBy(exportJobs.status)
 
-    return Object.fromEntries(result.map((row: { status: string; count: number }) => [row.status, row.count]))
+    return Object.fromEntries(result.map((row: { status: string; count: number }) => [row.status, Number(row.count)]))
   }
 }

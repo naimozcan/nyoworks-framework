@@ -1,78 +1,115 @@
 // ═══════════════════════════════════════════════════════════════════════════════
-// Base Repository Pattern
+// Base Repository Pattern - Type-Safe Implementation
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { eq, and, sql } from "drizzle-orm"
+import type { DrizzleDatabase } from "./client"
+import type { PgTable, TableConfig } from "drizzle-orm/pg-core"
+import { eq, and, sql, desc, asc, type SQL } from "drizzle-orm"
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface ListOptions {
+  limit: number
+  offset: number
+  search?: string
+  sortBy?: string
+  sortOrder?: "asc" | "desc"
+}
+
+export interface ListResult<T> {
+  items: T[]
+  total: number
+  hasMore: boolean
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Base Repository
 // ─────────────────────────────────────────────────────────────────────────────
 
-export abstract class BaseRepository<TInsert, TSelect> {
+export abstract class BaseRepository<
+  TTable extends PgTable<TableConfig>,
+  TInsert = TTable["$inferInsert"],
+  TSelect = TTable["$inferSelect"]
+> {
   constructor(
-    protected readonly db: unknown,
-    protected readonly table: unknown,
-    protected readonly tenantId?: string
+    protected readonly db: DrizzleDatabase,
+    protected readonly table: TTable
   ) {}
 
+  protected getIdColumn() {
+    return (this.table as unknown as { id: any }).id
+  }
+
   async findById(id: string): Promise<TSelect | null> {
-    const result = await (this.db as any)
+    const results = await this.db
       .select()
-      .from(this.table)
-      .where(eq((this.table as any).id, id))
+      .from(this.table as any)
+      .where(eq(this.getIdColumn(), id))
       .limit(1)
 
-    return result[0] ?? null
+    return (results[0] as TSelect) ?? null
   }
 
   async findAll(options?: { limit?: number; offset?: number }): Promise<TSelect[]> {
     const limit = options?.limit ?? 100
     const offset = options?.offset ?? 0
 
-    return (this.db as any)
+    const results = await this.db
       .select()
-      .from(this.table)
+      .from(this.table as any)
       .limit(limit)
       .offset(offset)
+
+    return results as TSelect[]
   }
 
   async create(data: Omit<TInsert, "id" | "createdAt" | "updatedAt">): Promise<TSelect> {
-    const [result] = await (this.db as any)
-      .insert(this.table)
-      .values(data)
+    const results = await this.db
+      .insert(this.table as any)
+      .values(data as any)
       .returning()
 
-    return result
+    return results[0] as TSelect
   }
 
   async update(
     id: string,
     data: Partial<Omit<TInsert, "id" | "createdAt">>
   ): Promise<TSelect | null> {
-    const [result] = await (this.db as any)
-      .update(this.table)
-      .set({ ...data, updatedAt: new Date() })
-      .where(eq((this.table as any).id, id))
+    const results = await this.db
+      .update(this.table as any)
+      .set({ ...data, updatedAt: new Date() } as any)
+      .where(eq(this.getIdColumn(), id))
       .returning()
 
-    return result ?? null
+    return (results[0] as TSelect) ?? null
   }
 
   async delete(id: string): Promise<boolean> {
-    const result = await (this.db as any)
-      .delete(this.table)
-      .where(eq((this.table as any).id, id))
+    const results = await this.db
+      .delete(this.table as any)
+      .where(eq(this.getIdColumn(), id))
       .returning()
 
-    return result.length > 0
+    return results.length > 0
   }
 
-  async count(): Promise<number> {
-    const result = await (this.db as any)
+  async count(conditions?: SQL): Promise<number> {
+    const query = this.db
       .select({ count: sql<number>`count(*)` })
-      .from(this.table)
+      .from(this.table as any)
 
-    return result[0]?.count ?? 0
+    const results = conditions
+      ? await query.where(conditions)
+      : await query
+
+    return Number(results[0]?.count ?? 0)
+  }
+
+  protected orderBy(column: any, order: "asc" | "desc" = "desc") {
+    return order === "asc" ? asc(column) : desc(column)
   }
 }
 
@@ -80,91 +117,118 @@ export abstract class BaseRepository<TInsert, TSelect> {
 // Tenant-Scoped Repository
 // ─────────────────────────────────────────────────────────────────────────────
 
-export abstract class TenantRepository<TInsert, TSelect> extends BaseRepository<TInsert, TSelect> {
+export abstract class TenantRepository<
+  TTable extends PgTable<TableConfig>,
+  TInsert = TTable["$inferInsert"],
+  TSelect = TTable["$inferSelect"]
+> extends BaseRepository<TTable, TInsert, TSelect> {
   constructor(
-    db: unknown,
-    table: unknown,
-    protected readonly tenantIdValue: string
+    db: DrizzleDatabase,
+    table: TTable,
+    protected readonly tenantId: string
   ) {
-    super(db, table, tenantIdValue)
+    super(db, table)
+  }
+
+  protected getTenantIdColumn() {
+    return (this.table as unknown as { tenantId: any }).tenantId
+  }
+
+  protected tenantCondition(): SQL {
+    return eq(this.getTenantIdColumn(), this.tenantId)
+  }
+
+  protected withTenant(condition?: SQL): SQL {
+    return condition
+      ? and(this.tenantCondition(), condition)!
+      : this.tenantCondition()
   }
 
   override async findById(id: string): Promise<TSelect | null> {
-    const result = await (this.db as any)
+    const results = await this.db
       .select()
-      .from(this.table)
-      .where(
-        and(
-          eq((this.table as any).id, id),
-          eq((this.table as any).tenantId, this.tenantIdValue)
-        )
-      )
+      .from(this.table as any)
+      .where(and(eq(this.getIdColumn(), id), this.tenantCondition()))
       .limit(1)
 
-    return result[0] ?? null
+    return (results[0] as TSelect) ?? null
   }
 
   override async findAll(options?: { limit?: number; offset?: number }): Promise<TSelect[]> {
     const limit = options?.limit ?? 100
     const offset = options?.offset ?? 0
 
-    return (this.db as any)
+    const results = await this.db
       .select()
-      .from(this.table)
-      .where(eq((this.table as any).tenantId, this.tenantIdValue))
+      .from(this.table as any)
+      .where(this.tenantCondition())
       .limit(limit)
       .offset(offset)
+
+    return results as TSelect[]
+  }
+
+  async list(options: ListOptions): Promise<ListResult<TSelect>> {
+    const { limit, offset } = options
+
+    const results = await this.db
+      .select()
+      .from(this.table as any)
+      .where(this.tenantCondition())
+      .limit(limit + 1)
+      .offset(offset)
+
+    const items = results.slice(0, limit) as TSelect[]
+    const hasMore = results.length > limit
+
+    const totalResult = await this.count(this.tenantCondition())
+
+    return {
+      items,
+      total: totalResult,
+      hasMore,
+    }
   }
 
   async createWithTenant(
     data: Omit<TInsert, "id" | "createdAt" | "updatedAt" | "tenantId">
   ): Promise<TSelect> {
-    const [result] = await (this.db as any)
-      .insert(this.table)
-      .values({ ...data, tenantId: this.tenantIdValue })
+    const results = await this.db
+      .insert(this.table as any)
+      .values({ ...data, tenantId: this.tenantId } as any)
       .returning()
 
-    return result
+    return results[0] as TSelect
   }
 
   async updateWithTenant(
     id: string,
     data: Partial<Omit<TInsert, "id" | "createdAt" | "tenantId">>
   ): Promise<TSelect | null> {
-    const [result] = await (this.db as any)
-      .update(this.table)
-      .set({ ...data, updatedAt: new Date() })
-      .where(
-        and(
-          eq((this.table as any).id, id),
-          eq((this.table as any).tenantId, this.tenantIdValue)
-        )
-      )
+    const results = await this.db
+      .update(this.table as any)
+      .set({ ...data, updatedAt: new Date() } as any)
+      .where(and(eq(this.getIdColumn(), id), this.tenantCondition()))
       .returning()
 
-    return result ?? null
+    return (results[0] as TSelect) ?? null
   }
 
   override async delete(id: string): Promise<boolean> {
-    const result = await (this.db as any)
-      .delete(this.table)
-      .where(
-        and(
-          eq((this.table as any).id, id),
-          eq((this.table as any).tenantId, this.tenantIdValue)
-        )
-      )
+    const results = await this.db
+      .delete(this.table as any)
+      .where(and(eq(this.getIdColumn(), id), this.tenantCondition()))
       .returning()
 
-    return result.length > 0
+    return results.length > 0
   }
 
-  override async count(): Promise<number> {
-    const result = await (this.db as any)
-      .select({ count: sql<number>`count(*)` })
-      .from(this.table)
-      .where(eq((this.table as any).tenantId, this.tenantIdValue))
+  async countTenant(): Promise<number> {
+    return this.count(this.tenantCondition())
+  }
 
-    return result[0]?.count ?? 0
+  async exists(id: string): Promise<boolean> {
+    const result = await this.findById(id)
+    return result !== null
   }
 }

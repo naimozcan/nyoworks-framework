@@ -5,6 +5,7 @@
 import { drizzle } from "drizzle-orm/postgres-js"
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js"
 import postgres from "postgres"
+import { getServerEnv } from "@nyoworks/shared"
 import * as schema from "./schema"
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -17,16 +18,12 @@ export type DrizzleDatabase = PostgresJsDatabase<typeof schema>
 // Connection
 // ─────────────────────────────────────────────────────────────────────────────
 
-const connectionString = process.env.DATABASE_URL
+const env = getServerEnv()
 
-if (!connectionString) {
-  throw new Error("DATABASE_URL environment variable is required")
-}
-
-const client = postgres(connectionString, {
-  max: Number(process.env.DB_POOL_MAX) || 20,
-  idle_timeout: Number(process.env.DB_IDLE_TIMEOUT) || 20,
-  connect_timeout: Number(process.env.DB_CONNECT_TIMEOUT) || 10,
+const client = postgres(env.DATABASE_URL, {
+  max: env.DB_POOL_MAX,
+  idle_timeout: env.DB_IDLE_TIMEOUT,
+  connect_timeout: env.DB_CONNECT_TIMEOUT,
 })
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -34,6 +31,20 @@ const client = postgres(connectionString, {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const db = drizzle(client, { schema })
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Database Factory (for custom connection strings)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function createDatabase(url: string): DrizzleDatabase {
+  const serverEnv = getServerEnv()
+  const customClient = postgres(url, {
+    max: serverEnv.DB_POOL_MAX,
+    idle_timeout: serverEnv.DB_IDLE_TIMEOUT,
+    connect_timeout: serverEnv.DB_CONNECT_TIMEOUT,
+  })
+  return drizzle(customClient, { schema })
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Tenant Context

@@ -2,6 +2,7 @@
 // Multitenant Service
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { TRPCError } from "@trpc/server"
 import { TenantsRepository, MembersRepository, InvitesRepository } from "../repositories/index.js"
 import type { Tenant, TenantMember, TenantInvite } from "../schema.js"
@@ -75,7 +76,7 @@ class MultitenantService {
   private readonly invitesRepo: InvitesRepository
 
   constructor(
-    db: unknown,
+    db: DrizzleDatabase,
     private readonly currentTenantId?: string
   ) {
     this.tenantsRepo = new TenantsRepository(db)

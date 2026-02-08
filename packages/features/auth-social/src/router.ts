@@ -2,7 +2,7 @@
 // Auth Social Feature - tRPC Router
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { initTRPC, TRPCError } from "@trpc/server"
+import { router, publicProcedure, protectedProcedure } from "@nyoworks/api"
 import {
   linkAccountInput,
   unlinkAccountInput,
@@ -12,52 +12,21 @@ import {
 import { AuthSocialService } from "./services/index.js"
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Context Type
-// ─────────────────────────────────────────────────────────────────────────────
-
-interface AuthSocialContext {
-  user?: { id: string; email: string }
-  db: unknown
-  createSession?: (userId: string) => Promise<{ accessToken: string; refreshToken?: string }>
-  findOrCreateUser?: (profile: { email: string; name?: string; picture?: string }) => Promise<{ id: string; email: string; isNew: boolean }>
-}
-
-const t = initTRPC.context<AuthSocialContext>().create()
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Middleware
-// ─────────────────────────────────────────────────────────────────────────────
-
-const isAuthenticated = t.middleware(({ ctx, next }) => {
-  if (!ctx.user) {
-    throw new TRPCError({ code: "UNAUTHORIZED" })
-  }
-  return next({
-    ctx: {
-      ...ctx,
-      user: ctx.user,
-    },
-  })
-})
-
-const protectedProcedure = t.procedure.use(isAuthenticated)
-
-// ─────────────────────────────────────────────────────────────────────────────
 // Router
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const authSocialRouter = t.router({
-  getOAuthUrl: t.procedure
+export const authSocialRouter = router({
+  getOAuthUrl: publicProcedure
     .input(getOAuthUrlInput)
     .query(({ input, ctx }) => {
       const service = new AuthSocialService(ctx.db)
       return service.getOAuthUrl(input)
     }),
 
-  login: t.procedure
+  login: publicProcedure
     .input(socialLoginInput)
     .mutation(async ({ input, ctx }) => {
-      const service = new AuthSocialService(ctx.db, ctx.createSession, ctx.findOrCreateUser)
+      const service = new AuthSocialService(ctx.db)
       return service.login(input)
     }),
 

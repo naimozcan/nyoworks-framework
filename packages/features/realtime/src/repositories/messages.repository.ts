@@ -2,6 +2,7 @@
 // Messages Repository
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { eq, desc } from "drizzle-orm"
 import { messages, type Message, type NewMessage } from "../schema.js"
 
@@ -19,25 +20,22 @@ interface ListOptions {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class MessagesRepository {
-  constructor(private readonly db: unknown) {}
+  constructor(private readonly db: DrizzleDatabase) {}
 
   async create(data: Omit<NewMessage, "id" | "createdAt">): Promise<Message> {
-    const db = this.db as any
-
-    const [result] = await db
+    const [result] = await this.db
       .insert(messages)
       .values(data)
       .returning()
 
-    return result
+    return result!
   }
 
   async findByChannel(channelId: string, options?: ListOptions): Promise<Message[]> {
-    const db = this.db as any
     const limit = options?.limit ?? 100
     const offset = options?.offset ?? 0
 
-    return db
+    return this.db
       .select()
       .from(messages)
       .where(eq(messages.channelId, channelId))
@@ -47,9 +45,7 @@ class MessagesRepository {
   }
 
   async findById(id: string): Promise<Message | null> {
-    const db = this.db as any
-
-    const result = await db
+    const result = await this.db
       .select()
       .from(messages)
       .where(eq(messages.id, id))
@@ -59,9 +55,7 @@ class MessagesRepository {
   }
 
   async deleteByChannel(channelId: string): Promise<number> {
-    const db = this.db as any
-
-    const result = await db
+    const result = await this.db
       .delete(messages)
       .where(eq(messages.channelId, channelId))
       .returning()

@@ -2,6 +2,7 @@
 // Files Repository
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { eq, and, like, desc, sql } from "drizzle-orm"
 import { files, type StorageFile, type NewStorageFile } from "../schema.js"
 
@@ -29,7 +30,7 @@ export interface ListResult {
 
 export class FilesRepository {
   constructor(
-    private readonly db: any,
+    private readonly db: DrizzleDatabase,
     private readonly tenantId: string
   ) {}
 
@@ -42,7 +43,7 @@ export class FilesRepository {
       })
       .returning()
 
-    return result
+    return result!
   }
 
   async findById(id: string): Promise<StorageFile | null> {
@@ -68,28 +69,28 @@ export class FilesRepository {
   async list(options: ListOptions): Promise<ListResult> {
     const { limit, offset } = options
 
-    let query = this.db.select().from(files).where(eq(files.tenantId, this.tenantId))
+    const conditions = [eq(files.tenantId, this.tenantId)]
 
     if (options.bucket) {
-      query = query.where(eq(files.bucket, options.bucket))
+      conditions.push(eq(files.bucket, options.bucket))
     }
 
     if (options.mimeType) {
-      query = query.where(like(files.mimeType, `${options.mimeType}%`))
+      conditions.push(like(files.mimeType, `${options.mimeType}%`))
     }
 
     if (options.prefix) {
-      query = query.where(like(files.key, `${options.prefix}%`))
+      conditions.push(like(files.key, `${options.prefix}%`))
     }
 
-    const items = await query.orderBy(desc(files.createdAt)).limit(limit).offset(offset)
+    const items = await this.db.select().from(files).where(and(...conditions)).orderBy(desc(files.createdAt)).limit(limit).offset(offset)
 
     const countResult = await this.db
       .select({ count: sql<number>`count(*)` })
       .from(files)
       .where(eq(files.tenantId, this.tenantId))
 
-    const total = countResult[0]?.count ?? 0
+    const total = Number(countResult[0]?.count ?? 0)
 
     return {
       items,
@@ -142,7 +143,7 @@ export class FilesRepository {
       .from(files)
       .where(eq(files.tenantId, this.tenantId))
 
-    return result[0]?.total ?? 0
+    return Number(result[0]?.total ?? 0)
   }
 
   async count(): Promise<number> {
@@ -151,6 +152,6 @@ export class FilesRepository {
       .from(files)
       .where(eq(files.tenantId, this.tenantId))
 
-    return result[0]?.count ?? 0
+    return Number(result[0]?.count ?? 0)
   }
 }

@@ -2,6 +2,7 @@
 // Notes Repository
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { eq, desc, sql } from "drizzle-orm"
 import { notes, type Note, type NewNote } from "../schema.js"
 
@@ -24,21 +25,19 @@ export interface NoteListResult {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export class NotesRepository {
-  constructor(private readonly db: unknown) {}
+  constructor(private readonly db: DrizzleDatabase) {}
 
   async create(data: Omit<NewNote, "id" | "createdAt" | "updatedAt">): Promise<Note> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .insert(notes)
       .values(data)
       .returning()
 
-    return result
+    return result!
   }
 
   async findById(id: string): Promise<Note | null> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select()
       .from(notes)
       .where(eq(notes.id, id))
@@ -48,8 +47,7 @@ export class NotesRepository {
   }
 
   async update(id: string, data: Partial<Omit<Note, "id" | "contactId" | "authorId" | "createdAt">>): Promise<Note | null> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .update(notes)
       .set({
         ...data,
@@ -62,8 +60,7 @@ export class NotesRepository {
   }
 
   async delete(id: string): Promise<boolean> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .delete(notes)
       .where(eq(notes.id, id))
       .returning()
@@ -72,10 +69,9 @@ export class NotesRepository {
   }
 
   async listByContact(options: NoteListOptions): Promise<NoteListResult> {
-    const db = this.db as any
     const { contactId, limit, offset } = options
 
-    const items = await db
+    const items = await this.db
       .select()
       .from(notes)
       .where(eq(notes.contactId, contactId))
@@ -87,12 +83,11 @@ export class NotesRepository {
   }
 
   async countByContact(contactId: string): Promise<number> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select({ count: sql<number>`count(*)` })
       .from(notes)
       .where(eq(notes.contactId, contactId))
 
-    return result[0]?.count ?? 0
+    return Number(result[0]?.count ?? 0)
   }
 }

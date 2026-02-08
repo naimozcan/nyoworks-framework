@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import Stripe from "stripe"
+import { getStripeEnv } from "@nyoworks/shared"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Stripe Client
@@ -12,11 +13,11 @@ let stripeClient: Stripe | null = null
 
 export function getStripeClient(): Stripe {
   if (!stripeClient) {
-    const secretKey = process.env.STRIPE_SECRET_KEY
-    if (!secretKey) {
+    const stripeEnv = getStripeEnv()
+    if (!stripeEnv?.STRIPE_SECRET_KEY) {
       throw new Error("STRIPE_SECRET_KEY environment variable is not set")
     }
-    stripeClient = new Stripe(secretKey)
+    stripeClient = new Stripe(stripeEnv.STRIPE_SECRET_KEY)
   }
   return stripeClient
 }
@@ -29,13 +30,13 @@ export function verifyWebhookSignature(
   payload: string | Buffer,
   signature: string
 ): Stripe.Event {
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
-  if (!webhookSecret) {
+  const stripeEnv = getStripeEnv()
+  if (!stripeEnv?.STRIPE_WEBHOOK_SECRET) {
     throw new Error("STRIPE_WEBHOOK_SECRET environment variable is not set")
   }
 
   const stripe = getStripeClient()
-  return stripe.webhooks.constructEvent(payload, signature, webhookSecret)
+  return stripe.webhooks.constructEvent(payload, signature, stripeEnv.STRIPE_WEBHOOK_SECRET)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

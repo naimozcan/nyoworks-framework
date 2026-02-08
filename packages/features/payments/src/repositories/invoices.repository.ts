@@ -2,6 +2,7 @@
 // Invoices Repository
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { eq, desc } from "drizzle-orm"
 import { invoices, type Invoice, type NewInvoice } from "../schema.js"
 
@@ -10,21 +11,19 @@ import { invoices, type Invoice, type NewInvoice } from "../schema.js"
 // ─────────────────────────────────────────────────────────────────────────────
 
 export class InvoicesRepository {
-  constructor(private readonly db: unknown) {}
+  constructor(private readonly db: DrizzleDatabase) {}
 
   async create(data: Omit<NewInvoice, "id" | "createdAt">): Promise<Invoice> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .insert(invoices)
       .values(data)
       .returning()
 
-    return result
+    return result!
   }
 
   async findById(id: string): Promise<Invoice | null> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select()
       .from(invoices)
       .where(eq(invoices.id, id))
@@ -34,8 +33,7 @@ export class InvoicesRepository {
   }
 
   async findByStripeInvoiceId(stripeInvoiceId: string): Promise<Invoice | null> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select()
       .from(invoices)
       .where(eq(invoices.stripeInvoiceId, stripeInvoiceId))
@@ -47,9 +45,8 @@ export class InvoicesRepository {
   async findByCustomerId(customerId: string, options?: { limit?: number; offset?: number }): Promise<Invoice[]> {
     const limit = options?.limit ?? 10
     const offset = options?.offset ?? 0
-    const db = this.db as any
 
-    return db
+    return this.db
       .select()
       .from(invoices)
       .where(eq(invoices.customerId, customerId))
@@ -59,8 +56,7 @@ export class InvoicesRepository {
   }
 
   async findBySubscriptionId(subscriptionId: string): Promise<Invoice[]> {
-    const db = this.db as any
-    return db
+    return this.db
       .select()
       .from(invoices)
       .where(eq(invoices.subscriptionId, subscriptionId))
@@ -68,8 +64,7 @@ export class InvoicesRepository {
   }
 
   async update(id: string, data: Partial<Invoice>): Promise<Invoice | null> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .update(invoices)
       .set(data)
       .where(eq(invoices.id, id))
@@ -79,8 +74,7 @@ export class InvoicesRepository {
   }
 
   async updateByStripeId(stripeInvoiceId: string, data: Partial<Invoice>): Promise<Invoice | null> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .update(invoices)
       .set(data)
       .where(eq(invoices.stripeInvoiceId, stripeInvoiceId))
@@ -107,7 +101,6 @@ export class InvoicesRepository {
     },
     subscriptionId: string
   ): Promise<Invoice> {
-    const db = this.db as any
     const existing = await this.findByStripeInvoiceId(stripeInvoice.id)
 
     const customerId = typeof stripeInvoice.customer === "string"
@@ -132,19 +125,19 @@ export class InvoicesRepository {
     }
 
     if (existing) {
-      const [result] = await db
+      const [result] = await this.db
         .update(invoices)
         .set(invoiceData)
         .where(eq(invoices.id, existing.id))
         .returning()
-      return result
+      return result!
     }
 
-    const [result] = await db
+    const [result] = await this.db
       .insert(invoices)
       .values(invoiceData)
       .returning()
 
-    return result
+    return result!
   }
 }

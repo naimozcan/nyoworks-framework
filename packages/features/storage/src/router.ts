@@ -2,7 +2,7 @@
 // Storage Feature - tRPC Router
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { initTRPC, TRPCError } from "@trpc/server"
+import { router, tenantProcedure } from "@nyoworks/api"
 import {
   uploadFileInput,
   getPresignedUrlInput,
@@ -13,42 +13,11 @@ import {
 import { StorageService } from "./services/index.js"
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Context Type
-// ─────────────────────────────────────────────────────────────────────────────
-
-interface StorageContext {
-  user?: { id: string }
-  tenantId?: string
-  db: unknown
-}
-
-const t = initTRPC.context<StorageContext>().create()
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Middleware
-// ─────────────────────────────────────────────────────────────────────────────
-
-const isAuthenticated = t.middleware(({ ctx, next }) => {
-  if (!ctx.user || !ctx.tenantId) {
-    throw new TRPCError({ code: "UNAUTHORIZED" })
-  }
-  return next({
-    ctx: {
-      ...ctx,
-      user: ctx.user,
-      tenantId: ctx.tenantId,
-    },
-  })
-})
-
-const protectedProcedure = t.procedure.use(isAuthenticated)
-
-// ─────────────────────────────────────────────────────────────────────────────
 // Router
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const storageRouter = t.router({
-  requestUpload: protectedProcedure
+export const storageRouter = router({
+  requestUpload: tenantProcedure
     .input(uploadFileInput)
     .mutation(async ({ input, ctx }) => {
       const service = new StorageService(ctx.db, ctx.tenantId)
@@ -63,28 +32,28 @@ export const storageRouter = t.router({
       })
     }),
 
-  confirmUpload: protectedProcedure
+  confirmUpload: tenantProcedure
     .input(confirmUploadInput)
     .mutation(async ({ input, ctx }) => {
       const service = new StorageService(ctx.db, ctx.tenantId)
       return service.confirmUpload(input.fileId, ctx.user.id)
     }),
 
-  getPresignedUrl: protectedProcedure
+  getPresignedUrl: tenantProcedure
     .input(getPresignedUrlInput)
     .query(async ({ input, ctx }) => {
       const service = new StorageService(ctx.db, ctx.tenantId)
       return service.getPresignedUrl(input.fileId, input.expiresIn)
     }),
 
-  deleteFile: protectedProcedure
+  deleteFile: tenantProcedure
     .input(deleteFileInput)
     .mutation(async ({ input, ctx }) => {
       const service = new StorageService(ctx.db, ctx.tenantId)
       return service.deleteFile(input.fileId, ctx.user.id)
     }),
 
-  listFiles: protectedProcedure
+  listFiles: tenantProcedure
     .input(listFilesInput)
     .query(async ({ input, ctx }) => {
       const service = new StorageService(ctx.db, ctx.tenantId)
@@ -99,7 +68,7 @@ export const storageRouter = t.router({
       })
     }),
 
-  getFile: protectedProcedure
+  getFile: tenantProcedure
     .input(deleteFileInput)
     .query(async ({ input, ctx }) => {
       const service = new StorageService(ctx.db, ctx.tenantId)

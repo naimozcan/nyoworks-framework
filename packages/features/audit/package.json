@@ -1,6 +1,6 @@
 {
   "name": "@nyoworks/feature-audit",
-  "version": "2.6.0",
+  "version": "2.7.0",
   "description": "Audit logging feature for NYOWORKS projects - database change tracking and audit trails",
   "type": "module",
   "main": "dist/index.js",
@@ -41,6 +41,8 @@
     "@paralleldrive/cuid2": "^3.3.0"
   },
   "peerDependencies": {
+    "@nyoworks/api": "workspace:*",
+    "@nyoworks/database": "workspace:*",
     "@trpc/server": "^11.0.0",
     "drizzle-orm": "^0.45.0",
     "react": "^19.0.0",

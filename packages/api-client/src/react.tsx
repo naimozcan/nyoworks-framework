@@ -8,6 +8,7 @@ import superjson from "superjson"
 import type { AppRouter } from "@nyoworks/api"
 import type { ReactNode } from "react"
 import { useState } from "react"
+import { TIMEOUTS } from "@nyoworks/shared"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // tRPC React Hooks
@@ -37,7 +38,7 @@ export function TRPCProvider({
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 5 * 60 * 1000,
+            staleTime: TIMEOUTS.STALE_TIME,
             retry: 1,
           },
         },

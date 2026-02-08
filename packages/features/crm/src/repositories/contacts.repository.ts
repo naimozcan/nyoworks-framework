@@ -2,6 +2,7 @@
 // Contacts Repository
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { eq, and, like, desc, asc, sql } from "drizzle-orm"
 import { contacts, contactTags, type Contact, type NewContact } from "../schema.js"
 
@@ -31,13 +32,12 @@ export interface ContactListResult {
 
 export class ContactsRepository {
   constructor(
-    private readonly db: unknown,
+    private readonly db: DrizzleDatabase,
     private readonly tenantId: string
   ) {}
 
   async create(data: Omit<NewContact, "id" | "createdAt" | "updatedAt" | "tenantId">): Promise<Contact> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .insert(contacts)
       .values({
         ...data,
@@ -45,12 +45,11 @@ export class ContactsRepository {
       })
       .returning()
 
-    return result
+    return result!
   }
 
   async findById(id: string): Promise<Contact | null> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select()
       .from(contacts)
       .where(and(eq(contacts.id, id), eq(contacts.tenantId, this.tenantId)))
@@ -60,8 +59,7 @@ export class ContactsRepository {
   }
 
   async update(id: string, data: Partial<Omit<Contact, "id" | "tenantId" | "createdAt">>): Promise<Contact | null> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .update(contacts)
       .set({
         ...data,
@@ -74,8 +72,7 @@ export class ContactsRepository {
   }
 
   async delete(id: string): Promise<boolean> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .delete(contacts)
       .where(and(eq(contacts.id, id), eq(contacts.tenantId, this.tenantId)))
       .returning()
@@ -84,17 +81,16 @@ export class ContactsRepository {
   }
 
   async list(options: ContactListOptions): Promise<ContactListResult> {
-    const db = this.db as any
     const { limit, offset, sortBy = "createdAt", sortOrder = "desc" } = options
 
-    let query = db.select().from(contacts).where(eq(contacts.tenantId, this.tenantId))
+    const conditions = [eq(contacts.tenantId, this.tenantId)]
 
     if (options.search) {
-      query = query.where(like(contacts.firstName, `%${options.search}%`))
+      conditions.push(like(contacts.firstName, `%${options.search}%`))
     }
 
     if (options.status) {
-      query = query.where(eq(contacts.status, options.status))
+      conditions.push(eq(contacts.status, options.status))
     }
 
     const sortColumns = {
@@ -105,16 +101,21 @@ export class ContactsRepository {
     } as const
     const orderFn = sortOrder === "asc" ? asc : desc
     const sortColumn = sortColumns[sortBy] ?? contacts.createdAt
-    query = query.orderBy(orderFn(sortColumn))
 
-    const items = await query.limit(limit).offset(offset)
+    const items = await this.db
+      .select()
+      .from(contacts)
+      .where(and(...conditions))
+      .orderBy(orderFn(sortColumn))
+      .limit(limit)
+      .offset(offset)
 
-    const countResult = await db
+    const countResult = await this.db
       .select({ count: sql<number>`count(*)` })
       .from(contacts)
       .where(eq(contacts.tenantId, this.tenantId))
 
-    const total = countResult[0]?.count ?? 0
+    const total = Number(countResult[0]?.count ?? 0)
 
     return {
       items,
@@ -124,16 +125,14 @@ export class ContactsRepository {
   }
 
   async addTag(contactId: string, tagId: string): Promise<void> {
-    const db = this.db as any
-    await db.insert(contactTags).values({
+    await this.db.insert(contactTags).values({
       contactId,
       tagId,
     })
   }
 
   async removeTag(contactId: string, tagId: string): Promise<void> {
-    const db = this.db as any
-    await db
+    await this.db
       .delete(contactTags)
       .where(and(eq(contactTags.contactId, contactId), eq(contactTags.tagId, tagId)))
   }
@@ -141,8 +140,7 @@ export class ContactsRepository {
   async addTags(contactId: string, tagIds: string[]): Promise<void> {
     if (tagIds.length === 0) return
 
-    const db = this.db as any
-    await db.insert(contactTags).values(
+    await this.db.insert(contactTags).values(
       tagIds.map((tagId) => ({
         contactId,
         tagId,
@@ -151,12 +149,11 @@ export class ContactsRepository {
   }
 
   async count(): Promise<number> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select({ count: sql<number>`count(*)` })
       .from(contacts)
       .where(eq(contacts.tenantId, this.tenantId))
 
-    return result[0]?.count ?? 0
+    return Number(result[0]?.count ?? 0)
   }
 }

@@ -2,6 +2,7 @@
 // Devices Service
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { DevicesRepository } from "../repositories/index.js"
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -21,7 +22,7 @@ interface RegisterDeviceInput {
 export class DevicesService {
   private readonly repository: DevicesRepository
 
-  constructor(db: unknown) {
+  constructor(db: DrizzleDatabase) {
     this.repository = new DevicesRepository(db)
   }
 

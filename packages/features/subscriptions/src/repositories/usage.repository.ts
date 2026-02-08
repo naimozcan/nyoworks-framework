@@ -2,6 +2,7 @@
 // Usage Records Repository
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { eq, and, asc } from "drizzle-orm"
 import { usageRecords, type UsageRecord, type NewUsageRecord } from "../schema.js"
 
@@ -10,21 +11,19 @@ import { usageRecords, type UsageRecord, type NewUsageRecord } from "../schema.j
 // ─────────────────────────────────────────────────────────────────────────────
 
 export class UsageRepository {
-  constructor(private readonly db: unknown) {}
+  constructor(private readonly db: DrizzleDatabase) {}
 
   async create(data: Omit<NewUsageRecord, "id" | "createdAt" | "updatedAt">): Promise<UsageRecord> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .insert(usageRecords)
       .values(data)
       .returning()
 
-    return result
+    return result!
   }
 
   async createMany(records: Array<Omit<NewUsageRecord, "id" | "createdAt" | "updatedAt">>): Promise<UsageRecord[]> {
-    const db = this.db as any
-    const results = await db
+    const results = await this.db
       .insert(usageRecords)
       .values(records)
       .returning()
@@ -33,8 +32,7 @@ export class UsageRepository {
   }
 
   async findById(id: string): Promise<UsageRecord | null> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select()
       .from(usageRecords)
       .where(eq(usageRecords.id, id))
@@ -44,8 +42,7 @@ export class UsageRepository {
   }
 
   async findBySubscriptionId(subscriptionId: string): Promise<UsageRecord[]> {
-    const db = this.db as any
-    return db
+    return this.db
       .select()
       .from(usageRecords)
       .where(eq(usageRecords.subscriptionId, subscriptionId))
@@ -53,8 +50,7 @@ export class UsageRepository {
   }
 
   async findByFeature(subscriptionId: string, feature: string): Promise<UsageRecord | null> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select()
       .from(usageRecords)
       .where(and(
@@ -67,8 +63,7 @@ export class UsageRepository {
   }
 
   async update(id: string, data: Partial<UsageRecord>): Promise<UsageRecord | null> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .update(usageRecords)
       .set({
         ...data,
@@ -81,7 +76,6 @@ export class UsageRepository {
   }
 
   async incrementUsage(subscriptionId: string, feature: string, quantity: number): Promise<UsageRecord | null> {
-    const db = this.db as any
     const usage = await this.findByFeature(subscriptionId, feature)
 
     if (!usage) {
@@ -90,7 +84,7 @@ export class UsageRepository {
 
     const newUsed = usage.used + quantity
 
-    const [result] = await db
+    const [result] = await this.db
       .update(usageRecords)
       .set({
         used: newUsed,
@@ -103,8 +97,7 @@ export class UsageRepository {
   }
 
   async resetUsage(subscriptionId: string, feature: string): Promise<UsageRecord | null> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .update(usageRecords)
       .set({
         used: 0,
@@ -120,8 +113,7 @@ export class UsageRepository {
   }
 
   async resetAllForSubscription(subscriptionId: string): Promise<void> {
-    const db = this.db as any
-    await db
+    await this.db
       .update(usageRecords)
       .set({
         used: 0,
@@ -131,8 +123,7 @@ export class UsageRepository {
   }
 
   async deleteBySubscriptionId(subscriptionId: string): Promise<void> {
-    const db = this.db as any
-    await db
+    await this.db
       .delete(usageRecords)
       .where(eq(usageRecords.subscriptionId, subscriptionId))
   }
@@ -173,8 +164,7 @@ export class UsageRepository {
     periodStart: Date,
     periodEnd: Date
   ): Promise<void> {
-    const db = this.db as any
-    await db
+    await this.db
       .update(usageRecords)
       .set({
         periodStart,

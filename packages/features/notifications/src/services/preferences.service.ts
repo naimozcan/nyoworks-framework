@@ -2,6 +2,7 @@
 // Preferences Service
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { PreferencesRepository } from "../repositories/index.js"
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -28,7 +29,7 @@ interface UpdatePreferencesInput {
 export class PreferencesService {
   private readonly repository: PreferencesRepository
 
-  constructor(db: unknown) {
+  constructor(db: DrizzleDatabase) {
     this.repository = new PreferencesRepository(db)
   }
 

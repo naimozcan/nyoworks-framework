@@ -95,3 +95,50 @@ export const ERROR_CODES = {
   RATE_LIMIT_ERROR: "RATE_LIMIT_ERROR",
   INTERNAL_ERROR: "INTERNAL_ERROR",
 } as const
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Timeouts (in milliseconds)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const TIMEOUTS = {
+  SESSION_TIMEOUT: 30 * 60 * 1000,
+  STALE_TIME: 5 * 60 * 1000,
+  PRESENCE_STALE: 5 * 60 * 1000,
+  RATE_LIMIT_WINDOW: 60 * 1000,
+  LOCKOUT_DURATION_MS: AUTH.LOCKOUT_DURATION * 1000,
+} as const
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Storage Configuration
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const STORAGE = {
+  PRESIGNED_URL_DEFAULT_EXPIRY: 3600,
+  PRESIGNED_URL_MIN_EXPIRY: 60,
+  PRESIGNED_URL_MAX_EXPIRY: 604800,
+  MAX_PAYLOAD_SIZE: 1024 * 1024,
+} as const
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Feature Defaults
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const DEFAULTS = {
+  SEARCH_LIMIT: 10,
+  SUGGEST_LIMIT: 5,
+  SUGGEST_DEBOUNCE_MS: 200,
+  HISTORY_LIMIT: 100,
+  APPOINTMENT_SLOT_MINUTES: 15,
+  INVOICE_LIMIT: 10,
+} as const
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Storage Keys
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const STORAGE_KEYS = {
+  ANALYTICS_SESSION: "nyoworks_analytics_session",
+  OAUTH_STATE: "nyoworks_oauth_state",
+  LOCALE: "nyoworks_locale",
+  THEME: "nyoworks_theme",
+} as const

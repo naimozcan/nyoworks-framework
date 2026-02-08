@@ -2,7 +2,7 @@
 // i18n Feature - tRPC Router
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { initTRPC, TRPCError } from "@trpc/server"
+import { router, tenantProcedure } from "@nyoworks/api"
 import {
   listLocalesInput,
   createLocaleInput,
@@ -22,52 +22,18 @@ import {
 import { I18nService } from "./services/index.js"
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Context Type
-// ─────────────────────────────────────────────────────────────────────────────
-
-interface I18nContext {
-  user?: { id: string; email: string }
-  tenantId?: string
-  db: unknown
-}
-
-const t = initTRPC.context<I18nContext>().create()
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Middleware
-// ─────────────────────────────────────────────────────────────────────────────
-
-const isAuthenticated = t.middleware(({ ctx, next }) => {
-  if (!ctx.user) {
-    throw new TRPCError({ code: "UNAUTHORIZED" })
-  }
-  if (!ctx.tenantId) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "Tenant ID required" })
-  }
-  return next({
-    ctx: {
-      ...ctx,
-      user: ctx.user,
-      tenantId: ctx.tenantId,
-    },
-  })
-})
-
-const protectedProcedure = t.procedure.use(isAuthenticated)
-
-// ─────────────────────────────────────────────────────────────────────────────
 // Locales Router
 // ─────────────────────────────────────────────────────────────────────────────
 
-const localesRouter = t.router({
-  list: protectedProcedure
+const localesRouter = router({
+  list: tenantProcedure
     .input(listLocalesInput)
     .query(async ({ input, ctx }) => {
       const service = new I18nService(ctx.db, ctx.tenantId)
       return service.listLocales(input.enabledOnly)
     }),
 
-  create: protectedProcedure
+  create: tenantProcedure
     .input(createLocaleInput)
     .mutation(async ({ input, ctx }) => {
       const service = new I18nService(ctx.db, ctx.tenantId)
@@ -80,7 +46,7 @@ const localesRouter = t.router({
       })
     }),
 
-  update: protectedProcedure
+  update: tenantProcedure
     .input(updateLocaleInput)
     .mutation(async ({ input, ctx }) => {
       const service = new I18nService(ctx.db, ctx.tenantId)
@@ -93,14 +59,14 @@ const localesRouter = t.router({
       })
     }),
 
-  delete: protectedProcedure
+  delete: tenantProcedure
     .input(deleteLocaleInput)
     .mutation(async ({ input, ctx }) => {
       const service = new I18nService(ctx.db, ctx.tenantId)
       return service.deleteLocale(input.localeId)
     }),
 
-  getDefault: protectedProcedure.query(async ({ ctx }) => {
+  getDefault: tenantProcedure.query(async ({ ctx }) => {
     const service = new I18nService(ctx.db, ctx.tenantId)
     return service.getDefaultLocale()
   }),
@@ -110,22 +76,22 @@ const localesRouter = t.router({
 // Translations Router
 // ─────────────────────────────────────────────────────────────────────────────
 
-const translationsRouter = t.router({
-  get: protectedProcedure
+const translationsRouter = router({
+  get: tenantProcedure
     .input(getTranslationsInput)
     .query(async ({ input, ctx }) => {
       const service = new I18nService(ctx.db, ctx.tenantId)
       return service.getTranslations(input.locale, input.namespace)
     }),
 
-  getOne: protectedProcedure
+  getOne: tenantProcedure
     .input(getTranslationInput)
     .query(async ({ input, ctx }) => {
       const service = new I18nService(ctx.db, ctx.tenantId)
       return service.getTranslation(input.locale, input.namespace, input.key)
     }),
 
-  add: protectedProcedure
+  add: tenantProcedure
     .input(addTranslationInput)
     .mutation(async ({ input, ctx }) => {
       const service = new I18nService(ctx.db, ctx.tenantId)
@@ -137,21 +103,21 @@ const translationsRouter = t.router({
       })
     }),
 
-  update: protectedProcedure
+  update: tenantProcedure
     .input(updateTranslationInput)
     .mutation(async ({ input, ctx }) => {
       const service = new I18nService(ctx.db, ctx.tenantId)
       return service.updateTranslation(input.translationId, input.value)
     }),
 
-  delete: protectedProcedure
+  delete: tenantProcedure
     .input(deleteTranslationInput)
     .mutation(async ({ input, ctx }) => {
       const service = new I18nService(ctx.db, ctx.tenantId)
       return service.deleteTranslation(input.translationId)
     }),
 
-  bulkAdd: protectedProcedure
+  bulkAdd: tenantProcedure
     .input(bulkAddTranslationsInput)
     .mutation(async ({ input, ctx }) => {
       const service = new I18nService(ctx.db, ctx.tenantId)
@@ -162,7 +128,7 @@ const translationsRouter = t.router({
       })
     }),
 
-  list: protectedProcedure
+  list: tenantProcedure
     .input(listTranslationsInput)
     .query(async ({ input, ctx }) => {
       const service = new I18nService(ctx.db, ctx.tenantId)
@@ -175,14 +141,14 @@ const translationsRouter = t.router({
       })
     }),
 
-  listNamespaces: protectedProcedure
+  listNamespaces: tenantProcedure
     .input(listNamespacesInput)
     .query(async ({ input, ctx }) => {
       const service = new I18nService(ctx.db, ctx.tenantId)
       return service.listNamespaces(input.locale)
     }),
 
-  export: protectedProcedure
+  export: tenantProcedure
     .input(exportTranslationsInput)
     .query(async ({ input, ctx }) => {
       const service = new I18nService(ctx.db, ctx.tenantId)
@@ -193,7 +159,7 @@ const translationsRouter = t.router({
       })
     }),
 
-  import: protectedProcedure
+  import: tenantProcedure
     .input(importTranslationsInput)
     .mutation(async ({ input, ctx }) => {
       const service = new I18nService(ctx.db, ctx.tenantId)
@@ -210,7 +176,7 @@ const translationsRouter = t.router({
 // Main Router
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const i18nRouter = t.router({
+export const i18nRouter = router({
   locales: localesRouter,
   translations: translationsRouter,
 })

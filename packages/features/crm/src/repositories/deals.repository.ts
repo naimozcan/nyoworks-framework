@@ -2,6 +2,7 @@
 // Deals Repository
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { eq, and, desc, asc, sql } from "drizzle-orm"
 import { deals, type Deal, type NewDeal } from "../schema.js"
 
@@ -35,13 +36,12 @@ export type Pipeline = Record<string, PipelineStage>
 
 export class DealsRepository {
   constructor(
-    private readonly db: unknown,
+    private readonly db: DrizzleDatabase,
     private readonly tenantId: string
   ) {}
 
   async create(data: Omit<NewDeal, "id" | "createdAt" | "updatedAt" | "tenantId">): Promise<Deal> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .insert(deals)
       .values({
         ...data,
@@ -49,12 +49,11 @@ export class DealsRepository {
       })
       .returning()
 
-    return result
+    return result!
   }
 
   async findById(id: string): Promise<Deal | null> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select()
       .from(deals)
       .where(and(eq(deals.id, id), eq(deals.tenantId, this.tenantId)))
@@ -64,8 +63,7 @@ export class DealsRepository {
   }
 
   async update(id: string, data: Partial<Omit<Deal, "id" | "tenantId" | "createdAt">>): Promise<Deal | null> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .update(deals)
       .set({
         ...data,
@@ -78,8 +76,7 @@ export class DealsRepository {
   }
 
   async delete(id: string): Promise<boolean> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .delete(deals)
       .where(and(eq(deals.id, id), eq(deals.tenantId, this.tenantId)))
       .returning()
@@ -88,20 +85,16 @@ export class DealsRepository {
   }
 
   async list(options: DealListOptions): Promise<DealListResult> {
-    const db = this.db as any
     const { limit, offset, sortBy = "createdAt", sortOrder = "desc" } = options
 
-    let query = db
-      .select()
-      .from(deals)
-      .where(eq(deals.tenantId, this.tenantId))
+    const conditions = [eq(deals.tenantId, this.tenantId)]
 
     if (options.contactId) {
-      query = query.where(eq(deals.contactId, options.contactId))
+      conditions.push(eq(deals.contactId, options.contactId))
     }
 
     if (options.stage) {
-      query = query.where(eq(deals.stage, options.stage))
+      conditions.push(eq(deals.stage, options.stage))
     }
 
     const sortColumns = {
@@ -111,20 +104,24 @@ export class DealsRepository {
     } as const
     const orderFn = sortOrder === "asc" ? asc : desc
     const sortColumn = sortColumns[sortBy] ?? deals.createdAt
-    query = query.orderBy(orderFn(sortColumn))
 
-    const items = await query.limit(limit).offset(offset)
+    const items = await this.db
+      .select()
+      .from(deals)
+      .where(and(...conditions))
+      .orderBy(orderFn(sortColumn))
+      .limit(limit)
+      .offset(offset)
 
     return { items }
   }
 
   async getPipeline(): Promise<Pipeline> {
-    const db = this.db as any
     const stages = ["lead", "qualified", "proposal", "negotiation", "won", "lost"]
     const pipeline: Pipeline = {}
 
     for (const stage of stages) {
-      const result = await db
+      const result = await this.db
         .select({
           count: sql<number>`count(*)`,
           totalValue: sql<number>`coalesce(sum(value), 0)`,
@@ -133,8 +130,8 @@ export class DealsRepository {
         .where(and(eq(deals.tenantId, this.tenantId), eq(deals.stage, stage)))
 
       pipeline[stage] = {
-        count: result[0]?.count ?? 0,
-        totalValue: result[0]?.totalValue ?? 0,
+        count: Number(result[0]?.count ?? 0),
+        totalValue: Number(result[0]?.totalValue ?? 0),
       }
     }
 
@@ -142,22 +139,20 @@ export class DealsRepository {
   }
 
   async count(): Promise<number> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select({ count: sql<number>`count(*)` })
       .from(deals)
       .where(eq(deals.tenantId, this.tenantId))
 
-    return result[0]?.count ?? 0
+    return Number(result[0]?.count ?? 0)
   }
 
   async getTotalValue(): Promise<number> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select({ total: sql<number>`coalesce(sum(value), 0)` })
       .from(deals)
       .where(eq(deals.tenantId, this.tenantId))
 
-    return result[0]?.total ?? 0
+    return Number(result[0]?.total ?? 0)
   }
 }

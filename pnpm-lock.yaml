@@ -175,12 +175,21 @@ importers:
       '@nyoworks/api':
         specifier: workspace:*
         version: link:../../packages/api
+      '@nyoworks/database':
+        specifier: workspace:*
+        version: link:../../packages/database
+      '@nyoworks/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       '@trpc/server':
         specifier: ^11.9.0
         version: 11.9.0(typescript@5.9.3)
       hono:
         specifier: ^4.11.9
         version: 4.11.9
+      ioredis:
+        specifier: ^5.6.1
+        version: 5.9.2
     devDependencies:
       '@types/node':
         specifier: ^25.2.2
@@ -302,6 +311,9 @@ importers:
 
   packages/api-client:
     dependencies:
+      '@nyoworks/shared':
+        specifier: workspace:*
+        version: link:../shared
       '@tanstack/react-query':
         specifier: ^5.90.20
         version: 5.90.20(react@19.2.4)
@@ -366,6 +378,9 @@ importers:
 
   packages/database:
     dependencies:
+      '@nyoworks/shared':
+        specifier: workspace:*
+        version: link:../shared
       '@paralleldrive/cuid2':
         specifier: ^3.3.0
         version: 3.3.0
@@ -388,6 +403,12 @@ importers:
 
   packages/features/analytics:
     dependencies:
+      '@nyoworks/api':
+        specifier: workspace:*
+        version: link:../../api
+      '@nyoworks/database':
+        specifier: workspace:*
+        version: link:../../database
       '@nyoworks/shared':
         specifier: workspace:*
         version: link:../../shared
@@ -422,6 +443,12 @@ importers:
 
   packages/features/appointments:
     dependencies:
+      '@nyoworks/api':
+        specifier: workspace:*
+        version: link:../../api
+      '@nyoworks/database':
+        specifier: workspace:*
+        version: link:../../database
       '@nyoworks/shared':
         specifier: workspace:*
         version: link:../../shared
@@ -456,6 +483,12 @@ importers:
 
   packages/features/audit:
     dependencies:
+      '@nyoworks/api':
+        specifier: workspace:*
+        version: link:../../api
+      '@nyoworks/database':
+        specifier: workspace:*
+        version: link:../../database
       '@nyoworks/shared':
         specifier: workspace:*
         version: link:../../shared
@@ -490,6 +523,12 @@ importers:
 
   packages/features/auth-social:
     dependencies:
+      '@nyoworks/api':
+        specifier: workspace:*
+        version: link:../../api
+      '@nyoworks/database':
+        specifier: workspace:*
+        version: link:../../database
       '@nyoworks/shared':
         specifier: workspace:*
         version: link:../../shared
@@ -524,6 +563,12 @@ importers:
 
   packages/features/crm:
     dependencies:
+      '@nyoworks/api':
+        specifier: workspace:*
+        version: link:../../api
+      '@nyoworks/database':
+        specifier: workspace:*
+        version: link:../../database
       '@nyoworks/shared':
         specifier: workspace:*
         version: link:../../shared
@@ -558,6 +603,12 @@ importers:
 
   packages/features/export:
     dependencies:
+      '@nyoworks/api':
+        specifier: workspace:*
+        version: link:../../api
+      '@nyoworks/database':
+        specifier: workspace:*
+        version: link:../../database
       '@nyoworks/shared':
         specifier: workspace:*
         version: link:../../shared
@@ -601,6 +652,12 @@ importers:
 
   packages/features/i18n:
     dependencies:
+      '@nyoworks/api':
+        specifier: workspace:*
+        version: link:../../api
+      '@nyoworks/database':
+        specifier: workspace:*
+        version: link:../../database
       '@nyoworks/shared':
         specifier: workspace:*
         version: link:../../shared
@@ -635,6 +692,9 @@ importers:
 
   packages/features/multitenant:
     dependencies:
+      '@nyoworks/api':
+        specifier: workspace:*
+        version: link:../../api
       '@nyoworks/database':
         specifier: workspace:*
         version: link:../../database
@@ -672,6 +732,12 @@ importers:
 
   packages/features/notifications:
     dependencies:
+      '@nyoworks/api':
+        specifier: workspace:*
+        version: link:../../api
+      '@nyoworks/database':
+        specifier: workspace:*
+        version: link:../../database
       '@nyoworks/shared':
         specifier: workspace:*
         version: link:../../shared
@@ -709,6 +775,12 @@ importers:
 
   packages/features/payments:
     dependencies:
+      '@nyoworks/api':
+        specifier: workspace:*
+        version: link:../../api
+      '@nyoworks/database':
+        specifier: workspace:*
+        version: link:../../database
       '@nyoworks/shared':
         specifier: workspace:*
         version: link:../../shared
@@ -746,6 +818,12 @@ importers:
 
   packages/features/realtime:
     dependencies:
+      '@nyoworks/api':
+        specifier: workspace:*
+        version: link:../../api
+      '@nyoworks/database':
+        specifier: workspace:*
+        version: link:../../database
       '@nyoworks/shared':
         specifier: workspace:*
         version: link:../../shared
@@ -786,6 +864,12 @@ importers:
 
   packages/features/search:
     dependencies:
+      '@nyoworks/api':
+        specifier: workspace:*
+        version: link:../../api
+      '@nyoworks/database':
+        specifier: workspace:*
+        version: link:../../database
       '@nyoworks/shared':
         specifier: workspace:*
         version: link:../../shared
@@ -826,6 +910,12 @@ importers:
       '@aws-sdk/s3-request-presigner':
         specifier: ^3.985.0
         version: 3.985.0
+      '@nyoworks/api':
+        specifier: workspace:*
+        version: link:../../api
+      '@nyoworks/database':
+        specifier: workspace:*
+        version: link:../../database
       '@nyoworks/shared':
         specifier: workspace:*
         version: link:../../shared
@@ -860,6 +950,12 @@ importers:
 
   packages/features/subscriptions:
     dependencies:
+      '@nyoworks/api':
+        specifier: workspace:*
+        version: link:../../api
+      '@nyoworks/database':
+        specifier: workspace:*
+        version: link:../../database
       '@nyoworks/shared':
         specifier: workspace:*
         version: link:../../shared
@@ -893,10 +989,20 @@ importers:
         version: 5.9.3
 
   packages/shared:
+    dependencies:
+      react:
+        specifier: ^18.0.0 || ^19.0.0
+        version: 19.2.4
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
     devDependencies:
       '@types/node':
         specifier: ^25.2.2
         version: 25.2.2
+      '@types/react':
+        specifier: ^19.1.9
+        version: 19.2.13
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -2455,6 +2561,9 @@ packages:
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
     cpu: [x64]
     os: [win32]
+
+  '@ioredis/commands@1.5.0':
+    resolution: {integrity: sha512-eUgLqrMf8nJkZxT24JvVRrQya1vZkQh8BBeYNwGDqa5I0VUi8ACx7uFvAaLxintokpTenkK6DASvo/bvNbBGow==}
 
   '@isaacs/balanced-match@4.0.1':
     resolution: {integrity: sha512-yzMTt9lEb8Gv7zRioUilSglI0c0smZ9k5D65677DLWLtWJaXIS3CqcGyUFByYKlnUj6TkjLVs54fBl6+TiGQDQ==}
@@ -4234,6 +4343,10 @@ packages:
     resolution: {integrity: sha512-eYm0QWBtUrBWZWG0d386OGAw16Z995PiOVo2B7bjWSbHedGl5e0ZWaq65kOGgUSNesEIDkB9ISbTg/JK9dhCZA==}
     engines: {node: '>=6'}
 
+  cluster-key-slot@1.1.2:
+    resolution: {integrity: sha512-RMr0FhtfXemyinomL4hrWcYJxmX6deFdCxpJzhDttxgO1+bcCnkk+9drydLVDmAMG7NE6aN/fl4F7ucU/90gAA==}
+    engines: {node: '>=0.10.0'}
+
   color-convert@1.9.3:
     resolution: {integrity: sha512-QfAUtd+vFdAtFQcC8CCyYt1fYWxSqAiK2cSD6zDB8N3cpsEBAvRxp9zOGg6G/SHHJYAT88/az/IuDGALsNVbGg==}
 
@@ -4407,6 +4520,10 @@ packages:
   define-properties@1.2.1:
     resolution: {integrity: sha512-8QmQKqEASLd5nx0U1B1okLElbUuuttJ/AnYmRXbbbGDWh6uS208EjD4Xqq/I9wK7u0v6O08XhTWnt5XtEbR6Dg==}
     engines: {node: '>= 0.4'}
+
+  denque@2.1.0:
+    resolution: {integrity: sha512-HVQE3AAb/pxF8fQAoiqpvg9i3evqug3hoiwakOyZAwJm+6vZehbkYXZ0l4JxS+I3QxM97v5aaRNhj8v5oBhekw==}
+    engines: {node: '>=0.10'}
 
   depd@2.0.0:
     resolution: {integrity: sha512-g7nH6P6dyDioJogAAGprGpCtVImJhpPk/roCzdb3fIh61/s/nPsfR6onyMwkCAR/OlC3yBC0lESvUoQEAssIrw==}
@@ -5126,6 +5243,10 @@ packages:
   iobuffer@5.4.0:
     resolution: {integrity: sha512-DRebOWuqDvxunfkNJAlc3IzWIPD5xVxwUNbHr7xKB8E6aLJxIPfNX3CoMJghcFjpv6RWQsrcJbghtEwSPoJqMA==}
 
+  ioredis@5.9.2:
+    resolution: {integrity: sha512-tAAg/72/VxOUW7RQSX1pIxJVucYKcjFjfvj60L57jrZpYCHC3XN0WCQ3sNYL4Gmvv+7GPvTAjc+KSdeNuE8oWQ==}
+    engines: {node: '>=12.22.0'}
+
   ip-address@10.0.1:
     resolution: {integrity: sha512-NWv9YLW4PoW2B7xtzaS3NCot75m6nK7Icdv0o3lfMceJVRfSoQwqD4wEH5rLwoKJwUiZ/rfpiVBhnaF0FK4HoA==}
     engines: {node: '>= 12'}
@@ -5565,6 +5686,12 @@ packages:
 
   lodash.debounce@4.0.8:
     resolution: {integrity: sha512-FT1yDzDYEoYWhnSGnpE/4Kj1fLZkDFyqRb7fNt6FdYOSxlUWAtp42Eh6Wb0rGIv/m9Bgo7x4GhQbm5Ys4SG5ow==}
+
+  lodash.defaults@4.2.0:
+    resolution: {integrity: sha512-qjxPLHd3r5DnsdGacqOMU6pb/avJzdh9tFX2ymgoZE27BmjXrNy/y4LoaiTeAb+O3gL8AfpJGtqfX/ae2leYYQ==}
+
+  lodash.isarguments@3.1.0:
+    resolution: {integrity: sha512-chi4NHZlZqZD18a0imDHnZPrDeBbTtVN7GXMwuGdRH9qotxAjYs3aVLKc7zNOG9eddR5Ksd8rvFEBc9SsggPpg==}
 
   lodash.throttle@4.1.1:
     resolution: {integrity: sha512-wIkUCfVKpVsWo3JSZlc+8MB5it+2AN5W8J7YVMST30UrvcQNZ1Okbj+rbVniijTWE6FGYy4XJq/rHkas8qJMLQ==}
@@ -6259,6 +6386,14 @@ packages:
     resolution: {integrity: sha512-GDhwkLfywWL2s6vEjyhri+eXmfH6j1L7JE27WhqLeYzoh/A3DBaYGEj2H/HFZCn/kMfim73FXxEJTw06WtxQwg==}
     engines: {node: '>= 14.18.0'}
 
+  redis-errors@1.2.0:
+    resolution: {integrity: sha512-1qny3OExCf0UvUV/5wpYKf2YwPcOqXzkwKKSmKHiE6ZMQs5heeE/c8eXK+PNllPvmjgAbfnsbpkGZWy8cBpn9w==}
+    engines: {node: '>=4'}
+
+  redis-parser@3.0.0:
+    resolution: {integrity: sha512-DJnGAeenTdpMEH6uAJRK/uiyEIH9WVsUmoLwzudwGJUwZPp80PDBWPHXSAGNPwNvIXAbe7MSUB1zQFugFml66A==}
+    engines: {node: '>=4'}
+
   regenerate-unicode-properties@10.2.2:
     resolution: {integrity: sha512-m03P+zhBeQd1RGnYxrGyDAPpWX/epKirLrp8e3qevZdVkKtnCrjjWczIbYc8+xd6vcTStVlqfycTx1KR4LOr0g==}
     engines: {node: '>=4'}
@@ -6527,6 +6662,9 @@ packages:
   stacktrace-parser@0.1.11:
     resolution: {integrity: sha512-WjlahMgHmCJpqzU8bIBy4qtsZdU9lRlcZE3Lvyej6t4tuOuv1vk57OW3MBrj6hXBFx/nNoC9MPMTcr5YA7NQbg==}
     engines: {node: '>=6'}
+
+  standard-as-callback@2.1.0:
+    resolution: {integrity: sha512-qoRRSyROncaz1z0mvYqIE4lCd9p2R90i6GxW3uZv5ucSu8tU7B5HXUP1gG8pVZsYNVaXjk8ClXHPttLyxAL48A==}
 
   standardwebhooks@1.0.0:
     resolution: {integrity: sha512-BbHGOQK9olHPMvQNHWul6MYlrRTAOKn03rOe4A8O3CLWhNf4YHBqq2HJKKC+sfqpxiBY52pNeesD6jIiLDz8jg==}
@@ -8987,6 +9125,8 @@ snapshots:
   '@img/sharp-win32-x64@0.34.5':
     optional: true
 
+  '@ioredis/commands@1.5.0': {}
+
   '@isaacs/balanced-match@4.0.1': {}
 
   '@isaacs/brace-expansion@5.0.1':
@@ -10978,6 +11118,8 @@ snapshots:
 
   clsx@2.1.1: {}
 
+  cluster-key-slot@1.1.2: {}
+
   color-convert@1.9.3:
     dependencies:
       color-name: 1.1.3
@@ -11138,6 +11280,8 @@ snapshots:
       define-data-property: 1.1.4
       has-property-descriptors: 1.0.2
       object-keys: 1.1.1
+
+  denque@2.1.0: {}
 
   depd@2.0.0: {}
 
@@ -11889,6 +12033,20 @@ snapshots:
 
   iobuffer@5.4.0: {}
 
+  ioredis@5.9.2:
+    dependencies:
+      '@ioredis/commands': 1.5.0
+      cluster-key-slot: 1.1.2
+      debug: 4.4.3
+      denque: 2.1.0
+      lodash.defaults: 4.2.0
+      lodash.isarguments: 3.1.0
+      redis-errors: 1.2.0
+      redis-parser: 3.0.0
+      standard-as-callback: 2.1.0
+    transitivePeerDependencies:
+      - supports-color
+
   ip-address@10.0.1: {}
 
   ipaddr.js@1.9.1: {}
@@ -12269,6 +12427,10 @@ snapshots:
       p-locate: 4.1.0
 
   lodash.debounce@4.0.8: {}
+
+  lodash.defaults@4.2.0: {}
+
+  lodash.isarguments@3.1.0: {}
 
   lodash.throttle@4.1.1: {}
 
@@ -13082,6 +13244,12 @@ snapshots:
 
   readdirp@4.1.2: {}
 
+  redis-errors@1.2.0: {}
+
+  redis-parser@3.0.0:
+    dependencies:
+      redis-errors: 1.2.0
+
   regenerate-unicode-properties@10.2.2:
     dependencies:
       regenerate: 1.4.2
@@ -13415,6 +13583,8 @@ snapshots:
   stacktrace-parser@0.1.11:
     dependencies:
       type-fest: 0.7.1
+
+  standard-as-callback@2.1.0: {}
 
   standardwebhooks@1.0.0:
     dependencies:

@@ -2,7 +2,7 @@
 // Payments Feature - tRPC Router
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { initTRPC, TRPCError } from "@trpc/server"
+import { router, publicProcedure, protectedProcedure } from "@nyoworks/api"
 import { getStripeClient } from "./stripe.js"
 import {
   createCheckoutSessionInput,
@@ -13,40 +13,10 @@ import {
 } from "./validators.js"
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Context Type
-// ─────────────────────────────────────────────────────────────────────────────
-
-interface PaymentsContext {
-  user?: { id: string; email: string }
-  tenantId?: string
-  db: unknown
-}
-
-const t = initTRPC.context<PaymentsContext>().create()
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Middleware
-// ─────────────────────────────────────────────────────────────────────────────
-
-const isAuthenticated = t.middleware(({ ctx, next }) => {
-  if (!ctx.user) {
-    throw new TRPCError({ code: "UNAUTHORIZED" })
-  }
-  return next({
-    ctx: {
-      ...ctx,
-      user: ctx.user,
-    },
-  })
-})
-
-const protectedProcedure = t.procedure.use(isAuthenticated)
-
-// ─────────────────────────────────────────────────────────────────────────────
 // Router
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const paymentsRouter = t.router({
+export const paymentsRouter = router({
   createCheckoutSession: protectedProcedure
     .input(createCheckoutSessionInput)
     .mutation(async ({ input, ctx }) => {
@@ -157,7 +127,7 @@ export const paymentsRouter = t.router({
       }
     }),
 
-  getPlans: t.procedure.query(async () => {
+  getPlans: publicProcedure.query(async () => {
     const stripe = getStripeClient()
 
     const prices = await stripe.prices.list({

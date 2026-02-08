@@ -40,12 +40,18 @@ const isAuthed = t.middleware(({ ctx, next }) => {
   return next({
     ctx: {
       ...ctx,
-      user: ctx.user,
+      user: ctx.user as NonNullable<typeof ctx.user>,
     },
   })
 })
 
 const hasTenant = t.middleware(({ ctx, next }) => {
+  if (!ctx.user) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You must be logged in to access this resource",
+    })
+  }
   if (!ctx.tenantId) {
     throw new TRPCError({
       code: "BAD_REQUEST",
@@ -55,7 +61,23 @@ const hasTenant = t.middleware(({ ctx, next }) => {
   return next({
     ctx: {
       ...ctx,
-      tenantId: ctx.tenantId,
+      user: ctx.user as NonNullable<typeof ctx.user>,
+      tenantId: ctx.tenantId as NonNullable<typeof ctx.tenantId>,
+    },
+  })
+})
+
+const requiresTenant = t.middleware(({ ctx, next }) => {
+  if (!ctx.tenantId) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Tenant ID is required",
+    })
+  }
+  return next({
+    ctx: {
+      ...ctx,
+      tenantId: ctx.tenantId as NonNullable<typeof ctx.tenantId>,
     },
   })
 })
@@ -66,6 +88,7 @@ const hasTenant = t.middleware(({ ctx, next }) => {
 
 export const router = t.router
 export const publicProcedure = t.procedure
+export const publicTenantProcedure = t.procedure.use(requiresTenant)
 export const protectedProcedure = t.procedure.use(isAuthed)
 export const tenantProcedure = t.procedure.use(isAuthed).use(hasTenant)
 export const createCallerFactory = t.createCallerFactory

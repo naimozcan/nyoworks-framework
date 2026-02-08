@@ -2,6 +2,7 @@
 // Appointments Service
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { TRPCError } from "@trpc/server"
 import {
   ServicesRepository,
@@ -155,7 +156,7 @@ export class AppointmentsService {
   private readonly availabilityRepo: AvailabilityRepository
   private readonly appointmentsRepo: AppointmentsRepository
 
-  constructor(db: unknown, tenantId: string) {
+  constructor(db: DrizzleDatabase, tenantId: string) {
     this.servicesRepo = new ServicesRepository(db, tenantId)
     this.providersRepo = new ProvidersRepository(db, tenantId)
     this.availabilityRepo = new AvailabilityRepository(db)

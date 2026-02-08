@@ -2,7 +2,7 @@
 // Multitenant Feature - tRPC Router
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { initTRPC, TRPCError } from "@trpc/server"
+import { router, publicProcedure, protectedProcedure, tenantProcedure } from "@nyoworks/api"
 import {
   createTenantInput,
   updateTenantInput,
@@ -22,57 +22,10 @@ import {
 import { MultitenantService } from "./services/index.js"
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Context Type
-// ─────────────────────────────────────────────────────────────────────────────
-
-interface MultitenantContext {
-  user?: { id: string; email: string }
-  tenantId?: string
-  db: unknown
-}
-
-const t = initTRPC.context<MultitenantContext>().create()
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Middleware
-// ─────────────────────────────────────────────────────────────────────────────
-
-const isAuthenticated = t.middleware(({ ctx, next }) => {
-  if (!ctx.user) {
-    throw new TRPCError({ code: "UNAUTHORIZED" })
-  }
-  return next({
-    ctx: {
-      ...ctx,
-      user: ctx.user,
-    },
-  })
-})
-
-const hasTenantContext = t.middleware(({ ctx, next }) => {
-  if (!ctx.user) {
-    throw new TRPCError({ code: "UNAUTHORIZED" })
-  }
-  if (!ctx.tenantId) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "Tenant context required" })
-  }
-  return next({
-    ctx: {
-      ...ctx,
-      user: ctx.user,
-      tenantId: ctx.tenantId,
-    },
-  })
-})
-
-const protectedProcedure = t.procedure.use(isAuthenticated)
-const tenantProcedure = t.procedure.use(hasTenantContext)
-
-// ─────────────────────────────────────────────────────────────────────────────
 // Tenants Router
 // ─────────────────────────────────────────────────────────────────────────────
 
-const tenantsRouter = t.router({
+const tenantsRouter = router({
   create: protectedProcedure
     .input(createTenantInput)
     .mutation(async ({ input, ctx }) => {
@@ -94,7 +47,7 @@ const tenantsRouter = t.router({
       return service.getTenant(input.tenantId)
     }),
 
-  getBySlug: t.procedure
+  getBySlug: publicProcedure
     .input(getTenantBySlugInput)
     .query(async ({ input, ctx }) => {
       const service = new MultitenantService(ctx.db)
@@ -120,7 +73,7 @@ const tenantsRouter = t.router({
 // Members Router
 // ─────────────────────────────────────────────────────────────────────────────
 
-const membersRouter = t.router({
+const membersRouter = router({
   invite: tenantProcedure
     .input(inviteMemberInput)
     .mutation(async ({ input, ctx }) => {
@@ -175,7 +128,7 @@ const membersRouter = t.router({
 // Switch Tenant
 // ─────────────────────────────────────────────────────────────────────────────
 
-const switchRouter = t.router({
+const switchRouter = router({
   switch: protectedProcedure
     .input(switchTenantInput)
     .mutation(async ({ input, ctx }) => {
@@ -188,7 +141,7 @@ const switchRouter = t.router({
 // Main Router
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const multitenantRouter = t.router({
+export const multitenantRouter = router({
   tenants: tenantsRouter,
   members: membersRouter,
   switch: switchRouter.switch,

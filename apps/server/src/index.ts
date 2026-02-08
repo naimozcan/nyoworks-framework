@@ -5,11 +5,25 @@
 import { Hono } from "hono"
 import { trpcServer } from "@hono/trpc-server"
 import { appRouter, createContext } from "@nyoworks/api"
+import { createDatabase } from "@nyoworks/database"
+import { validateServerEnv } from "@nyoworks/shared/env"
 
 import { corsMiddleware } from "./middleware/cors"
 import { loggerMiddleware, requestIdMiddleware } from "./middleware/logger"
 import { rateLimitMiddleware } from "./middleware/rate-limit"
 import { healthRoutes } from "./routes/health"
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Environment Validation (fails fast on startup)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const env = validateServerEnv()
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Database Connection
+// ─────────────────────────────────────────────────────────────────────────────
+
+const db = createDatabase(env.DATABASE_URL)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // App Setup
@@ -49,6 +63,11 @@ app.use(
         authorization,
         tenantId,
         requestId,
+        db,
+        requestInfo: {
+          userAgent: req.headers.get("User-Agent") ?? undefined,
+          ipAddress: req.headers.get("X-Forwarded-For") ?? undefined,
+        },
       })
       return ctx as unknown as Record<string, unknown>
     },
@@ -74,7 +93,7 @@ app.get("/", (c) => {
 
 import { serve } from "@hono/node-server"
 
-const port = Number(process.env.PORT) || 3001
+const port = env.PORT
 
 console.log(`
 ╔═══════════════════════════════════════════════════════════════════════════════╗

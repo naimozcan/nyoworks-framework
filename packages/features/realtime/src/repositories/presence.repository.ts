@@ -2,6 +2,7 @@
 // Presence Repository
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { eq, and, gt } from "drizzle-orm"
 import { presenceRecords, type PresenceRecord, type NewPresenceRecord } from "../schema.js"
 
@@ -19,23 +20,19 @@ interface UpdatePresenceData {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class PresenceRepository {
-  constructor(private readonly db: unknown) {}
+  constructor(private readonly db: DrizzleDatabase) {}
 
   async create(data: Omit<NewPresenceRecord, "id" | "connectedAt" | "lastSeenAt">): Promise<PresenceRecord> {
-    const db = this.db as any
-
-    const [result] = await db
+    const [result] = await this.db
       .insert(presenceRecords)
       .values(data)
       .returning()
 
-    return result
+    return result!
   }
 
   async findByChannelAndUser(channelId: string, userId: string): Promise<PresenceRecord | null> {
-    const db = this.db as any
-
-    const result = await db
+    const result = await this.db
       .select()
       .from(presenceRecords)
       .where(and(eq(presenceRecords.channelId, channelId), eq(presenceRecords.userId, userId)))
@@ -45,24 +42,20 @@ class PresenceRepository {
   }
 
   async findByChannel(channelId: string, staleThreshold?: Date): Promise<PresenceRecord[]> {
-    const db = this.db as any
-
     const conditions = [eq(presenceRecords.channelId, channelId)]
 
     if (staleThreshold) {
       conditions.push(gt(presenceRecords.lastSeenAt, staleThreshold))
     }
 
-    return db
+    return this.db
       .select()
       .from(presenceRecords)
       .where(and(...conditions))
   }
 
   async update(channelId: string, userId: string, data: UpdatePresenceData): Promise<PresenceRecord | null> {
-    const db = this.db as any
-
-    const [result] = await db
+    const [result] = await this.db
       .update(presenceRecords)
       .set({
         ...data,
@@ -75,9 +68,7 @@ class PresenceRepository {
   }
 
   async updateById(id: string, data: UpdatePresenceData): Promise<PresenceRecord | null> {
-    const db = this.db as any
-
-    const [result] = await db
+    const [result] = await this.db
       .update(presenceRecords)
       .set({
         ...data,
@@ -90,9 +81,7 @@ class PresenceRepository {
   }
 
   async delete(channelId: string, userId: string): Promise<boolean> {
-    const db = this.db as any
-
-    const result = await db
+    const result = await this.db
       .delete(presenceRecords)
       .where(and(eq(presenceRecords.channelId, channelId), eq(presenceRecords.userId, userId)))
       .returning()
@@ -101,9 +90,7 @@ class PresenceRepository {
   }
 
   async heartbeat(channelId: string, userId: string): Promise<boolean> {
-    const db = this.db as any
-
-    const result = await db
+    const result = await this.db
       .update(presenceRecords)
       .set({ lastSeenAt: new Date() })
       .where(and(eq(presenceRecords.channelId, channelId), eq(presenceRecords.userId, userId)))

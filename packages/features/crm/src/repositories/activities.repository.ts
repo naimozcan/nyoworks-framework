@@ -2,6 +2,7 @@
 // Activities Repository
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { eq, desc, sql } from "drizzle-orm"
 import { activities, type Activity, type NewActivity } from "../schema.js"
 
@@ -25,21 +26,19 @@ export interface ActivityListResult {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export class ActivitiesRepository {
-  constructor(private readonly db: unknown) {}
+  constructor(private readonly db: DrizzleDatabase) {}
 
   async create(data: Omit<NewActivity, "id" | "createdAt">): Promise<Activity> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .insert(activities)
       .values(data)
       .returning()
 
-    return result
+    return result!
   }
 
   async findById(id: string): Promise<Activity | null> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select()
       .from(activities)
       .where(eq(activities.id, id))
@@ -49,8 +48,7 @@ export class ActivitiesRepository {
   }
 
   async update(id: string, data: Partial<Omit<Activity, "id" | "contactId" | "userId" | "createdAt">>): Promise<Activity | null> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .update(activities)
       .set(data)
       .where(eq(activities.id, id))
@@ -60,8 +58,7 @@ export class ActivitiesRepository {
   }
 
   async delete(id: string): Promise<boolean> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .delete(activities)
       .where(eq(activities.id, id))
       .returning()
@@ -70,18 +67,21 @@ export class ActivitiesRepository {
   }
 
   async list(options: ActivityListOptions): Promise<ActivityListResult> {
-    const db = this.db as any
     const { limit, offset } = options
 
-    let query = db.select().from(activities)
+    const conditions = []
 
     if (options.contactId) {
-      query = query.where(eq(activities.contactId, options.contactId))
+      conditions.push(eq(activities.contactId, options.contactId))
     }
 
     if (options.type) {
-      query = query.where(eq(activities.type, options.type))
+      conditions.push(eq(activities.type, options.type))
     }
+
+    const query = conditions.length > 0
+      ? this.db.select().from(activities).where(eq(activities.contactId, options.contactId!))
+      : this.db.select().from(activities)
 
     const items = await query
       .orderBy(desc(activities.createdAt))
@@ -92,12 +92,11 @@ export class ActivitiesRepository {
   }
 
   async countByContact(contactId: string): Promise<number> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select({ count: sql<number>`count(*)` })
       .from(activities)
       .where(eq(activities.contactId, contactId))
 
-    return result[0]?.count ?? 0
+    return Number(result[0]?.count ?? 0)
   }
 }

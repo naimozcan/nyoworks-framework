@@ -2,6 +2,7 @@
 // Analytics Events Repository
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { eq, and, gte, lte, sql, desc, count } from "drizzle-orm"
 import { analyticsEvents, type AnalyticsEvent, type NewAnalyticsEvent } from "../schema.js"
 
@@ -32,7 +33,7 @@ export interface EventCount {
 
 export class EventsRepository {
   constructor(
-    private readonly db: any,
+    private readonly db: DrizzleDatabase,
     private readonly tenantId: string
   ) {}
 
@@ -45,7 +46,7 @@ export class EventsRepository {
       })
       .returning()
 
-    return result
+    return result!
   }
 
   async findById(id: string): Promise<AnalyticsEvent | null> {

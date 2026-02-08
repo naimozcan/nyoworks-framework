@@ -2,6 +2,7 @@
 // Availability Repository
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { eq, and, asc } from "drizzle-orm"
 import { availability, type Availability, type NewAvailability } from "../schema.js"
 
@@ -18,21 +19,19 @@ export interface AvailabilityListResult {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export class AvailabilityRepository {
-  constructor(private readonly db: unknown) {}
+  constructor(private readonly db: DrizzleDatabase) {}
 
   async create(data: Omit<NewAvailability, "id" | "createdAt" | "updatedAt">): Promise<Availability> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .insert(availability)
       .values(data)
       .returning()
 
-    return result
+    return result!
   }
 
   async findById(id: string): Promise<Availability | null> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select()
       .from(availability)
       .where(eq(availability.id, id))
@@ -42,8 +41,7 @@ export class AvailabilityRepository {
   }
 
   async findByProviderAndDay(providerId: string, dayOfWeek: number): Promise<Availability | null> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select()
       .from(availability)
       .where(and(eq(availability.providerId, providerId), eq(availability.dayOfWeek, dayOfWeek)))
@@ -53,8 +51,7 @@ export class AvailabilityRepository {
   }
 
   async update(id: string, data: Partial<Omit<Availability, "id" | "providerId" | "createdAt">>): Promise<Availability | null> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .update(availability)
       .set({
         ...data,
@@ -67,8 +64,7 @@ export class AvailabilityRepository {
   }
 
   async delete(id: string): Promise<boolean> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .delete(availability)
       .where(eq(availability.id, id))
       .returning()
@@ -77,8 +73,7 @@ export class AvailabilityRepository {
   }
 
   async listByProvider(providerId: string): Promise<AvailabilityListResult> {
-    const db = this.db as any
-    const items = await db
+    const items = await this.db
       .select()
       .from(availability)
       .where(eq(availability.providerId, providerId))
@@ -88,8 +83,7 @@ export class AvailabilityRepository {
   }
 
   async getActiveByProviderAndDay(providerId: string, dayOfWeek: number): Promise<Availability | null> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select()
       .from(availability)
       .where(
@@ -105,8 +99,7 @@ export class AvailabilityRepository {
   }
 
   async getActiveByProvider(providerId: string): Promise<Availability[]> {
-    const db = this.db as any
-    return db
+    return this.db
       .select()
       .from(availability)
       .where(and(eq(availability.providerId, providerId), eq(availability.isAvailable, true)))

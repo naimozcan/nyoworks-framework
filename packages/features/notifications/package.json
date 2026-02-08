@@ -1,6 +1,6 @@
 {
   "name": "@nyoworks/feature-notifications",
-  "version": "2.6.0",
+  "version": "2.7.0",
   "description": "Notifications feature for NYOWORKS projects - Email, SMS, Push notifications",
   "type": "module",
   "main": "dist/index.js",
@@ -30,6 +30,8 @@
     "resend": "^6.9.1"
   },
   "peerDependencies": {
+    "@nyoworks/api": "workspace:*",
+    "@nyoworks/database": "workspace:*",
     "@trpc/server": "^11.0.0",
     "drizzle-orm": "^0.45.0",
     "react": "^19.0.0",

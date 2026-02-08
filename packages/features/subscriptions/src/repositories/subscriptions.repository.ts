@@ -2,6 +2,7 @@
 // Subscriptions Repository
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { eq, and, desc } from "drizzle-orm"
 import { userSubscriptions, type UserSubscription, type NewUserSubscription } from "../schema.js"
 
@@ -11,13 +12,12 @@ import { userSubscriptions, type UserSubscription, type NewUserSubscription } fr
 
 export class SubscriptionsRepository {
   constructor(
-    private readonly db: unknown,
+    private readonly db: DrizzleDatabase,
     private readonly tenantId: string
   ) {}
 
   async create(data: Omit<NewUserSubscription, "id" | "createdAt" | "updatedAt" | "tenantId">): Promise<UserSubscription> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .insert(userSubscriptions)
       .values({
         ...data,
@@ -25,12 +25,11 @@ export class SubscriptionsRepository {
       })
       .returning()
 
-    return result
+    return result!
   }
 
   async findById(id: string): Promise<UserSubscription | null> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select()
       .from(userSubscriptions)
       .where(and(
@@ -43,8 +42,7 @@ export class SubscriptionsRepository {
   }
 
   async findByUserId(userId: string): Promise<UserSubscription | null> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select()
       .from(userSubscriptions)
       .where(and(
@@ -58,8 +56,7 @@ export class SubscriptionsRepository {
   }
 
   async findActiveByUserId(userId: string): Promise<UserSubscription | null> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select()
       .from(userSubscriptions)
       .where(and(
@@ -77,28 +74,26 @@ export class SubscriptionsRepository {
     limit?: number
     offset?: number
   }): Promise<UserSubscription[]> {
-    const db = this.db as any
     const limit = options?.limit ?? 50
     const offset = options?.offset ?? 0
 
-    let query = db
-      .select()
-      .from(userSubscriptions)
-      .where(eq(userSubscriptions.tenantId, this.tenantId))
+    const conditions = [eq(userSubscriptions.tenantId, this.tenantId)]
 
     if (options?.status) {
-      query = query.where(eq(userSubscriptions.status, options.status))
+      conditions.push(eq(userSubscriptions.status, options.status))
     }
 
-    return query
+    return this.db
+      .select()
+      .from(userSubscriptions)
+      .where(and(...conditions))
       .orderBy(desc(userSubscriptions.createdAt))
       .limit(limit)
       .offset(offset)
   }
 
   async update(id: string, data: Partial<UserSubscription>): Promise<UserSubscription | null> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .update(userSubscriptions)
       .set({
         ...data,

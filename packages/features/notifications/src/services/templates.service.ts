@@ -2,6 +2,7 @@
 // Templates Service
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { TRPCError } from "@trpc/server"
 import { TemplatesRepository } from "../repositories/index.js"
 import { notificationTemplates } from "../schema.js"
@@ -40,7 +41,7 @@ interface UpdateTemplateInput {
 export class TemplatesService {
   private readonly repository: TemplatesRepository
 
-  constructor(db: unknown, tenantId: string) {
+  constructor(db: DrizzleDatabase, tenantId: string) {
     this.repository = new TemplatesRepository(db, tenantId)
   }
 

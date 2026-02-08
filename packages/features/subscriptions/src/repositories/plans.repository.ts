@@ -2,6 +2,7 @@
 // Plans Repository
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { eq, and, asc, sql } from "drizzle-orm"
 import { plans, userSubscriptions, type Plan, type NewPlan } from "../schema.js"
 
@@ -10,21 +11,19 @@ import { plans, userSubscriptions, type Plan, type NewPlan } from "../schema.js"
 // ─────────────────────────────────────────────────────────────────────────────
 
 export class PlansRepository {
-  constructor(private readonly db: unknown) {}
+  constructor(private readonly db: DrizzleDatabase) {}
 
   async create(data: Omit<NewPlan, "id" | "createdAt" | "updatedAt">): Promise<Plan> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .insert(plans)
       .values(data)
       .returning()
 
-    return result
+    return result!
   }
 
   async findById(id: string): Promise<Plan | null> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select()
       .from(plans)
       .where(eq(plans.id, id))
@@ -34,8 +33,7 @@ export class PlansRepository {
   }
 
   async findBySlug(slug: string): Promise<Plan | null> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select()
       .from(plans)
       .where(eq(plans.slug, slug))
@@ -45,8 +43,7 @@ export class PlansRepository {
   }
 
   async findActive(id: string): Promise<Plan | null> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select()
       .from(plans)
       .where(and(eq(plans.id, id), eq(plans.isActive, true)))
@@ -56,19 +53,22 @@ export class PlansRepository {
   }
 
   async findAll(options?: { activeOnly?: boolean }): Promise<Plan[]> {
-    const db = this.db as any
-    let query = db.select().from(plans)
-
     if (options?.activeOnly) {
-      query = query.where(eq(plans.isActive, true))
+      return this.db
+        .select()
+        .from(plans)
+        .where(eq(plans.isActive, true))
+        .orderBy(asc(plans.sortOrder), asc(plans.name))
     }
 
-    return query.orderBy(asc(plans.sortOrder), asc(plans.name))
+    return this.db
+      .select()
+      .from(plans)
+      .orderBy(asc(plans.sortOrder), asc(plans.name))
   }
 
   async update(id: string, data: Partial<Plan>): Promise<Plan | null> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .update(plans)
       .set({
         ...data,
@@ -81,8 +81,7 @@ export class PlansRepository {
   }
 
   async delete(id: string): Promise<boolean> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .delete(plans)
       .where(eq(plans.id, id))
       .returning()
@@ -91,8 +90,7 @@ export class PlansRepository {
   }
 
   async hasActiveSubscriptions(planId: string): Promise<boolean> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select({ count: sql<number>`count(*)` })
       .from(userSubscriptions)
       .where(and(
@@ -108,10 +106,8 @@ export class PlansRepository {
   }
 
   async reorder(orderings: Array<{ id: string; sortOrder: number }>): Promise<void> {
-    const db = this.db as any
-
     for (const { id, sortOrder } of orderings) {
-      await db
+      await this.db
         .update(plans)
         .set({ sortOrder, updatedAt: new Date() })
         .where(eq(plans.id, id))

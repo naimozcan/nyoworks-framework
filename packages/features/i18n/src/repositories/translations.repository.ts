@@ -2,6 +2,7 @@
 // Translations Repository
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { eq, and, like, asc, sql } from "drizzle-orm"
 import { translations, type Translation, type NewTranslation } from "../schema.js"
 
@@ -29,7 +30,7 @@ export interface ListTranslationsResult {
 
 export class TranslationsRepository {
   constructor(
-    private readonly db: any,
+    private readonly db: DrizzleDatabase,
     private readonly tenantId: string
   ) {}
 
@@ -109,7 +110,7 @@ export class TranslationsRepository {
       .from(translations)
       .where(and(...conditions))
 
-    const total = countResult?.count ?? 0
+    const total = Number(countResult?.count ?? 0)
 
     return {
       items,
@@ -144,7 +145,7 @@ export class TranslationsRepository {
       })
       .returning()
 
-    return result
+    return result!
   }
 
   async update(id: string, value: string): Promise<Translation | null> {

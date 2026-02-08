@@ -2,6 +2,7 @@
 // Tenant Members Repository
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { eq, and } from "drizzle-orm"
 import { tenantMembers, type TenantMember, type NewTenantMember } from "../schema.js"
 
@@ -19,23 +20,19 @@ interface ListOptions {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class MembersRepository {
-  constructor(private readonly db: unknown) {}
+  constructor(private readonly db: DrizzleDatabase) {}
 
   async create(data: Omit<NewTenantMember, "id">): Promise<TenantMember> {
-    const db = this.db as any
-
-    const [result] = await db
+    const [result] = await this.db
       .insert(tenantMembers)
       .values(data)
       .returning()
 
-    return result
+    return result!
   }
 
   async findByTenantAndUser(tenantId: string, userId: string): Promise<TenantMember | null> {
-    const db = this.db as any
-
-    const result = await db
+    const result = await this.db
       .select()
       .from(tenantMembers)
       .where(and(eq(tenantMembers.tenantId, tenantId), eq(tenantMembers.userId, userId)))
@@ -45,9 +42,7 @@ class MembersRepository {
   }
 
   async findByTenantUserAndRole(tenantId: string, userId: string, role: string): Promise<TenantMember | null> {
-    const db = this.db as any
-
-    const result = await db
+    const result = await this.db
       .select()
       .from(tenantMembers)
       .where(
@@ -63,9 +58,7 @@ class MembersRepository {
   }
 
   async findByUser(userId: string): Promise<{ tenantId: string }[]> {
-    const db = this.db as any
-
-    return db
+    return this.db
       .select({ tenantId: tenantMembers.tenantId })
       .from(tenantMembers)
       .where(eq(tenantMembers.userId, userId))
@@ -73,9 +66,8 @@ class MembersRepository {
 
   async list(tenantId: string, options: ListOptions): Promise<TenantMember[]> {
     const { limit, offset } = options
-    const db = this.db as any
 
-    return db
+    return this.db
       .select()
       .from(tenantMembers)
       .where(eq(tenantMembers.tenantId, tenantId))
@@ -84,9 +76,7 @@ class MembersRepository {
   }
 
   async updateRole(tenantId: string, userId: string, role: string): Promise<TenantMember | null> {
-    const db = this.db as any
-
-    const [result] = await db
+    const [result] = await this.db
       .update(tenantMembers)
       .set({ role })
       .where(and(eq(tenantMembers.tenantId, tenantId), eq(tenantMembers.userId, userId)))
@@ -96,9 +86,7 @@ class MembersRepository {
   }
 
   async delete(tenantId: string, userId: string): Promise<TenantMember | null> {
-    const db = this.db as any
-
-    const [result] = await db
+    const [result] = await this.db
       .delete(tenantMembers)
       .where(and(eq(tenantMembers.tenantId, tenantId), eq(tenantMembers.userId, userId)))
       .returning()

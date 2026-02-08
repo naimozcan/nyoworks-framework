@@ -1,6 +1,6 @@
 {
   "name": "@nyoworks/feature-export",
-  "version": "2.6.0",
+  "version": "2.7.0",
   "description": "NYOWORKS Export Feature - PDF and CSV exports",
   "type": "module",
   "main": "dist/index.js",
@@ -31,6 +31,8 @@
     "papaparse": "^5.5.3"
   },
   "peerDependencies": {
+    "@nyoworks/api": "workspace:*",
+    "@nyoworks/database": "workspace:*",
     "@trpc/server": "^11.0.0",
     "drizzle-orm": "^0.45.0",
     "react": "^19.0.0",

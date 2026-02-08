@@ -2,6 +2,8 @@
 // tRPC Context
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────────────────────────────────────────
@@ -16,13 +18,23 @@ export interface User {
 export interface Context {
   user: User | null
   tenantId: string | null
+  db: DrizzleDatabase
   requestId: string
+  requestInfo?: {
+    userAgent?: string
+    ipAddress?: string
+  }
 }
 
 export interface CreateContextOptions {
   authorization: string | null
   tenantId: string | null
+  db: DrizzleDatabase
   requestId: string
+  requestInfo?: {
+    userAgent?: string
+    ipAddress?: string
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -32,7 +44,7 @@ export interface CreateContextOptions {
 export async function createContext(
   opts: CreateContextOptions
 ): Promise<Context> {
-  const { authorization, tenantId, requestId } = opts
+  const { authorization, tenantId, db, requestId, requestInfo } = opts
 
   let user: User | null = null
 
@@ -44,7 +56,9 @@ export async function createContext(
   return {
     user,
     tenantId,
+    db,
     requestId,
+    requestInfo,
   }
 }
 

@@ -2,6 +2,7 @@
 // CRM Service
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { TRPCError } from "@trpc/server"
 import {
   ContactsRepository,
@@ -156,7 +157,7 @@ export class CRMService {
   private readonly activitiesRepo: ActivitiesRepository
   private readonly dealsRepo: DealsRepository
 
-  constructor(db: unknown, tenantId: string) {
+  constructor(db: DrizzleDatabase, tenantId: string) {
     this.contactsRepo = new ContactsRepository(db, tenantId)
     this.tagsRepo = new TagsRepository(db, tenantId)
     this.notesRepo = new NotesRepository(db)

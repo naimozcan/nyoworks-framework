@@ -2,7 +2,8 @@
 // Analytics Feature - tRPC Router
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { initTRPC, TRPCError } from "@trpc/server"
+import { TRPCError } from "@trpc/server"
+import { router, publicProcedure, publicTenantProcedure, tenantProcedure } from "@nyoworks/api"
 import {
   trackEventInput,
   trackPageviewInput,
@@ -13,33 +14,13 @@ import {
 import { AnalyticsService } from "./services/index.js"
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Context Type
-// ─────────────────────────────────────────────────────────────────────────────
-
-interface AnalyticsContext {
-  user?: { id: string }
-  tenantId?: string
-  requestInfo?: {
-    userAgent?: string
-    ipAddress?: string
-  }
-  db: unknown
-}
-
-const t = initTRPC.context<AnalyticsContext>().create()
-
-// ─────────────────────────────────────────────────────────────────────────────
 // Tracking Router (Public - no auth required)
 // ─────────────────────────────────────────────────────────────────────────────
 
-const trackRouter = t.router({
-  event: t.procedure
+const trackRouter = router({
+  event: publicTenantProcedure
     .input(trackEventInput)
     .mutation(async ({ input, ctx }) => {
-      if (!ctx.tenantId) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Tenant ID required" })
-      }
-
       const service = new AnalyticsService(ctx.db, ctx.tenantId)
       return service.trackEvent({
         userId: ctx.user?.id,
@@ -53,13 +34,9 @@ const trackRouter = t.router({
       })
     }),
 
-  pageview: t.procedure
+  pageview: publicTenantProcedure
     .input(trackPageviewInput)
     .mutation(async ({ input, ctx }) => {
-      if (!ctx.tenantId) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Tenant ID required" })
-      }
-
       const service = new AnalyticsService(ctx.db, ctx.tenantId)
       return service.trackPageview({
         userId: ctx.user?.id,
@@ -73,7 +50,7 @@ const trackRouter = t.router({
       })
     }),
 
-  identify: t.procedure
+  identify: publicProcedure
     .input(trackEventInput)
     .mutation(async ({ input, ctx }) => {
       if (!ctx.tenantId || !ctx.user?.id) {
@@ -96,14 +73,10 @@ const trackRouter = t.router({
 // Session Router
 // ─────────────────────────────────────────────────────────────────────────────
 
-const sessionRouter = t.router({
-  create: t.procedure
+const sessionRouter = router({
+  create: publicTenantProcedure
     .input(createSessionInput)
     .mutation(async ({ input, ctx }) => {
-      if (!ctx.tenantId) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Tenant ID required" })
-      }
-
       const service = new AnalyticsService(ctx.db, ctx.tenantId)
       return service.createSession({
         userId: ctx.user?.id,
@@ -114,13 +87,9 @@ const sessionRouter = t.router({
       })
     }),
 
-  update: t.procedure
+  update: publicTenantProcedure
     .input(updateSessionInput)
     .mutation(async ({ input, ctx }) => {
-      if (!ctx.tenantId) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Tenant ID required" })
-      }
-
       const service = new AnalyticsService(ctx.db, ctx.tenantId)
       return service.updateSession({
         sessionId: input.sessionId,
@@ -129,13 +98,9 @@ const sessionRouter = t.router({
       })
     }),
 
-  get: t.procedure
+  get: publicTenantProcedure
     .input(updateSessionInput.pick({ sessionId: true }))
     .query(async ({ input, ctx }) => {
-      if (!ctx.tenantId) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Tenant ID required" })
-      }
-
       const service = new AnalyticsService(ctx.db, ctx.tenantId)
       return service.getSession(input.sessionId)
     }),
@@ -145,26 +110,8 @@ const sessionRouter = t.router({
 // Query Router (Protected - auth required)
 // ─────────────────────────────────────────────────────────────────────────────
 
-const isAuthenticated = t.middleware(({ ctx, next }) => {
-  if (!ctx.user) {
-    throw new TRPCError({ code: "UNAUTHORIZED" })
-  }
-  if (!ctx.tenantId) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "Tenant ID required" })
-  }
-  return next({
-    ctx: {
-      ...ctx,
-      user: ctx.user,
-      tenantId: ctx.tenantId,
-    },
-  })
-})
-
-const protectedProcedure = t.procedure.use(isAuthenticated)
-
-const queryRouter = t.router({
-  eventCounts: protectedProcedure
+const queryRouter = router({
+  eventCounts: tenantProcedure
     .input(analyticsQueryInput)
     .query(async ({ input, ctx }) => {
       const service = new AnalyticsService(ctx.db, ctx.tenantId)
@@ -176,7 +123,7 @@ const queryRouter = t.router({
       })
     }),
 
-  topEvents: protectedProcedure
+  topEvents: tenantProcedure
     .input(analyticsQueryInput)
     .query(async ({ input, ctx }) => {
       const service = new AnalyticsService(ctx.db, ctx.tenantId)
@@ -187,7 +134,7 @@ const queryRouter = t.router({
       })
     }),
 
-  topPages: protectedProcedure
+  topPages: tenantProcedure
     .input(analyticsQueryInput)
     .query(async ({ input, ctx }) => {
       const service = new AnalyticsService(ctx.db, ctx.tenantId)
@@ -198,7 +145,7 @@ const queryRouter = t.router({
       })
     }),
 
-  pageviewCounts: protectedProcedure
+  pageviewCounts: tenantProcedure
     .input(analyticsQueryInput)
     .query(async ({ input, ctx }) => {
       const service = new AnalyticsService(ctx.db, ctx.tenantId)
@@ -209,7 +156,7 @@ const queryRouter = t.router({
       })
     }),
 
-  sessionStats: protectedProcedure
+  sessionStats: tenantProcedure
     .input(analyticsQueryInput)
     .query(async ({ input, ctx }) => {
       const service = new AnalyticsService(ctx.db, ctx.tenantId)
@@ -219,7 +166,7 @@ const queryRouter = t.router({
       })
     }),
 
-  uniqueUsers: protectedProcedure
+  uniqueUsers: tenantProcedure
     .input(analyticsQueryInput)
     .query(async ({ input, ctx }) => {
       const service = new AnalyticsService(ctx.db, ctx.tenantId)
@@ -234,7 +181,7 @@ const queryRouter = t.router({
 // Main Router
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const analyticsRouter = t.router({
+export const analyticsRouter = router({
   track: trackRouter,
   session: sessionRouter,
   query: queryRouter,

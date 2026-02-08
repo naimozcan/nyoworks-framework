@@ -2,6 +2,7 @@
 // Search Service
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import {
   SearchRepository,
   type SearchListResult,
@@ -60,7 +61,7 @@ export class SearchService {
   private readonly repository: SearchRepository
 
   constructor(
-    db: unknown,
+    db: DrizzleDatabase,
     tenantId: string
   ) {
     this.repository = new SearchRepository(db, tenantId)

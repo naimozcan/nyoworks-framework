@@ -2,6 +2,7 @@
 // Notification Templates Repository
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { eq, and, desc } from "drizzle-orm"
 import { notificationTemplates } from "../schema.js"
 
@@ -19,13 +20,12 @@ type NotificationChannel = NotificationTemplate["channel"]
 
 export class TemplatesRepository {
   constructor(
-    private readonly db: unknown,
+    private readonly db: DrizzleDatabase,
     private readonly tenantId: string
   ) {}
 
   async create(data: Omit<NewNotificationTemplate, "id" | "createdAt" | "updatedAt" | "tenantId">): Promise<NotificationTemplate> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .insert(notificationTemplates)
       .values({
         ...data,
@@ -33,12 +33,11 @@ export class TemplatesRepository {
       })
       .returning()
 
-    return result
+    return result!
   }
 
   async findById(id: string): Promise<NotificationTemplate | null> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select()
       .from(notificationTemplates)
       .where(and(eq(notificationTemplates.id, id), eq(notificationTemplates.tenantId, this.tenantId)))
@@ -48,8 +47,7 @@ export class TemplatesRepository {
   }
 
   async findBySlug(slug: string, channel: NotificationChannel): Promise<NotificationTemplate | null> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select()
       .from(notificationTemplates)
       .where(
@@ -65,8 +63,7 @@ export class TemplatesRepository {
   }
 
   async list(): Promise<NotificationTemplate[]> {
-    const db = this.db as any
-    return db
+    return this.db
       .select()
       .from(notificationTemplates)
       .where(eq(notificationTemplates.tenantId, this.tenantId))
@@ -74,8 +71,7 @@ export class TemplatesRepository {
   }
 
   async listByChannel(channel: NotificationChannel): Promise<NotificationTemplate[]> {
-    const db = this.db as any
-    return db
+    return this.db
       .select()
       .from(notificationTemplates)
       .where(
@@ -88,8 +84,7 @@ export class TemplatesRepository {
   }
 
   async update(id: string, data: Partial<NotificationTemplate>): Promise<NotificationTemplate | null> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .update(notificationTemplates)
       .set({
         ...data,
@@ -102,8 +97,7 @@ export class TemplatesRepository {
   }
 
   async delete(id: string): Promise<boolean> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .delete(notificationTemplates)
       .where(and(eq(notificationTemplates.id, id), eq(notificationTemplates.tenantId, this.tenantId)))
       .returning()

@@ -2,6 +2,7 @@
 // Auth Social Service
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { TRPCError } from "@trpc/server"
 import { SocialAccountsRepository } from "../repositories/index.js"
 import type { SocialProfile, SocialProviderType } from "../schema.js"
@@ -67,7 +68,7 @@ class AuthSocialService {
   private readonly repository: SocialAccountsRepository
 
   constructor(
-    db: unknown,
+    db: DrizzleDatabase,
     private readonly createSession?: CreateSessionFn,
     private readonly findOrCreateUser?: FindOrCreateUserFn
   ) {

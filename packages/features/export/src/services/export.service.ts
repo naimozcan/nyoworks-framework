@@ -2,6 +2,7 @@
 // Export Service
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { TRPCError } from "@trpc/server"
 import { ExportRepository } from "../repositories/index.js"
 import type { ExportJob } from "../schema.js"
@@ -31,7 +32,7 @@ interface ListInput {
 export class ExportService {
   private readonly repository: ExportRepository
 
-  constructor(db: unknown, tenantId: string) {
+  constructor(db: DrizzleDatabase, tenantId: string) {
     this.repository = new ExportRepository(db, tenantId)
   }
 

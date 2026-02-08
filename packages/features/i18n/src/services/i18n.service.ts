@@ -2,6 +2,7 @@
 // i18n Service
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { TRPCError } from "@trpc/server"
 import { LocalesRepository, TranslationsRepository } from "../repositories/index.js"
 import type { Locale, Translation } from "../schema.js"
@@ -69,7 +70,7 @@ export class I18nService {
   private readonly translationsRepo: TranslationsRepository
 
   constructor(
-    db: unknown,
+    db: DrizzleDatabase,
     tenantId: string
   ) {
     this.localesRepo = new LocalesRepository(db, tenantId)

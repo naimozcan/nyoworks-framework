@@ -2,6 +2,7 @@
 // Customers Repository
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import type { DrizzleDatabase } from "@nyoworks/database"
 import { eq, and } from "drizzle-orm"
 import { customers, type Customer, type NewCustomer } from "../schema.js"
 
@@ -11,13 +12,12 @@ import { customers, type Customer, type NewCustomer } from "../schema.js"
 
 export class CustomersRepository {
   constructor(
-    private readonly db: unknown,
+    private readonly db: DrizzleDatabase,
     private readonly tenantId: string
   ) {}
 
   async create(data: Omit<NewCustomer, "id" | "createdAt" | "updatedAt" | "tenantId">): Promise<Customer> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .insert(customers)
       .values({
         ...data,
@@ -25,12 +25,11 @@ export class CustomersRepository {
       })
       .returning()
 
-    return result
+    return result!
   }
 
   async findById(id: string): Promise<Customer | null> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select()
       .from(customers)
       .where(and(eq(customers.id, id), eq(customers.tenantId, this.tenantId)))
@@ -40,8 +39,7 @@ export class CustomersRepository {
   }
 
   async findByUserId(userId: string): Promise<Customer | null> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select()
       .from(customers)
       .where(and(eq(customers.userId, userId), eq(customers.tenantId, this.tenantId)))
@@ -51,8 +49,7 @@ export class CustomersRepository {
   }
 
   async findByStripeCustomerId(stripeCustomerId: string): Promise<Customer | null> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .select()
       .from(customers)
       .where(eq(customers.stripeCustomerId, stripeCustomerId))
@@ -62,8 +59,7 @@ export class CustomersRepository {
   }
 
   async update(id: string, data: Partial<Customer>): Promise<Customer | null> {
-    const db = this.db as any
-    const [result] = await db
+    const [result] = await this.db
       .update(customers)
       .set({
         ...data,
@@ -76,8 +72,7 @@ export class CustomersRepository {
   }
 
   async delete(id: string): Promise<boolean> {
-    const db = this.db as any
-    const result = await db
+    const result = await this.db
       .delete(customers)
       .where(and(eq(customers.id, id), eq(customers.tenantId, this.tenantId)))
       .returning()
