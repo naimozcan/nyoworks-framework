@@ -101,6 +101,20 @@ export async function checkDependencies(): Promise<void> {
   }
 }
 
+export async function getDockerComposeCommand(): Promise<string> {
+  try {
+    await execa("docker", ["compose", "version"])
+    return "docker compose"
+  } catch {
+    try {
+      await execa("docker-compose", ["version"])
+      return "docker-compose"
+    } catch {
+      return "docker compose"
+    }
+  }
+}
+
 export function showClaudeMaxWarning(): void {
   console.log()
   console.log(pc.yellow("╔═══════════════════════════════════════════════════════════════════════╗"))

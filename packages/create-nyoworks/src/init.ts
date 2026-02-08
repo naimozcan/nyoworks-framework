@@ -5,7 +5,7 @@ import path from "path"
 import os from "os"
 import { execa } from "execa"
 import { replacePlaceholders } from "./replace.js"
-import { checkDependencies, showClaudeMaxWarning } from "./checks.js"
+import { checkDependencies, showClaudeMaxWarning, getDockerComposeCommand } from "./checks.js"
 
 const REPO = "naimozcan/nyoworks-framework"
 const BRANCH = "main"
@@ -276,6 +276,8 @@ See \`docs/bible/data/schema.md\`
 
   await checkDependencies()
 
+  const dockerCmd = await getDockerComposeCommand()
+
   showClaudeMaxWarning()
 
   console.log()
@@ -283,7 +285,7 @@ See \`docs/bible/data/schema.md\`
   console.log()
   console.log(pc.cyan(`    cd ${slug}`))
   console.log(pc.cyan("    pnpm install"))
-  console.log(pc.cyan("    docker compose up -d      ") + pc.dim("# Start PostgreSQL & Redis"))
+  console.log(pc.cyan(`    ${dockerCmd} up -d`) + "        " + pc.dim("# Start PostgreSQL & Redis"))
   console.log(pc.cyan("    pnpm dev"))
   console.log()
   console.log(pc.dim("  Optional:"))
@@ -299,12 +301,17 @@ See \`docs/bible/data/schema.md\`
   console.log()
 
   process.stdout.write(pc.dim("  Building MCP server..."))
+  const mcpPath = path.join(targetDir, "mcp-server")
   try {
-    await execa("pnpm", ["install"], { cwd: path.join(targetDir, "mcp-server") })
-    await execa("pnpm", ["build"], { cwd: path.join(targetDir, "mcp-server") })
+    await execa("pnpm", ["install"], { cwd: mcpPath })
+    await execa("pnpm", ["build"], { cwd: mcpPath })
     console.log(pc.green(" done"))
-  } catch {
-    console.log(pc.yellow(" skipped (run manually: cd mcp-server && pnpm install && pnpm build)"))
+  } catch (error) {
+    console.log(pc.yellow(" failed"))
+    if (error instanceof Error) {
+      console.log(pc.dim(`    Error: ${error.message.split("\n")[0]}`))
+    }
+    console.log(pc.dim("    Run manually: cd mcp-server && pnpm install && pnpm build"))
   }
 
   const mcpConfigPath = path.join(targetDir, ".claude", "settings.local.json")
