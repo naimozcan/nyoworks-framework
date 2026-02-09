@@ -517,6 +517,7 @@ export async function createProject(projectName?: string) {
     "${APP_NAME}": primaryApp.name,
     "${PRODUCT_TYPE}": primaryApp.id,
     "${RESPONSE_LANGUAGE}": LANGUAGE_RESPONSES[language] || "Turkish",
+    "@nyoworks/": `@${slug}/`,
   }
 
   process.stdout.write(pc.dim("  Replacing placeholders..."))
