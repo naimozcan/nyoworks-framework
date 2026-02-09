@@ -7,6 +7,7 @@ import pc from "picocolors"
 import fs from "fs-extra"
 import path from "path"
 import os from "os"
+import crypto from "crypto"
 import { fileURLToPath } from "url"
 import { execa } from "execa"
 import { replacePlaceholders } from "./replace.js"
@@ -100,6 +101,10 @@ function generateDatabaseName(name: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "_")
     .replace(/^_|_$/g, "") + "_dev"
+}
+
+function generateSecureToken(length: number = 32): string {
+  return crypto.randomBytes(length).toString("base64url").slice(0, length)
 }
 
 async function downloadRepo(repo: string, branch: string): Promise<string> {
@@ -523,6 +528,34 @@ export async function createProject(projectName?: string) {
   process.stdout.write(pc.dim("  Replacing placeholders..."))
   await replacePlaceholders(targetDir, placeholders)
   console.log(pc.green(" done"))
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Create .env from .env.example
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  const envExamplePath = path.join(targetDir, ".env.example")
+  const envPath = path.join(targetDir, ".env")
+
+  if (await fs.pathExists(envExamplePath)) {
+    let envContent = await fs.readFile(envExamplePath, "utf8")
+
+    envContent = envContent.replace(/\$\{DATABASE_NAME\}/g, databaseName)
+
+    const jwtSecret = generateSecureToken(48)
+    const jwtRefreshSecret = generateSecureToken(48)
+
+    envContent = envContent.replace(
+      /JWT_SECRET=.*/,
+      `JWT_SECRET=${jwtSecret}`
+    )
+    envContent = envContent.replace(
+      /JWT_REFRESH_SECRET=.*/,
+      `JWT_REFRESH_SECRET=${jwtRefreshSecret}`
+    )
+
+    await fs.writeFile(envPath, envContent)
+    console.log(pc.dim("  Created .env with secure defaults"))
+  }
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Create Feature Docs
