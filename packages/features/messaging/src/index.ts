@@ -1,11 +1,8 @@
 // ═══════════════════════════════════════════════════════════════════════════════
-// i18n Feature - Main Exports
+// Messaging Feature - Main Exports
 // ═══════════════════════════════════════════════════════════════════════════════
 
+export * from "./schema.js"
+export * from "./validators.js"
+export * from "./router.js"
 export * from "./hooks.js"
-export { nl } from "./locales/nl.js"
-export { en } from "./locales/en.js"
-export { tr } from "./locales/tr.js"
-export type { NlTranslations } from "./locales/nl.js"
-export type { EnTranslations } from "./locales/en.js"
-export type { TrTranslations } from "./locales/tr.js"
