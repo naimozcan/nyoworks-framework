@@ -1,6 +1,6 @@
 {
   "name": "create-nyoworks",
-  "version": "3.2.3",
+  "version": "3.2.4",
   "description": "Create a new NYOWORKS project",
   "type": "module",
   "bin": {
