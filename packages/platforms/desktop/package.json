@@ -1,0 +1,34 @@
+{
+  "name": "@nyoworks/platform-desktop",
+  "version": "3.0.0",
+  "description": "Tauri 2.0 platform base configuration",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./config": {
+      "types": "./dist/config.d.ts",
+      "import": "./dist/config.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist .turbo"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.0.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.1",
+    "typescript": "^5.7.0"
+  },
+  "peerDependencies": {
+    "@nyoworks/ui": "workspace:*",
+    "@nyoworks/shared": "workspace:*"
+  }
+}

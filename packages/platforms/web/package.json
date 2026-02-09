@@ -1,0 +1,38 @@
+{
+  "name": "@nyoworks/platform-web",
+  "version": "3.0.0",
+  "description": "Next.js 16 platform base configuration",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./config": {
+      "types": "./dist/config.d.ts",
+      "import": "./dist/config.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist .turbo"
+  },
+  "dependencies": {
+    "next": "^16.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "tsup": "^8.5.1",
+    "typescript": "^5.7.0"
+  },
+  "peerDependencies": {
+    "@nyoworks/ui": "workspace:*",
+    "@nyoworks/shared": "workspace:*"
+  }
+}

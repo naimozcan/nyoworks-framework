@@ -116,6 +116,26 @@ interface ManualApproval {
   notes: string
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Multi-App Types (FAZ 6)
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface AppProduct {
+  id: string
+  name: string
+  name_tr: string
+  platforms: ("web" | "mobile" | "desktop")[]
+  features: string[]
+  phase: string
+  tasks: Task[]
+  specs?: Spec[]
+}
+
+interface MultiAppConfig {
+  currentAppId: string | null
+  apps: Record<string, AppProduct>
+}
+
 interface ProjectState {
   name: string
   code: string
@@ -135,6 +155,7 @@ interface ProjectState {
   specRequired?: boolean
   manualApprovals?: Record<string, ManualApproval>
   targetPlatforms?: string[]
+  multiApp?: MultiAppConfig
 }
 
 type ToolHandler = (args: Record<string, unknown>) => unknown
@@ -162,6 +183,8 @@ export type {
   SubPhaseState,
   Spec,
   ManualApproval,
+  AppProduct,
+  MultiAppConfig,
   ProjectState,
   ToolHandler,
   ToolDefinition,

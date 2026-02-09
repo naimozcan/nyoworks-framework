@@ -1,5 +1,8 @@
 packages:
-  - "apps/*"
+  - "apps/server"
+  - "apps/_templates/*"
+  - "apps/*/*"
   - "packages/*"
   - "packages/features/*"
+  - "packages/platforms/*"
   - "mcp-server"

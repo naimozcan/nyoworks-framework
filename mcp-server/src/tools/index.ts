@@ -19,6 +19,7 @@ import { handlers as visualHandlers, definitions as visualDefinitions } from "./
 import { handlers as cleanupHandlers, definitions as cleanupDefinitions } from "./cleanup.js"
 import { handlers as healthHandlers, definitions as healthDefinitions } from "./health.js"
 import { gitToolHandlers, gitToolDefinitions } from "./git.js"
+import { multiAppHandlers, multiAppToolDefinitions } from "./multiapp.js"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Merged Handlers
@@ -40,6 +41,7 @@ const toolHandlers: Record<string, ToolHandler> = {
   ...cleanupHandlers,
   ...healthHandlers,
   ...gitToolHandlers,
+  ...multiAppHandlers,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -62,6 +64,7 @@ const toolDefinitions: ToolDefinition[] = [
   ...cleanupDefinitions,
   ...healthDefinitions,
   ...gitToolDefinitions,
+  ...multiAppToolDefinitions,
 ]
 
 export { toolHandlers, toolDefinitions }

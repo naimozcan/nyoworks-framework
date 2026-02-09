@@ -1,5 +1,5 @@
 {
-  "name": "@nyoworks/mobile",
+  "name": "@nyoworks/template-mobile",
   "version": "2.7.0",
   "private": true,
   "main": "expo-router/entry",

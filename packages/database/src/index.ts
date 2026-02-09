@@ -4,6 +4,7 @@
 
 export * from "./client"
 export * from "./schema"
+export * from "./rls"
 export { BaseRepository, TenantRepository } from "./repository"
 
 // ─────────────────────────────────────────────────────────────────────────────

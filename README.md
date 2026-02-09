@@ -1,27 +1,41 @@
-# NYOWORKS Framework v2.1
+# NYOWORKS Framework v3.0
 
-> AI-orchestrated multi-agent framework for building SaaS applications via MCP
-
-## Overview
-
-NYOWORKS Framework is a comprehensive solution for building SaaS applications with:
-
-- **8 Specialized AI Agents** - Orchestrated via MCP (lead, architect, backend, frontend, designer, data, qa, devops)
-- **Handoff Protocol** - Context preservation between agent sessions
-- **Sub-Phase System** - Granular workflow tracking (BACKEND.IMPL, FRONTEND.PAGES, etc.)
-- **Spec-Driven Development** - Minimum viable specs (10-20 lines) before implementation
-- **Feature Toggles** - Enable only what you need (build-time)
-- **Cross-Platform** - Web (Next.js 16), Mobile (Expo SDK 54), Desktop (Tauri 2.0)
-- **Multi-tenancy** - PostgreSQL RLS for data isolation
-- **Visual Guidance** - Approved library catalog (charts, animations, icons, etc.)
+> AI-orchestrated multi-product framework for building whitelabel SaaS applications (Netherlands-focused)
 
 ## Quick Start
 
 ```bash
-git clone https://github.com/nyoworks/nyoworks-framework.git
-cd nyoworks-framework
-./setup.sh
+npx create-nyoworks my-project
+cd my-project
+pnpm install
+docker-compose up -d
+pnpm dev
 ```
+
+## What's New in v3.0
+
+- **Multi-Product Support** - Create projects with multiple apps (ecommerce + crm + salon)
+- **Per-Product Platform Selection** - Choose web/mobile/desktop for each product
+- **Row-Level Security (RLS)** - Database isolation per tenant and app
+- **App-Scoped API Routes** - `/api/ecommerce/*`, `/api/crm/*`, `/api/salon/*`
+- **Branded Type Safety** - `EcommerceOrderId`, `CrmContactId`, `SalonAppointmentId`
+- **Netherlands Integrations** - iDEAL/Mollie, PostNL, Peppol, WhatsApp Business
+
+## 11 App Types
+
+| App | Description | Platforms |
+|-----|-------------|-----------|
+| Corporate | Company website, landing page | Web, Mobile, Desktop |
+| E-commerce | Online store with iDEAL/Mollie | Web, Mobile, Desktop |
+| Booking | General appointment system | Web, Mobile |
+| Salon | Hair salon, spa, beauty center | Web, Mobile |
+| HR | Personnel, payroll, leave management | Web |
+| ERP | Accounting, sales, purchasing | Web |
+| WMS | Inventory, warehouse management | Web, Mobile |
+| CMS | Blog, news, portal | Web |
+| CRM | Sales pipeline, lead tracking | Web |
+| TMS | Fleet, route, delivery tracking | Web, Mobile |
+| Dashboard | Reporting, KPI, analytics | Web |
 
 ## Tech Stack
 
@@ -38,125 +52,145 @@ cd nyoworks-framework
 | Mobile | Expo SDK 54 + React Native 0.81 |
 | Desktop | Tauri 2.0 |
 
-## AI Workflow
+## Netherlands Integrations
 
-### 8-Phase Pipeline
+| Category | Provider | Description |
+|----------|----------|-------------|
+| Payments | Mollie / Adyen | iDEAL, credit card, Bancontact |
+| Shipping | PostNL / SendCloud | National shipping, tracking |
+| Invoicing | Peppol / UBL | B2B e-invoicing (2030 mandatory) |
+| Communication | WhatsApp Business | Customer messaging, AI chatbot |
+| Maps | Google Maps | Geocoding, routes |
+| AI | Google Gemini | Chatbot, OCR, content generation |
 
-```
-DISCOVERY -> ARCHITECTURE -> DESIGN -> PLANNING -> BACKEND -> FRONTEND -> QA -> DEPLOYMENT
-```
+## CLI Usage
 
-### Sub-Phase Granularity (v2.1)
+```bash
+# Create a new project
+npx create-nyoworks my-company
 
-```
-BACKEND:  IMPL -> TEST -> REVIEW
-FRONTEND: CONTRACT -> PREP -> INFRA -> LAYOUT -> PAGES
-QA:       UNIT -> INTEGRATION -> E2E -> SECURITY
-```
+# Multi-product selection
+? Products (select multiple):
+  ☑ E-commerce Platform
+  ☑ Customer Relations (CRM)
+  ☐ Salon Management
 
-### Agent Commands
+# Per-product platform selection
+? E-commerce platforms:
+  ☑ Web
+  ☑ Mobile
+  ☐ Desktop
 
-| Command | Role | Description |
-|---------|------|-------------|
-| /lead | Project Lead | Orchestrates workflow, manages sub-phases |
-| /architect | System Architect | Designs systems, cross-platform |
-| /backend | Backend Developer | Implements APIs, services |
-| /frontend | Frontend Developer | Builds UI, pages |
-| /designer | UI/UX Designer | Writes specs, design system |
-| /data | Database Engineer | Manages schemas, migrations |
-| /qa | QA Engineer | Testing, security audit |
-| /devops | DevOps Engineer | Docker, CI/CD, deployment |
-
-## v2.1 Features
-
-### Handoff Protocol
-Context preservation between agent sessions. When an agent completes work, it creates a handoff with artifacts, decisions, and warnings for the next agent.
-
-```
-create_handoff -> get_pending_handoffs -> acknowledge_handoff
+? CRM platforms:
+  ☑ Web
+  ☐ Mobile
 ```
 
-### Spec-Driven Development
-Based on Addy Osmani "Beyond Vibe Coding" (2026), Martin Fowler SDD Analysis (2025), arXiv SDD paper (2026).
+## Project Structure (Generated)
 
 ```
-get_spec(taskId) -> create_spec() -> approve_spec() -> implement
+my-company/
+├── apps/
+│   ├── ecommerce/
+│   │   ├── web/           # Next.js 16
+│   │   └── mobile/        # Expo SDK 54
+│   ├── crm/
+│   │   └── web/           # Next.js 16
+│   └── server/            # Hono API (unified)
+├── packages/
+│   ├── database/          # Drizzle + RLS
+│   ├── api/               # tRPC routers
+│   ├── validators/        # Zod + branded types
+│   ├── shared/            # Utilities
+│   ├── ui/                # shadcn/ui components
+│   └── features/          # Optional modules
+├── config/
+│   └── apps.config.yaml   # Multi-product config
+└── mcp-server/            # AI orchestration
 ```
 
-### Visual Guidance
-Approved library catalog prevents AI from writing visual elements from scratch.
+## Security Architecture (v3.0)
 
-| Category | Library |
-|----------|---------|
-| Charts | Recharts (shadcn/ui Charts) |
-| Animations | Motion (Framer Motion) |
-| Effects | Magic UI / Aceternity UI |
-| Icons | Lucide React |
-| Tables | TanStack Table (shadcn DataTable) |
-| Forms | React Hook Form + Zod (shadcn Form) |
+### Row-Level Security
+```sql
+ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
+CREATE POLICY tenant_isolation ON orders
+  USING (tenant_id = current_setting('app.current_tenant_id')::uuid);
+```
 
-### Real Phase Validation
-Automated checks (execSync for tests/build) + manual approval (approve_check for security/staging).
+### App-Scoped Routes
+```
+/api/ecommerce/*  → EcommerceContext
+/api/crm/*        → CrmContext
+/api/salon/*      → SalonContext
+```
 
-## MCP Server (67+ Tools)
+### Branded Types
+```typescript
+// Compile-time safety - can't mix app IDs
+const orderId: EcommerceOrderId = "order_123"
+const contactId: CrmContactId = "contact_456"
+
+// Error: Type 'CrmContactId' is not assignable to 'EcommerceOrderId'
+processOrder(contactId)
+```
+
+## MCP Server (70+ Tools)
+
+### Multi-App Tools (v3.0)
+| Tool | Purpose |
+|------|---------|
+| `list_apps` | List all products in project |
+| `select_app` | Switch active app context |
+| `get_current_app` | Current app details |
+| `get_app_tasks` | Tasks for specific app |
+| `create_app_task` | Create task for app |
+| `set_app_phase` | Set app workflow phase |
+| `get_multi_app_summary` | Overall progress |
 
 ### Core Tools
 | Tool | Purpose |
 |------|---------|
 | `get_status` | Project state overview |
-| `create_task` / `get_tasks` / `update_task` | Task management |
-| `claim_task` / `release_task` / `heartbeat` | Task locking (30-min timeout) |
+| `create_task` / `update_task` | Task management |
+| `claim_task` / `release_task` | Task locking |
 | `advance_phase` / `rollback_phase` | Phase management |
+| `create_handoff` / `acknowledge_handoff` | Agent context handoff |
+| `create_spec` / `approve_spec` | Spec-driven development |
 
-### v2.1 Tools (13 new)
-| Tool | Purpose |
-|------|---------|
-| `create_handoff` / `get_pending_handoffs` / `acknowledge_handoff` | Agent context handoff |
-| `set_sub_phases` / `get_sub_phase` / `advance_sub_phase` | Sub-phase management |
-| `create_spec` / `get_spec` / `approve_spec` / `require_spec` | Spec registry |
-| `approve_check` | Manual validation approval |
-| `get_visual_guidance` | Visual library catalog |
-| `get_shared_architecture` | Cross-platform guidance |
-
-## Directory Structure
+## AI Workflow (8 Agents)
 
 ```
-nyoworks-framework/
-├── .claude/commands/      # 8 AI agent definitions (v2.1)
-├── mcp-server/            # MCP orchestration server (67+ tools)
-├── cli/                   # CLI tool
-├── core/                  # Always-included modules
-│   ├── database/          # Schema, RLS
-│   ├── validators/        # Zod schemas
-│   ├── auth/              # JWT, Argon2id
-│   ├── rbac/              # Permissions
-│   ├── i18n/              # Translations
-│   ├── theme/             # CSS variables
-│   └── shared/            # Types, errors, logger
-├── features/              # Optional feature modules
-├── templates/             # Project scaffolding
-│   ├── docker/            # Docker configs
-│   ├── github-workflows/  # CI/CD workflows
-│   └── monorepo/          # Monorepo skeleton
-├── workflow/              # Phase/role configs (v2.1 sub-phases)
-├── docs/bible/            # Documentation templates
-│   ├── ui/                # Page specs, layout, assets (v2.1)
-│   ├── infra/             # Cross-platform architecture (v2.1)
-│   └── specs/             # SDD documentation (v2.1)
-└── config/                # Stack/features config
+DISCOVERY → ARCHITECTURE → DESIGN → PLANNING → BACKEND → FRONTEND → QA → DEPLOYMENT
+    │           │            │          │          │          │       │        │
+   lead      architect    designer    lead     backend   frontend    qa     devops
 ```
 
-## Academic Validation (February 2026)
+### Agent Commands
+| Command | Role | Focus |
+|---------|------|-------|
+| `/lead` | Project Lead | Orchestration, sub-phases |
+| `/architect` | System Architect | Design, cross-platform |
+| `/backend` | Backend Developer | APIs, services |
+| `/frontend` | Frontend Developer | UI, pages |
+| `/designer` | UI/UX Designer | Specs, design system |
+| `/data` | Database Engineer | Schemas, RLS |
+| `/qa` | QA Engineer | Testing, security |
+| `/devops` | DevOps Engineer | Docker, CI/CD |
 
-Framework decisions validated against 9 authoritative sources:
+## Recommended Templates
 
-| Feature | Supporting Sources | Strength |
-|---------|-------------------|----------|
-| Handoff Protocol | Osmani, Anthropic x2, Google ADK, IBM | STRONG |
-| Sub-Phase System | Osmani, Anthropic x2, arXiv | STRONG |
-| Spec Registry (10-20 lines) | Osmani, Fowler, arXiv, Anthropic | STRONG |
-| Role-based Agent Structure | Anthropic x2, Osmani | STRONG |
-| Real Validation (execSync) | Osmani, Anthropic, arXiv | STRONG |
+| Category | Template | License |
+|----------|----------|---------|
+| E-commerce | [Relivator](https://github.com/blefnk/relivator-nextjs-template) | MIT |
+| CRM/Dashboard | [Shadboard](https://github.com/Qualiora/shadboard) | MIT |
+| Booking | [Cal.com](https://github.com/calcom/cal.com) | AGPL |
+| CMS | [Payload CMS](https://github.com/payloadcms/payload) | MIT |
+| Analytics | [Umami](https://github.com/umami-software/umami) | MIT |
+
+## Contributing
+
+This is an internal framework by NYOWORKS. Contributions are welcome via pull requests.
 
 ## License
 
