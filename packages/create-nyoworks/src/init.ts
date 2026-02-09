@@ -58,9 +58,9 @@ const AVAILABLE_PLATFORMS = [
 ]
 
 const AVAILABLE_LANGUAGES = [
-  { title: "Turkish", value: "tr", description: "Türkçe yanıtlar" },
-  { title: "English", value: "en", description: "English responses" },
-  { title: "Dutch", value: "nl", description: "Nederlandse antwoorden" },
+  { title: "English", value: "en", description: "Default" },
+  { title: "Dutch", value: "nl", description: "For NL market" },
+  { title: "Turkish", value: "tr", description: "For TR market" },
 ]
 
 const LANGUAGE_RESPONSES: Record<string, string> = {
@@ -221,17 +221,17 @@ export async function createProject(projectName?: string) {
   // ─────────────────────────────────────────────────────────────────────────────
 
   const appChoices = config.apps.map((app) => ({
-    ...appToPromptChoice(app, "tr"),
+    ...appToPromptChoice(app),
     selected: false,
   }))
 
   const productsResponse = await prompts({
     type: "multiselect",
     name: "appIds",
-    message: "Products (birden fazla seçebilirsiniz):",
+    message: "Select products:",
     choices: appChoices,
     min: 1,
-    hint: "- Space to select. Return to submit",
+    hint: "Space to select, Enter to confirm",
     instructions: false,
   })
 
@@ -251,7 +251,7 @@ export async function createProject(projectName?: string) {
 
   for (const app of selectedApps) {
     console.log()
-    console.log(pc.cyan(`  ${app.name_tr || app.name} platformları:`))
+    console.log(pc.cyan(`  ${app.name} platforms:`))
 
     const appPlatforms = getAppPlatforms(app)
     const platformChoices = AVAILABLE_PLATFORMS
@@ -261,10 +261,10 @@ export async function createProject(projectName?: string) {
     const platformResponse = await prompts({
       type: "multiselect",
       name: "platforms",
-      message: `${app.id} platforms:`,
+      message: `${app.name}:`,
       choices: platformChoices,
       min: 1,
-      hint: "- Space to select. Return to submit",
+      hint: "Space to select, Enter to confirm",
       instructions: false,
     })
 
@@ -331,9 +331,9 @@ export async function createProject(projectName?: string) {
     const additionalResponse = await prompts({
       type: "multiselect",
       name: "features",
-      message: "Ek feature'lar (isteğe bağlı):",
+      message: "Additional features (optional):",
       choices: additionalFeaturesNotInApps,
-      hint: "- Space to select. Return to submit",
+      hint: "Space to select, Enter to confirm",
       instructions: false,
     })
 
@@ -696,7 +696,6 @@ See \`docs/bible/data/schema.md\`
 function generateAppsConfigYaml(config: ProjectConfig): string {
   const productsYaml = config.products.map((p) => `  ${p.app.id}:
     name: "${p.app.name}"
-    name_tr: "${p.app.name_tr || p.app.name}"
     platforms:
 ${p.platforms.map((pl) => `      - ${pl}`).join("\n")}
     features:

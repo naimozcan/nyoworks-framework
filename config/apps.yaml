@@ -1,315 +1,156 @@
 # ═══════════════════════════════════════════════════════════════════════════════
 # NYOWORKS Framework - App Definitions
 # ═══════════════════════════════════════════════════════════════════════════════
-#
-# Hollanda odaklı whitelabel uygulamalar
-# Her app modüler olarak seçilebilir
-#
-# ─────────────────────────────────────────────────────────────────────────────
 
 apps:
   # ─────────────────────────────────────────────────────────────────────────────
-  # 1. Corporate Website
-  # ─────────────────────────────────────────────────────────────────────────────
   - id: corporate
     name: Corporate Website
-    name_tr: Kurumsal Web Sitesi
-    description: Company presentation, landing pages
-    description_tr: Şirket tanıtım, landing page
-    platforms:
-      - web
-      - mobile
-      - desktop
-    features:
-      - analytics
-    integrations:
-      - google
+    description: Landing pages, company presentation
+    platforms: [web, mobile, desktop]
+    features: [analytics]
+    integrations: [google]
 
-  # ─────────────────────────────────────────────────────────────────────────────
-  # 2. eCommerce Platform
   # ─────────────────────────────────────────────────────────────────────────────
   - id: ecommerce
     name: eCommerce Platform
-    name_tr: E-ticaret Platformu
-    description: Online store, product sales
-    description_tr: Online mağaza, ürün satışı
-    platforms:
-      - web
-      - mobile
-      - desktop
-    features:
-      - payments
-      - notifications
-      - search
-      - storage
-      - analytics
-    integrations:
-      - payments
-      - shipping
-      - whatsapp
-      - email
+    description: Online store, catalog, checkout
+    platforms: [web, mobile, desktop]
+    features: [payments, notifications, search, storage, analytics]
+    integrations: [payments, shipping, whatsapp, email]
 
-  # ─────────────────────────────────────────────────────────────────────────────
-  # 3. Appointment Scheduling (Booking)
   # ─────────────────────────────────────────────────────────────────────────────
   - id: booking
     name: Appointment Scheduling
-    name_tr: Randevu Yönetimi
-    description: General appointment booking system
-    description_tr: Genel randevu sistemi
-    platforms:
-      - web
-      - mobile
-    features:
-      - appointments
-      - notifications
-      - crm
-      - analytics
-    integrations:
-      - google
-      - whatsapp
-      - email
-      - sms
+    description: Booking system, calendar
+    platforms: [web, mobile]
+    features: [appointments, notifications, crm, analytics]
+    integrations: [google, whatsapp, email, sms]
 
-  # ─────────────────────────────────────────────────────────────────────────────
-  # 4. Salon Management
   # ─────────────────────────────────────────────────────────────────────────────
   - id: salon
     name: Salon Management
-    name_tr: Salon Yönetimi
-    description: Hair salon, spa, beauty center
-    description_tr: Kuaför, spa, güzellik merkezi
-    platforms:
-      - web
-      - mobile
-    features:
-      - appointments
-      - notifications
-      - payments
-      - crm
-      - analytics
-    integrations:
-      - payments
-      - google
-      - whatsapp
-      - email
-      - sms
+    description: Hair salon, spa, beauty
+    platforms: [web, mobile]
+    features: [appointments, notifications, payments, crm, analytics]
+    integrations: [payments, google, whatsapp, email, sms]
 
-  # ─────────────────────────────────────────────────────────────────────────────
-  # 5. HR Management (HRMS)
   # ─────────────────────────────────────────────────────────────────────────────
   - id: hr
-    name: HR Management
-    name_tr: İK Yönetimi
-    description: Employee, payroll, leave management
-    description_tr: Personel, bordro, izin yönetimi
-    platforms:
-      - web
-    features:
-      - analytics
-      - audit
-      - export
-      - notifications
-    integrations:
-      - email
+    name: HRMS
+    description: HR, payroll, leave
+    platforms: [web]
+    features: [analytics, audit, export, notifications]
+    integrations: [email]
 
-  # ─────────────────────────────────────────────────────────────────────────────
-  # 6. Business Management (ERP)
   # ─────────────────────────────────────────────────────────────────────────────
   - id: erp
-    name: Business Management
-    name_tr: İş Yönetimi
-    description: Accounting, sales, purchasing
-    description_tr: Muhasebe, satış, satın alma
-    platforms:
-      - web
-    features:
-      - analytics
-      - audit
-      - export
-      - notifications
-      - payments
-    integrations:
-      - payments
-      - invoicing
-      - email
+    name: ERP
+    description: Accounting, sales, procurement
+    platforms: [web]
+    features: [analytics, audit, export, notifications, payments]
+    integrations: [payments, invoicing, email]
 
-  # ─────────────────────────────────────────────────────────────────────────────
-  # 7. Warehouse Management (WMS)
   # ─────────────────────────────────────────────────────────────────────────────
   - id: wms
-    name: Warehouse Management
-    name_tr: Depo Yönetimi
-    description: Inventory, stock, location management
-    description_tr: Stok, envanter, lokasyon yönetimi
-    platforms:
-      - web
-      - mobile
-    features:
-      - analytics
-      - audit
-      - export
-      - notifications
-      - search
+    name: WMS
+    description: Inventory, stock, warehouse
+    platforms: [web, mobile]
+    features: [analytics, audit, export, notifications, search]
+    integrations: []
 
-  # ─────────────────────────────────────────────────────────────────────────────
-  # 8. Content Management (CMS)
   # ─────────────────────────────────────────────────────────────────────────────
   - id: cms
-    name: Content Management
-    name_tr: İçerik Yönetimi
-    description: Blog, news, portal
-    description_tr: Blog, haber, portal
-    platforms:
-      - web
-    features:
-      - analytics
-      - storage
-      - search
-    integrations:
-      - google
+    name: CMS
+    description: Blog, news, content
+    platforms: [web]
+    features: [analytics, storage, search]
+    integrations: [google]
 
-  # ─────────────────────────────────────────────────────────────────────────────
-  # 9. Customer Relations (CRM)
   # ─────────────────────────────────────────────────────────────────────────────
   - id: crm
-    name: Customer Relations
-    name_tr: Müşteri İlişkileri
-    description: Sales pipeline, lead tracking
-    description_tr: Satış pipeline, lead takibi
-    platforms:
-      - web
-    features:
-      - crm
-      - analytics
-      - audit
-      - export
-      - notifications
-    integrations:
-      - whatsapp
-      - google
-      - email
-      - sms
+    name: CRM
+    description: Sales pipeline, leads
+    platforms: [web]
+    features: [crm, analytics, audit, export, notifications]
+    integrations: [whatsapp, google, email, sms]
 
-  # ─────────────────────────────────────────────────────────────────────────────
-  # 10. Transport Management (TMS)
   # ─────────────────────────────────────────────────────────────────────────────
   - id: tms
-    name: Transport Management
-    name_tr: Nakliye Yönetimi
-    description: Fleet, route, delivery tracking
-    description_tr: Filo, rota, teslimat takibi
-    platforms:
-      - web
-      - mobile
-    features:
-      - analytics
-      - audit
-      - export
-      - notifications
-      - realtime
-    integrations:
-      - google
+    name: TMS
+    description: Fleet, routing, delivery
+    platforms: [web, mobile]
+    features: [analytics, audit, export, notifications, realtime]
+    integrations: [google]
 
-  # ─────────────────────────────────────────────────────────────────────────────
-  # 11. Analytics Dashboard
   # ─────────────────────────────────────────────────────────────────────────────
   - id: dashboard
     name: Analytics Dashboard
-    name_tr: Analitik Paneli
-    description: Reporting, KPI, charts
-    description_tr: Raporlama, KPI, grafikler
-    platforms:
-      - web
-    features:
-      - analytics
-      - audit
-      - export
+    description: KPI, reporting, charts
+    platforms: [web]
+    features: [analytics, audit, export]
+    integrations: []
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Integration Definitions
+# Integrations
 # ─────────────────────────────────────────────────────────────────────────────
 
 integrations:
   payments:
-    name: Payments (iDEAL/Mollie)
-    providers:
-      - mollie
-      - adyen
+    name: Payments
+    providers: [mollie, adyen]
     default: mollie
 
   shipping:
-    name: Shipping (PostNL/Sendcloud)
-    providers:
-      - postnl
-      - dhl
-      - sendcloud
+    name: Shipping
+    providers: [postnl, dhl, sendcloud]
     default: sendcloud
 
   invoicing:
-    name: E-invoicing (Peppol/UBL)
-    providers:
-      - mollie
-      - storecove
+    name: E-invoicing (Peppol)
+    providers: [mollie, storecove]
     default: mollie
 
   whatsapp:
     name: WhatsApp Business
-    providers:
-      - meta
-      - twilio
+    providers: [meta, twilio]
     default: meta
 
   google:
     name: Google Services
-    services:
-      - calendar
-      - maps
-      - analytics
+    services: [calendar, maps, analytics]
 
   ai:
-    name: AI Services (Gemini)
+    name: AI (Gemini)
     provider: google
-    services:
-      - chatbot
-      - ocr
-      - content
+    services: [chatbot, ocr, content]
 
   email:
-    name: Email Services
-    providers:
-      - resend
-      - brevo
+    name: Email
+    providers: [resend, brevo]
     default: resend
-    free_tier:
-      resend: 3000/month
-      brevo: 300/day
 
   sms:
-    name: SMS Services
-    providers:
-      - brevo
-      - twilio
-      - plivo
+    name: SMS
+    providers: [brevo, twilio, plivo]
     default: brevo
-    note: No free tier - use WhatsApp OTP for dev
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Platform Definitions
+# Platforms
 # ─────────────────────────────────────────────────────────────────────────────
 
 platforms:
   web:
-    name: Web Application
+    name: Web
     framework: nextjs
     version: "16"
 
   mobile:
-    name: Mobile Application
+    name: Mobile
     framework: expo
     version: "54"
 
   desktop:
-    name: Desktop Application
+    name: Desktop
     framework: tauri
     version: "2.0"

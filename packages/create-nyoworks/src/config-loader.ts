@@ -13,9 +13,7 @@ import { parse } from "yaml"
 export interface AppDefinition {
   id: string
   name: string
-  name_tr: string
   description: string
-  description_tr: string
   platforms: ("web" | "mobile" | "desktop")[]
   features: string[]
   integrations: string[]
@@ -57,14 +55,11 @@ export async function loadAppsConfig(repoDir: string): Promise<AppsConfig> {
   return parse(content) as AppsConfig
 }
 
-export function appToPromptChoice(app: AppDefinition, lang: string = "en") {
-  const name = lang === "tr" ? app.name_tr : app.name
-  const desc = lang === "tr" ? app.description_tr : app.description
-
+export function appToPromptChoice(app: AppDefinition) {
   return {
-    title: name,
+    title: app.name,
     value: app.id,
-    description: desc,
+    description: app.description,
   }
 }
 
@@ -95,8 +90,8 @@ function formatProviderName(provider: string): string {
     mollie: "Mollie (iDEAL, Bancontact)",
     adyen: "Adyen",
     stripe: "Stripe",
-    resend: "Resend (3000/ay free)",
-    brevo: "Brevo (300/gün free)",
+    resend: "Resend (3k/mo free)",
+    brevo: "Brevo (300/day free)",
     twilio: "Twilio",
     plivo: "Plivo",
     postnl: "PostNL",
