@@ -24,8 +24,8 @@
     }
   },
   "scripts": {
-    "build": "tsup src/index.ts src/schema.ts src/router.ts src/websocket.ts --format esm --dts --external react",
-    "dev": "tsup src/index.ts src/schema.ts src/router.ts src/websocket.ts --format esm --dts --external react --watch",
+    "build": "tsup src/index.ts src/schema.ts src/router.ts src/websocket.ts --format esm --dts --external react --external '@nyoworks/*'",
+    "dev": "tsup src/index.ts src/schema.ts src/router.ts src/websocket.ts --format esm --dts --external react --external '@nyoworks/*' --watch",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

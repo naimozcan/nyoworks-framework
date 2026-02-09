@@ -11,8 +11,8 @@
     "./hooks": "./src/hooks.tsx"
   },
   "scripts": {
-    "build": "tsup src/index.ts src/hooks.tsx src/locales/nl.ts src/locales/en.ts src/locales/tr.ts --format esm --dts --external react",
-    "dev": "tsup src/index.ts src/hooks.tsx src/locales/*.ts --format esm --dts --external react --watch",
+    "build": "tsup src/index.ts src/hooks.tsx src/locales/nl.ts src/locales/en.ts src/locales/tr.ts --format esm --dts --external react --external '@nyoworks/*'",
+    "dev": "tsup src/index.ts src/hooks.tsx src/locales/*.ts --format esm --dts --external react --external '@nyoworks/*' --watch",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
